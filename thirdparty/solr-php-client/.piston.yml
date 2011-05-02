@@ -1,0 +1,8 @@
+--- 
+format: 1
+handler: 
+  piston:remote-revision: 60
+  piston:uuid: e73431f4-bb50-11dd-afb1-a7db9ebf18e3
+lock: false
+repository_class: Piston::Svn::Repository
+repository_url: http://solr-php-client.googlecode.com/svn/trunk/
