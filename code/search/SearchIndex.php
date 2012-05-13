@@ -25,7 +25,7 @@
  * - Specifying which classes and fields this index contains
  *
  * - Specifying update rules that are not extractable from metadata (because the values come from functions for instance)
- * 
+ *
  */
 abstract class SearchIndex extends ViewableData {
 
@@ -242,7 +242,7 @@ abstract class SearchIndex extends ViewableData {
 
 				foreach ($fields as $field => $type) {
 					if (preg_match('/^(\w+)\(/', $type, $match)) $type = $match[1];
-					if (ClassInfo::is_subclass_of($type, 'StringField')) $this->addFulltextField($field);
+					if (is_subclass_of($type, 'StringField')) $this->addFulltextField($field);
 				}
 			}
 		}
@@ -273,7 +273,7 @@ abstract class SearchIndex extends ViewableData {
 
 	/**
 	 * Returns an array where each member is all the fields and the classes that are at the end of some
-	 * specific lookup chain from one of the base classes 
+	 * specific lookup chain from one of the base classes
 	 */
 	function getDerivedFields() {
 		if ($this->derivedFields === null) {
@@ -308,7 +308,7 @@ abstract class SearchIndex extends ViewableData {
 
 	/**
 	 * Get the "document ID" (a database & variant unique id) given some "Base" class, DataObject ID and state array
-	 * 
+	 *
 	 * @param String $base - The base class of the object
 	 * @param Integer $id - The ID of the object
 	 * @param Array $state - The variant state of the object
@@ -411,7 +411,7 @@ abstract class SearchIndex extends ViewableData {
 
 		// First, if this object is directly contained in the index, add it
 		foreach ($this->classes as $searchclass => $options) {
-			if ($searchclass == $class || ($options['include_children'] && ClassInfo::is_subclass_of($class, $searchclass))) {
+			if ($searchclass == $class || ($options['include_children'] && is_subclass_of($class, $searchclass))) {
 
 				$dirty[$searchclass] = array();
 				foreach ($statefulids as $statefulid) {
@@ -516,7 +516,7 @@ abstract class SearchIndex_Recording extends SearchIndex {
 		$res = array();
 
 		$res['ID'] = $object->ID;
-		
+
 		foreach ($this->getFieldsIterator() as $name => $field) {
 			$val = $this->_getFieldValue($object, $field);
 			$res[$name] = $val;
@@ -544,5 +544,5 @@ abstract class SearchIndex_Recording extends SearchIndex {
 	}
 
 	function commit() { }
-	
+
 }
