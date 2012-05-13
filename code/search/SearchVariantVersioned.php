@@ -28,10 +28,10 @@ class SearchVariantVersioned extends SearchVariant {
 		$stage = Versioned::current_stage();
 		$query->filter('_versionedstage', array($stage, SearchQuery::$missing));
 	}
-	
+
 	function extractManipulationState(&$manipulation) {
 		$self = get_class($this);
-		
+
 		foreach ($manipulation as $table => $details) {
 			$class = $details['class'];
 			$stage = 'Stage';

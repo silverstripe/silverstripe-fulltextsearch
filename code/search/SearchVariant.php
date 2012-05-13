@@ -33,6 +33,12 @@ abstract class SearchVariant {
 	 */
 	abstract function activateState($state);
 
+	/** Holds the class dependencies of each variant **/
+	protected static $dependentClasses = array(
+		'Subsite',
+		'Versioned'
+	);
+
 	/*** OVERRIDES end here*/
 
 	/** Holds a cache of all variants */
@@ -60,10 +66,14 @@ abstract class SearchVariant {
 
 				$concrete = array();
 				foreach ($classes as $variantclass) {
-					$ref = new ReflectionClass($variantclass);
-					if ($ref->isInstantiable()) $concrete[$variantclass] = singleton($variantclass);
+					foreach(self::$dependentClasses as $dependency) {
+						// Rather relies on variants being named similalrly to their dependencies
+						if(preg_match("#$dependency#i",$variantclass) && class_exists($dependency)) {
+							$ref = new ReflectionClass($variantclass);
+							if ($ref->isInstantiable()) $concrete[$variantclass] = singleton($variantclass);
+						}
+					}
 				}
-
 				self::$variants = $concrete;
 			}
 
