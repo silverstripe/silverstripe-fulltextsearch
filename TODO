@@ -1,0 +1,50 @@
+fulltextsearch notes:
+
+Improved README
+
+* Need to rename default module dirname to 'solr' for it to work
+* Improve docs with one readme/INSTALL doc:
+
+1). rename module dir from silverstripe-fulltextsearch to "solr" (and alter existing configs accordingly)
+2). create a dummy index 'MyIndex" (Paste instructions here)
+3). add the following to mysite/_config.php
+
+
+Solr::configure_server(isset($solr_config) ? $solr_config : array(
+        'host' => 'localhost',
+        'indexstore' => array(
+                'mode' => 'file',
+                'path' => BASE_PATH . '/fulltextsearch/thirdparty/solr/server/solr'
+        )
+));
+
+4). cd thirdparty/solr/server ; java -jar start.jar (Starts up Jetty+Solr, note any errors as jetty is printing these to stdout) 
+5). Now run sake dev/tasks/Solr_configure (assumes you've put sake into an alias or similar in .bashrc/.profile somewhere)
+6). Now run sake dev/tasks/Solr_reindex
+and note that http://localhost:8983/solr/MyIndex/admin/ looks right (SOLR admin should be viewable)
+
+7). Note also post.sh and post.jar, for use with ss-test.xml for manually posting to SOLR to ensure "stuff" can get in there for debugging
+so developers can better narrow-down where errors lie (eg. with SOLR itself or SS) see: http://lucene.apache.org/solr/api/doc-files/tutorial.html
+for examples of manually posted XML java -Durl=http://localhost:8983/solr/MyIndex/update/ -Dtype=text/xml -jar post.jar ss-test.xml
+
+Need to fix error: [User Warning] ViewableData::$failover set to a non-object
+
+Fix errors in solr startup:
+
+- INFO: JNDI not configured for solr (NoInitialContextEx)
+- WARNING: No queryConverter defined, using default converter
+
+Testing:
+
+SS3
+
+* [DONE] Module invoked query shows up in SOLR? YES: Search query returns nothing in SS, but the request _is_ received by SOLR
+* Manually posted XML data to SOLR, shows up in SOLR UI via *:*?
+* Manually posted XML data to SOLR, shows up in SS?
+* CMS content updates, show up in SOLR UI via *:*?
+* CMS content updates, show up in SS?
+* Shutdown SOLR - what results are shown now?
+...what exactly _is_ "ClassHierarchy"??
+
+
+SS2
