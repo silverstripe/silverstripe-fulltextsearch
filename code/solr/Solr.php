@@ -149,7 +149,8 @@ class Solr_Reindex extends BuildTask {
 		$originalState = SearchVariant::current_state();
 
 		if (isset($_GET['start'])) {
-			$this->runFrom(singleton($_GET['index']), $_GET['class'], $_GET['start'], json_decode($_GET['variantstate'], true));
+			$variantstate = array_values(json_decode($_GET['variantstate'],true));
+			$this->runFrom(singleton($_GET['index']), $_GET['class'], $_GET['start'], $variantstate[0]);
 		}
 		else {
 			foreach(array('framework','sapphire') as $dirname) {
@@ -214,7 +215,7 @@ class Solr_Reindex extends BuildTask {
 		$includeSubclasses = $options['include_children'];
 		$filter = $includeSubclasses ? "" : '"ClassName" = \''.$class."'";
 
-		$items = DataObject::get($class, $filter, "", "", array('limit' => $this->stat('recordsPerRequest'), 'start' => $start));
+		$items = DataList::create($class)->where($filter)->limit($this->stat('recordsPerRequest'), $start);
 		foreach ($items as $item) { $index->add($item); $item->destroy(); }
 	}
 

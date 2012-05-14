@@ -264,14 +264,14 @@ abstract class SolrIndex extends SearchIndex {
 
 		$res = $service->search($q ? implode(' ', $q) : '*:*', $offset, $limit, array('fq' => implode(' ', $fq)), Apache_Solr_Service::METHOD_POST);
 
-		$results = array();
+		$results = new ArrayList();
 
 		foreach ($res->response->docs as $doc) {
 			$result = DataObject::get_by_id($doc->ClassName, $doc->ID);
 			if ($result) $results[] = $result;
 		}
 
-		$ret = new ArrayList();
+		$ret = array();
 		$ret['Matches'] = new PaginatedList($results);
 		$ret['Matches']->setTotalItems($res->numFound);	// Tell PaginatedList how many results there are
 		$ret['Matches']->setPageStart($offset);			// Results for current page start at $offset
