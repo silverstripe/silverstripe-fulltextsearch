@@ -271,10 +271,12 @@ abstract class SolrIndex extends SearchIndex {
 			if ($result) $results[] = $result;
 		}
 
-		$ret = array();
-		$ret['Matches'] = new DataObjectSet($results);
-		$ret['Matches']->setPageLimits($offset, $limit, $res->numFound);
+		$ret = new ArrayList();
+		$ret['Matches'] = new PaginatedList($results);
+		$ret['Matches']->setTotalItems($res->numFound);	// Tell PaginatedList how many results there are
+		$ret['Matches']->setPageStart($offset);			// Results for current page start at $offset
+		$ret['Matches']->setPageLength($limit);			// Results per page
 
-		return new ArrayData($ret);
+		return new ArrayList($ret);
 	}
 }
