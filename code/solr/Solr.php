@@ -152,7 +152,12 @@ class Solr_Reindex extends BuildTask {
 			$this->runFrom(singleton($_GET['index']), $_GET['class'], $_GET['start'], json_decode($_GET['variantstate'], true));
 		}
 		else {
-			$script = sprintf('%s%ssapphire%scli-script.php', BASE_PATH, DIRECTORY_SEPARATOR, DIRECTORY_SEPARATOR);
+			foreach(array('framework','sapphire') as $dirname) {
+				$script = sprintf("%s%s$dirname%scli-script.php", BASE_PATH, DIRECTORY_SEPARATOR, DIRECTORY_SEPARATOR);
+				if(file_exists($script)) {
+					break;
+				}
+			}
 			$class = get_class($this);
 
 			foreach (Solr::get_indexes() as $index => $instance) {
