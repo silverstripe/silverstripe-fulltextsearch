@@ -67,7 +67,7 @@ abstract class SearchVariant {
 				$concrete = array();
 				foreach ($classes as $variantclass) {
 					foreach(self::$dependentClasses as $dependency) {
-						// Rather relies on variants being named similalrly to their dependencies
+						// Rather relies on variants being named similarly to their dependencies
 						if(preg_match("#$dependency#i",$variantclass) && class_exists($dependency)) {
 							$ref = new ReflectionClass($variantclass);
 							if ($ref->isInstantiable()) $concrete[$variantclass] = singleton($variantclass);
