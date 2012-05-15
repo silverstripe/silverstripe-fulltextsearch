@@ -149,8 +149,7 @@ class Solr_Reindex extends BuildTask {
 		$originalState = SearchVariant::current_state();
 
 		if (isset($_GET['start'])) {
-			$variantstate = array_values(json_decode($_GET['variantstate'],true));
-			$this->runFrom(singleton($_GET['index']), $_GET['class'], $_GET['start'], $variantstate[0]);
+			$this->runFrom(singleton($_GET['index']), $_GET['class'], $_GET['start'], json_decode($_GET['variantstate'],true));
 		}
 		else {
 			foreach(array('framework','sapphire') as $dirname) {
