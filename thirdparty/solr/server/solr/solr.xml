@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <solr persistent="true">
   <cores adminPath="/admin/cores">
-    <core name="MyIndex" instanceDir="/srv/www/htdocs/ss3/solr/thirdparty/solr/server/solr/MyIndex/"/>
+    <core name="MyIndex" instanceDir="/Users/rmichell/sites/ss3/solr/thirdparty/solr/server/solr/MyIndex/"/>
   </cores>
 </solr>
