@@ -277,6 +277,7 @@ abstract class SolrIndex extends SearchIndex {
 		$ret['Matches']->setPageStart($offset);			// Results for current page start at $offset
 		$ret['Matches']->setPageLength($limit);			// Results per page
 
-		return new ArrayList($ret);
+		// Just return what's useful
+		return $ret['Matches']->toArray();
 	}
 }
