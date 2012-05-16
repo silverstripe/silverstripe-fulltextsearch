@@ -411,7 +411,7 @@ abstract class SearchIndex extends ViewableData {
 
 		// First, if this object is directly contained in the index, add it
 		foreach ($this->classes as $searchclass => $options) {
-			if ($searchclass == $class || ($options['include_children'] && is_subclass_of($class, $searchclass))) {
+			if ($searchclass == $class || ($options['include_children'] && is_subclass_of($searchclass, $class))) {
 
 				$dirty[$searchclass] = array();
 				foreach ($statefulids as $statefulid) {

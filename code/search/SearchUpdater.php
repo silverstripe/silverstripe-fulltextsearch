@@ -30,7 +30,7 @@ class SearchUpdater extends Object {
 	 *
 	 * If messagequeue module not installed, AUTO => IMMEDIATE and DEFERRED => DISABLED
 	 */
-	static $update_method = SearchUpdater::DEFERRED;
+	static $update_method = SearchUpdater::AUTO;
 
 	// How many items can be dirty before we defer updates
 	static $auto_threshold = 6;

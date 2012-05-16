@@ -23,7 +23,7 @@
 
  To post to SOLR:
 
- #> java': java -Durl=http://localhost:8983/solr/MyIndex/update/ -Dtype=text/xml -jar post.jar silverstripe-solr-test.xml 
+ #> java -Durl=http://localhost:8983/solr/MyIndex/update/ -Dtype=text/xml -jar post.jar silverstripe-solr-test.xml 
 
 -->
 
