@@ -32,7 +32,7 @@ class SearchVariantSiteTreeSubsitesPolyhome extends SearchVariant {
 
 	function alterDefinition($base, $index) {
 		$self = get_class($this);
-		
+
 		$index->filterFields['_subsite'] = array(
 			'name' => '_subsite',
 			'field' => '_subsite',

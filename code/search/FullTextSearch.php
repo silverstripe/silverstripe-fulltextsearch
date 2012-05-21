@@ -41,7 +41,7 @@ class FullTextSearch {
 
 				$valid = array();
 				foreach ($all as $indexclass => $instance) {
-					if (ClassInfo::is_subclass_of($indexclass, $class)) $valid[$indexclass] = $instance;
+					if (is_subclass_of($indexclass, $class)) $valid[$indexclass] = $instance;
 				}
 
 				self::$indexes_by_subclass[$class] = $valid;

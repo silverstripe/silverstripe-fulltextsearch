@@ -30,7 +30,7 @@ class SearchUpdater extends Object {
 	 *
 	 * If messagequeue module not installed, AUTO => IMMEDIATE and DEFERRED => DISABLED
 	 */
-	static $update_method = SearchUpdater::DEFERRED;
+	static $update_method = SearchUpdater::AUTO;
 
 	// How many items can be dirty before we defer updates
 	static $auto_threshold = 6;
@@ -93,7 +93,7 @@ class SearchUpdater extends Object {
 	}
 
 	static $registered = false;
-	
+
 	/**
 	 * Called by the SearchManiplateCapture database adapter with every manipulation made against the database.
 	 *
@@ -116,7 +116,7 @@ class SearchUpdater extends Object {
 		SearchVariant::call('extractManipulationState', $manipulation);
 
 		// Then combine the manipulation back into object field sets
-		
+
 		$writes = array();
 
 		foreach ($manipulation as $table => $details) {
@@ -131,11 +131,11 @@ class SearchUpdater extends Object {
 			$key = "$id:$base:".serialize($state);
 
 			$statefulids = array(array('id' => $id, 'state' => $state));
-			
+
 			// Is this the first table for this particular object? Then add an item to $writes
 			if (!isset($writes[$key])) $writes[$key] = array('base' => $base, 'class' => $class, 'id' => $id, 'statefulids' => $statefulids, 'fields' => array());
 			// Otherwise update the class label if it's more specific than the currently recorded one
-			else if (ClassInfo::is_subclass_of($class, $writes[$key]['class'])) $writes[$key]['class'] = $class;
+			else if (is_subclass_of($class, $writes[$key]['class'])) $writes[$key]['class'] = $class;
 
 			// Update the fields
 			foreach ($fields as $field => $value) {

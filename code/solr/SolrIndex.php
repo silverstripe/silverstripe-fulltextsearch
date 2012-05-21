@@ -70,13 +70,13 @@ abstract class SolrIndex extends SearchIndex {
 
 		foreach ($this->sortFields as $name => $field) {
 			if ($field['fullfield'] == 'ID' || $field['fullfield'] == 'ClassName') continue;
-			
+
 			$multiValued = (isset($field['multi_valued']) && $field['multi_valued']) ? "multiValued='true'" : '';
 
 			$type = self::$sortTypeMap[$field['type']];
 			$xml[] = "<field name='{$name}' type='{$type}' indexed='true' $stored $multiValued />";
 		}
-		
+
 		return implode("\n\t\t", $xml);
 	}
 
@@ -92,7 +92,7 @@ abstract class SolrIndex extends SearchIndex {
 
 	protected function _addField($doc, $object, $field) {
 		$class = get_class($object);
-		if ($class != $field['origin'] && !ClassInfo::is_subclass_of($class, $field['origin'])) return;
+		if ($class != $field['origin'] && !is_subclass_of($class, $field['origin'])) return;
 
 		$value = $this->_getFieldValue($object, $field);
 		$type = isset(self::$filterTypeMap[$field['type']]) ? self::$filterTypeMap[$field['type']] : self::$filterTypeMap['*'];
@@ -102,7 +102,7 @@ abstract class SolrIndex extends SearchIndex {
 			if ($type == 'tdate') $sub = gmdate('Y-m-d\TH:i:s\Z', strtotime($sub));
 			/* Solr requires numbers to be valid if presented, not just empty */
 			if (($type == 'tint' || $type == 'tfloat' || $type == 'tdouble') && !is_numeric($sub)) continue;
-			
+
 			$doc->addField($field['name'], $sub);
 		}
 
@@ -142,7 +142,7 @@ abstract class SolrIndex extends SearchIndex {
 		$class = get_class($object);
 
 		foreach ($this->getClasses() as $searchclass => $options) {
-			if ($searchclass == $class || ($options['include_children'] && ClassInfo::is_subclass_of($class, $searchclass))) {
+			if ($searchclass == $class || ($options['include_children'] && is_subclass_of($class, $searchclass))) {
 				$this->_addAs($object, $searchclass, $options);
 			}
 		}
@@ -150,7 +150,7 @@ abstract class SolrIndex extends SearchIndex {
 
 	function canAdd($class) {
 		foreach ($this->classes as $searchclass => $options) {
-			if ($searchclass == $class || ($options['include_children'] && ClassInfo::is_subclass_of($class, $searchclass))) return true;
+			if ($searchclass == $class || ($options['include_children'] && is_subclass_of($class, $searchclass))) return true;
 		}
 
 		return false;
@@ -264,7 +264,7 @@ abstract class SolrIndex extends SearchIndex {
 
 		$res = $service->search($q ? implode(' ', $q) : '*:*', $offset, $limit, array('fq' => implode(' ', $fq)), Apache_Solr_Service::METHOD_POST);
 
-		$results = array();
+		$results = new ArrayList();
 
 		foreach ($res->response->docs as $doc) {
 			$result = DataObject::get_by_id($doc->ClassName, $doc->ID);
@@ -272,9 +272,12 @@ abstract class SolrIndex extends SearchIndex {
 		}
 
 		$ret = array();
-		$ret['Matches'] = new DataObjectSet($results);
-		$ret['Matches']->setPageLimits($offset, $limit, $res->numFound);
+		$ret['Matches'] = new PaginatedList($results);
+		$ret['Matches']->setTotalItems($res->numFound);	// Tell PaginatedList how many results there are
+		$ret['Matches']->setPageStart($offset);			// Results for current page start at $offset
+		$ret['Matches']->setPageLength($limit);			// Results per page
 
-		return new ArrayData($ret);
+		// Just return what's useful
+		return $ret['Matches']->toArray();
 	}
 }

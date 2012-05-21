@@ -21,8 +21,13 @@ class SearchVariantSiteTreeSubsitesPolyhomeTest extends SapphireTest {
 	private static $subsite_a = null;
 	private static $subsite_b = null;
 
-	function setUp() {
+	function setUp() {		
 		parent::setUp();
+		// Check subsites installed
+		if(!class_exists('Subsite')) {
+			user_error("Subsite class not available. This is probably because the Subsites module is not installed.");
+			return false;
+		}			
 
 		if (self::$index === null) self::$index = singleton('SearchVariantSiteTreeSubsitesPolyhomeTest_Index');
 
@@ -35,7 +40,7 @@ class SearchVariantSiteTreeSubsitesPolyhomeTest extends SapphireTest {
 		SearchUpdater::clear_dirty_indexes();
 	}
 
-	function testSavingDirect() {
+	function testSavingDirect() {				
 		// Initial add
 
 		$item = new SearchVariantSiteTreeSubsitesPolyhomeTest_Item();

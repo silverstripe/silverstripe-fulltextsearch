@@ -90,7 +90,7 @@ class Solr_Configure extends BuildTask {
 			case 'file':
 				$local = $index['path'];
 				$remote = isset($index['remotepath']) ? $index['remotepath'] : $local;
-				
+
 				foreach (Solr::get_indexes() as $index => $instance) {
 					$confdir = "$local/$index/conf";
 					if (!is_dir($confdir)) mkdir($confdir, 0770, true);
@@ -101,7 +101,7 @@ class Solr_Configure extends BuildTask {
 						if (is_file($file)) copy($file, $confdir.'/'.basename($file));
 					}
 				}
-					
+
 				break;
 
 			case 'webdav':
@@ -111,7 +111,7 @@ class Solr_Configure extends BuildTask {
 					Solr::$solr_options['host'] . ':' . Solr::$solr_options['port'],
 					$index['path']
 				));
-					
+
 				$remote = $index['remotepath'];
 
 				foreach (Solr::get_indexes() as $index => $instance) {
@@ -127,7 +127,7 @@ class Solr_Configure extends BuildTask {
 						if (is_file($file)) WebDAV::upload_from_file($file, $confdir.'/'.basename($file));
 					}
 				}
-					
+
 				break;
 
 			default:
@@ -149,10 +149,15 @@ class Solr_Reindex extends BuildTask {
 		$originalState = SearchVariant::current_state();
 
 		if (isset($_GET['start'])) {
-			$this->runFrom(singleton($_GET['index']), $_GET['class'], $_GET['start'], json_decode($_GET['variantstate'], true));
+			$this->runFrom(singleton($_GET['index']), $_GET['class'], $_GET['start'], json_decode($_GET['variantstate'],true));
 		}
 		else {
-			$script = sprintf('%s%ssapphire%scli-script.php', BASE_PATH, DIRECTORY_SEPARATOR, DIRECTORY_SEPARATOR);
+			foreach(array('framework','sapphire') as $dirname) {
+				$script = sprintf("%s%s$dirname%scli-script.php", BASE_PATH, DIRECTORY_SEPARATOR, DIRECTORY_SEPARATOR);
+				if(file_exists($script)) {
+					break;
+				}
+			}
 			$class = get_class($this);
 
 			foreach (Solr::get_indexes() as $index => $instance) {
@@ -162,20 +167,17 @@ class Solr_Reindex extends BuildTask {
 
 				foreach ($instance->getClasses() as $class => $options) {
 					$includeSubclasses = $options['include_children'];
-					
+
 					foreach (SearchVariant::reindex_states($class, $includeSubclasses) as $state) {
 						SearchVariant::activate_state($state);
-						
+
 						$filter = $includeSubclasses ? "" : '"ClassName" = \''.$class."'";
-
 						$singleton = singleton($class);
-
-						$query = $singleton->buildSQL($filter);
-						$query->select('COUNT("'.$class.'"."ID")');
-						$query->orderby = null;
-						$singleton->extend('augmentSQL', $query);
-
-						$total = $query->execute()->value();
+						$query = $singleton->get($class,$filter,null);
+						$dtaQuery = $query->dataQuery();
+						$sqlQuery = $dtaQuery->getFinalisedQuery();
+						$singleton->extend('augmentSQL',$sqlQuery,$dtaQuery);
+						$total = $query->count();
 
 						$statevar = json_encode($state);
 						echo "Class: $class, total: $total in state $statevar\n";
@@ -185,7 +187,7 @@ class Solr_Reindex extends BuildTask {
 
 						for ($offset = 0; $offset < $total; $offset += $this->stat('recordsPerRequest')) {
 							echo "$offset..";
-							
+
 							$res = `php $script dev/tasks/$self index=$index class=$class start=$offset variantstate=$statevar`;
 							if (isset($_GET['verbose'])) echo "\n  ".preg_replace('/\r\n|\n/', '$0  ', $res)."\n";
 
@@ -212,7 +214,7 @@ class Solr_Reindex extends BuildTask {
 		$includeSubclasses = $options['include_children'];
 		$filter = $includeSubclasses ? "" : '"ClassName" = \''.$class."'";
 
-		$items = DataObject::get($class, $filter, "", "", array('limit' => $this->stat('recordsPerRequest'), 'start' => $start));
+		$items = DataList::create($class)->where($filter)->limit($this->stat('recordsPerRequest'), $start);
 		foreach ($items as $item) { $index->add($item); $item->destroy(); }
 	}
 

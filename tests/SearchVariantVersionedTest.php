@@ -20,6 +20,12 @@ class SearchVariantVersionedTest extends SapphireTest {
 
 	function setUp() {
 		parent::setUp();
+		
+		// Check versioned installed (something is very wrong if it isn't)
+		if(!class_exists('Versioned')) {
+			user_error("Versioned class not available. Something is wrong with your SilverStripe install as \"Versioned\" is core sapphire functionality");
+			return false;
+		}	
 
 		if (self::$index === null) self::$index = singleton('SearchVariantVersionedTest_Index');
 
@@ -58,7 +64,7 @@ class SearchVariantVersionedTest extends SapphireTest {
 
 		SearchUpdater::flush_dirty_indexes();
 		$this->assertEquals(self::$index->getAdded(array('ID', '_versionedstage')), array(
-			array('ID' => $item->ID, '_versionedstage' => 'Stage')
+			array('ID' => $item->ID, '_versionedstage' => 'Stage3')
 		));
 	}
 }
