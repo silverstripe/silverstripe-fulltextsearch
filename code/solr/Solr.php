@@ -65,9 +65,9 @@ class Solr  {
 		static $included = false;
 
 		if (!$included) {
+			set_include_path(get_include_path() . PATH_SEPARATOR . Director::baseFolder() . '/fulltextsearch/thirdparty/solr-php-client');
 			require_once('Apache/Solr/Service.php');
 			require_once('Apache/Solr/Document.php');
-			set_include_path(get_include_path() . PATH_SEPARATOR . Director::baseFolder() . '/fulltextsearch/thirdparty/solr-php-client');
 
 			$included = true;
 		}
