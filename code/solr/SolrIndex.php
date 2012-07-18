@@ -23,7 +23,7 @@ abstract class SolrIndex extends SearchIndex {
 	);
 
 	function generateSchema() {
-		return $this->renderWith(Director::baseFolder() . '/solr/conf/templates/schema.ss');
+		return $this->renderWith(Director::baseFolder() . '/fulltextsearch/conf/templates/schema.ss');
 	}
 
 	function getIndexName() {
@@ -31,7 +31,7 @@ abstract class SolrIndex extends SearchIndex {
 	}
 
 	function getTypes() {
-		return $this->renderWith(Director::baseFolder() . '/solr/conf/templates/types.ss');
+		return $this->renderWith(Director::baseFolder() . '/fulltextsearch/conf/templates/types.ss');
 	}
 
 	function getFieldDefinitions() {

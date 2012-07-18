@@ -59,15 +59,15 @@ class Solr  {
 
 	/**
 	 * Include the thirdparty Solr client api library. Done this way to avoid issues where code is called in mysite/_config
-	 * before solr/_config has a change to update the include path.
+	 * before fulltextsearch/_config has a change to update the include path.
 	 */
 	static function include_client_api() {
 		static $included = false;
 
 		if (!$included) {
-			set_include_path(get_include_path() . PATH_SEPARATOR . Director::baseFolder() . '/solr/thirdparty/solr-php-client');
 			require_once('Apache/Solr/Service.php');
 			require_once('Apache/Solr/Document.php');
+			set_include_path(get_include_path() . PATH_SEPARATOR . Director::baseFolder() . '/fulltextsearch/thirdparty/solr-php-client');
 
 			$included = true;
 		}
@@ -97,7 +97,7 @@ class Solr_Configure extends BuildTask {
 
 					file_put_contents("$confdir/schema.xml", $instance->generateSchema());
 
-					foreach (glob(Director::baseFolder().'/solr/conf/extras/*') as $file) {
+					foreach (glob(Director::baseFolder().'/fulltextsearch/conf/extras/*') as $file) {
 						if (is_file($file)) copy($file, $confdir.'/'.basename($file));
 					}
 				}
@@ -123,7 +123,7 @@ class Solr_Configure extends BuildTask {
 
 					WebDAV::upload_from_string($instance->generateSchema(), "$confdir/schema.xml");
 
-					foreach (glob(Director::baseFolder().'/solr/conf/extras/*') as $file) {
+					foreach (glob(Director::baseFolder().'/fulltextsearch/conf/extras/*') as $file) {
 						if (is_file($file)) WebDAV::upload_from_file($file, $confdir.'/'.basename($file));
 					}
 				}
