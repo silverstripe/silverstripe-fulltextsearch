@@ -52,38 +52,30 @@ Basic usage is a four step process:
 
 1). Define an index in SilverStripe (Note: The specific connector index instance - that's what defines which engine gets used)
 
-```php
-mysite/code/MyIndex.php:
-
-<?php
-
-class MyIndex extends SolrIndex {
-	function init() {
-		$this->addClass('Page');
-		$this->addFulltextField('DocumentContents');
+	// File: mysite/code/MyIndex.php:
+	<?php
+	class MyIndex extends SolrIndex {
+		function init() {
+			$this->addClass('Page');
+			$this->addFulltextField('DocumentContents');
+		}
 	}
-}
-```
 
 2). Add something to the index (Note: You can also just update an existing document in the CMS. but adding _existing_ objects to the index is connector specific)
 
-```php
-$page = new Page(array('Contents' => 'Help me. My house is on fire. This is less than optimal.'));
-$page->write();
-```
+	$page = new Page(array('Contents' => 'Help me. My house is on fire. This is less than optimal.'));
+	$page->write();
+
+Note: There's usually a connector-specific "reindex" task for this.
 
 3). Build a query
 
-```php
-$query = new SearchQuery();
-$query->search('My house is on fire');
-```
+	$query = new SearchQuery();
+	$query->search('My house is on fire');
 
 4). Apply that query to an index
 
-```php
-$results = singleton($index)->search($query);
-```
+	$results = singleton('MyIndex')->search($query);
 
 Note that for most connectors, changes won't be searchable until _after_ the request that triggered the change.
 
