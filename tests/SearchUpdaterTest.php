@@ -57,6 +57,8 @@ class SearchUpdaterTest extends SapphireTest {
 		if (self::$index === null) self::$index = singleton(get_class($this).'_Index');
 		else self::$index->reset();
 
+		SearchUpdater::bind_manipulation_capture();
+
 		FullTextSearch::force_index_list(self::$index);
 		SearchUpdater::clear_dirty_indexes();
 	}

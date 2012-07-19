@@ -28,6 +28,8 @@ class SearchVariantVersionedTest extends SapphireTest {
 
 		if (self::$index === null) self::$index = singleton('SearchVariantVersionedTest_Index');
 
+		SearchUpdater::bind_manipulation_capture();
+
 		FullTextSearch::force_index_list(self::$index);
 		SearchUpdater::clear_dirty_indexes();
 	}
