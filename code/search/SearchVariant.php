@@ -16,6 +16,12 @@ abstract class SearchVariant {
 	 */
 
 	/**
+	 * Return false if there is something missing from the environment (probably a
+	 * not installed module) that means this variant can't apply to any class
+	 */
+	abstract function appliesToEnvironment();
+
+	/**
 	 * Return true if this variant applies to the passed class & subclass
 	 */
 	abstract function appliesTo($class, $includeSubclasses);
@@ -61,7 +67,10 @@ abstract class SearchVariant {
 				$concrete = array();
 				foreach ($classes as $variantclass) {
 					$ref = new ReflectionClass($variantclass);
-					if ($ref->isInstantiable()) $concrete[$variantclass] = singleton($variantclass);
+					if ($ref->isInstantiable()) {
+						$variant = singleton($variantclass);
+						if ($variant->appliesToEnvironment()) $concrete[$variantclass] = $variant;
+					}
 				}
 
 				self::$variants = $concrete;

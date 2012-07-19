@@ -2,6 +2,10 @@
 
 class SearchVariantVersioned extends SearchVariant {
 
+	function appliesToEnvironment() {
+		return class_exists('Versioned');
+	}
+
 	function appliesTo($class, $includeSubclasses) {
 		return SearchIntrospection::has_extension($class, 'Versioned', $includeSubclasses);
 	}

@@ -2,6 +2,10 @@
 
 class SearchVariantSiteTreeSubsitesPolyhome extends SearchVariant {
 
+	function appliesToEnvironment() {
+		return class_exists('Subsite') && class_exists('SubsitePolyhome');
+	}
+
 	function appliesTo($class, $includeSubclasses) {
 		return SearchIntrospection::has_extension($class, 'SiteTreeSubsitesPolyhome', $includeSubclasses);
 	}
