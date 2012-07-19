@@ -10,7 +10,7 @@ An attempt to add stable support for Fulltext Search engines like Sphinx and Sol
 
 ## Requirements
 
-* SilverStripe 2.4. Untested in 3, but probably won't work.
+* SilverStripe 3.0
 
 ## Documentation
 
@@ -18,7 +18,7 @@ See docs/README.md
 
 ## TODO
 
-* Get rid of includeSubclasses - isn't actually used in practise, makes the codebase uglier, and ClassHierarchy can be
+* Get rid of includeSubclasses - isn't actually used in practice, makes the codebase uglier, and ClassHierarchy can be
 used at query time for most of the same use cases
 
 * Fix field referencing in queries. Should be able to do `$query->search('Text', 'Content')`, not
