@@ -49,26 +49,40 @@ Create an index
 
 Start the search server (via CLI, in a separate terminal window or background process)
 
-	cd fulltextsearc/thirdparty/fulltextsearch/server/
+	cd fulltextsearch/thirdparty/fulltextsearch/server/
 	java -jar start.jar
 
 Initialize the configuration (via CLI)
 
 	sake dev/tasks/Solr_configure
 
-Reindex
+## Usage
+
+After configuring Solr, you have the option to add your existing
+content to its indices. Run the following command:
 
 	sake dev/tasks/Solr_reindex
 
-## Usage
+This will rebuild all indices. You can narrow down the operation with the following options:
 
-TODO
+ - `index`: PHP class name of an index
+ - `class`: PHP model class to reindex
+ - `start`: Offset (applies to matched records)
+ - `variantstate`: JSON encoded string with state, e.g. '{"SearchVariantVersioned":"Stage"}'
+ - `verbose`: Debug information
+
+Note: The Solr indexes will be stored as binary files inside your SilverStripe project. 
+You can also copy the `thirdparty/`solr directory somewhere else,
+just set the path value in `mysite/_config.php` to point to the new location.
+And of course run `java -jar start.jar` from the new directory.
 
 ## Debugging
 
-You can visit `http://localhost:8983/solr/MyIndex/admin/` 
-to search the contents of the now created Solr index via the native SOLR web interface.
-Replace "MyIndex" with your own index definition as required.
+### Using the web admin interface
+
+You can visit `http://localhost:8983/solr`, which will show you a list
+to the admin interfaces of all available indices.
+There you can search the contents of the index via the native SOLR web interface.
 
 It is possible to manually replicate the data automatically sent 
 to Solr when saving/publishing in SilverStripe, 
@@ -76,8 +90,3 @@ which is useful when debugging front-end queries,
 see `thirdparty/fulltextsearch/server/silverstripe-solr-test.xml`.
 
 	java -Durl=http://localhost:8983/solr/MyIndex/update/ -Dtype=text/xml -jar post.jar silverstripe-solr-test.xml
-
-These instructions will get you running quickly, but the Solr indexes will be stored as binary files inside your SilverStripe project. You can also
-copy the thirdparty/solr directory somewhere else. The instructions above will still apply - just set the path value
-in mysite/_config.php to point to this other location, and of course run `java -jar start.jar` from the new directory,
-not the thirdparty one.
