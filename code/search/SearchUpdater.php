@@ -46,8 +46,8 @@ class SearchUpdater extends Object {
 	static function bind_manipulation_capture() {
 		global $databaseConfig;
 
-		$connector = DB::getConn();
-		if (!$connector || @$connector->isManipulationCapture) return; // If not yet set, or its already captured, just return
+		$current = DB::getConn();
+		if (!$current || @$current->isManipulationCapture) return; // If not yet set, or its already captured, just return
 
 		$type = $databaseConfig['type'];
 		$file = TEMP_FOLDER."/.cache.SMC.$type";
@@ -69,8 +69,10 @@ class SearchUpdater extends Object {
 		require_once($file);
 		$dbClass = 'SearchManipulateCapture_'.$type;
 
-		$conn = new $dbClass($databaseConfig);
-		DB::setConn($conn);
+		$captured = new $dbClass($databaseConfig);
+		// The connection might have had it's name changed (like if we're currently in a test)
+		$captured->selectDatabase($current->currentDatabase());
+		DB::setConn($captured);
 	}
 
 	static $dirty = array(); static $dirtycount = 0;
