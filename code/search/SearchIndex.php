@@ -242,7 +242,7 @@ abstract class SearchIndex extends ViewableData {
 
 				foreach ($fields as $field => $type) {
 					if (preg_match('/^(\w+)\(/', $type, $match)) $type = $match[1];
-					if (ClassInfo::is_subclass_of($type, 'StringField')) $this->addFulltextField($field);
+					if (is_subclass_of($type, 'StringField')) $this->addFulltextField($field);
 				}
 			}
 		}
@@ -411,7 +411,7 @@ abstract class SearchIndex extends ViewableData {
 
 		// First, if this object is directly contained in the index, add it
 		foreach ($this->classes as $searchclass => $options) {
-			if ($searchclass == $class || ($options['include_children'] && ClassInfo::is_subclass_of($class, $searchclass))) {
+			if ($searchclass == $class || ($options['include_children'] && is_subclass_of($class, $searchclass))) {
 
 				$dirty[$searchclass] = array();
 				foreach ($statefulids as $statefulid) {

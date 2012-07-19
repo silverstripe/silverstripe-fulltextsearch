@@ -92,7 +92,7 @@ abstract class SolrIndex extends SearchIndex {
 
 	protected function _addField($doc, $object, $field) {
 		$class = get_class($object);
-		if ($class != $field['origin'] && !ClassInfo::is_subclass_of($class, $field['origin'])) return;
+		if ($class != $field['origin'] && !is_subclass_of($class, $field['origin'])) return;
 
 		$value = $this->_getFieldValue($object, $field);
 		$type = isset(self::$filterTypeMap[$field['type']]) ? self::$filterTypeMap[$field['type']] : self::$filterTypeMap['*'];
@@ -142,7 +142,7 @@ abstract class SolrIndex extends SearchIndex {
 		$class = get_class($object);
 
 		foreach ($this->getClasses() as $searchclass => $options) {
-			if ($searchclass == $class || ($options['include_children'] && ClassInfo::is_subclass_of($class, $searchclass))) {
+			if ($searchclass == $class || ($options['include_children'] && is_subclass_of($class, $searchclass))) {
 				$this->_addAs($object, $searchclass, $options);
 			}
 		}
@@ -150,7 +150,7 @@ abstract class SolrIndex extends SearchIndex {
 
 	function canAdd($class) {
 		foreach ($this->classes as $searchclass => $options) {
-			if ($searchclass == $class || ($options['include_children'] && ClassInfo::is_subclass_of($class, $searchclass))) return true;
+			if ($searchclass == $class || ($options['include_children'] && is_subclass_of($class, $searchclass))) return true;
 		}
 
 		return false;

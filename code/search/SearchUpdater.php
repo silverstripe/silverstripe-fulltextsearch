@@ -143,7 +143,7 @@ class SearchUpdater extends Object {
 			// Is this the first table for this particular object? Then add an item to $writes
 			if (!isset($writes[$key])) $writes[$key] = array('base' => $base, 'class' => $class, 'id' => $id, 'statefulids' => $statefulids, 'fields' => array());
 			// Otherwise update the class label if it's more specific than the currently recorded one
-			else if (ClassInfo::is_subclass_of($class, $writes[$key]['class'])) $writes[$key]['class'] = $class;
+			else if (is_subclass_of($class, $writes[$key]['class'])) $writes[$key]['class'] = $class;
 
 			// Update the fields
 			foreach ($fields as $field => $value) {
