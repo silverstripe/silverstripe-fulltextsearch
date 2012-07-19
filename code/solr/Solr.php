@@ -134,8 +134,15 @@ class Solr_Configure extends BuildTask {
 				user_error('Unknown Solr index mode '.$index['mode'], E_USER_ERROR);
 		}
 
-		if ($service->coreIsActive($index)) $service->coreReload($index);
-		else $service->coreCreate($index, "$remote/$index");
+		if ($service->coreIsActive($index)) {
+			echo "Reloading configuration...";
+			$service->coreReload($index);
+			echo "done\n";
+		} else {
+			echo "Creating configuration...";
+			$service->coreCreate($index, "$remote/$index");
+			echo "done\n";
+		}
 	}
 }
 
