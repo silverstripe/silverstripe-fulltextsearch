@@ -232,12 +232,12 @@ class SearchUpdater extends Object {
 	/**
 	 * Internal function. Process the passed list of dirty ids. Split from flush_dirty_indexes so it can be called both
 	 * directly and via messagequeue message.
-	 *
-	 * WARNING: Changes state (subsite, stage) and doesn't reset it. Should only be called after request has ended
 	 */
 	static function process_dirty_indexes($dirty) {
 		$indexes = FullTextSearch::get_indexes();
 		$dirtyindexes = array();
+
+		$originalState = SearchVariant::current_state();
 
 		foreach ($dirty as $base => $statefulids) {
 			if (!$statefulids) continue;
@@ -263,6 +263,8 @@ class SearchUpdater extends Object {
 		foreach ($dirtyindexes as $index) {
 			$indexes[$index]->commit();
 		}
+
+		SearchVariant::activate_state($originalState);
 	}
 }
 
