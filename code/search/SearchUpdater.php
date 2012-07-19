@@ -46,12 +46,17 @@ class SearchUpdater extends Object {
 	static function bind_manipulation_capture() {
 		global $databaseConfig;
 
+		$connector = DB::getConn();
+		if (@$connector->isManipulationCapture) return; // If its already captured, just return
+
 		$type = $databaseConfig['type'];
 		$file = TEMP_FOLDER."/.cache.SMC.$type";
 
 		if (!is_file($file)) {
 			file_put_contents($file, "<?php
 				class SearchManipulateCapture_$type extends $type {
+					public \$isManipulationCapture = true;
+
 					function manipulate(\$manipulation) {
 						\$res = parent::manipulate(\$manipulation);
 						SearchUpdater::handle_manipulation(\$manipulation);
@@ -62,7 +67,10 @@ class SearchUpdater extends Object {
 		}
 
 		require_once($file);
-		$databaseConfig['type'] = 'SearchManipulateCapture_'.$type;
+		$dbClass = 'SearchManipulateCapture_'.$type;
+
+		$conn = new $dbClass($databaseConfig);
+		DB::setConn($conn);
 	}
 
 	static $dirty = array(); static $dirtycount = 0;
@@ -253,5 +261,15 @@ class SearchUpdater extends Object {
 		foreach ($dirtyindexes as $index) {
 			$indexes[$index]->commit();
 		}
+	}
+}
+
+class SearchUpdater_BindManipulationCaptureFilter implements RequestFilter {
+	public function preRequest(SS_HTTPRequest $request, Session $session, DataModel $model) {
+		SearchUpdater::bind_manipulation_capture();
+	}
+
+	public function postRequest(SS_HTTPRequest $request, SS_HTTPResponse $response, DataModel $model) {
+		/* NOP */
 	}
 }

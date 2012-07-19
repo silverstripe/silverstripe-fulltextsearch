@@ -1,3 +1,4 @@
 <?php
 
-SearchUpdater::bind_manipulation_capture();
+global $databaseConfig;
+if (isset($databaseConfig['type'])) SearchUpdater::bind_manipulation_capture();
