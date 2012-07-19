@@ -47,7 +47,7 @@ class SearchUpdater extends Object {
 		global $databaseConfig;
 
 		$connector = DB::getConn();
-		if (@$connector->isManipulationCapture) return; // If its already captured, just return
+		if (!$connector || @$connector->isManipulationCapture) return; // If not yet set, or its already captured, just return
 
 		$type = $databaseConfig['type'];
 		$file = TEMP_FOLDER."/.cache.SMC.$type";
