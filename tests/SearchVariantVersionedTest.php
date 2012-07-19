@@ -21,6 +21,11 @@ class SearchVariantVersionedTest extends SapphireTest {
 	function setUp() {
 		parent::setUp();
 
+		// Check versioned available
+		if(!class_exists('Versioned')) {
+			return $this->markTestSkipped('The versioned decorator is not installed');
+		}
+
 		if (self::$index === null) self::$index = singleton('SearchVariantVersionedTest_Index');
 
 		FullTextSearch::force_index_list(self::$index);

@@ -24,6 +24,11 @@ class SearchVariantSiteTreeSubsitesPolyhomeTest extends SapphireTest {
 	function setUp() {
 		parent::setUp();
 
+		// Check subsites installed
+		if(!class_exists('Subsite') || !class_exists('SubsitePolyhome')) {
+			return $this->markTestSkipped('The subsites polyhome module is not installed');
+		}
+
 		if (self::$index === null) self::$index = singleton('SearchVariantSiteTreeSubsitesPolyhomeTest_Index');
 
 		if (self::$subsite_a === null) {
