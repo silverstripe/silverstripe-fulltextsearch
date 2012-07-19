@@ -152,6 +152,7 @@ class Solr_Reindex extends BuildTask {
 	public function run($request) {
 		increase_time_limit_to();
 		$self = get_class($this);
+		$verbose = isset($_GET['verbose']);
 
 		$originalState = SearchVariant::current_state();
 
@@ -187,7 +188,8 @@ class Solr_Reindex extends BuildTask {
 						$total = $query->count();
 
 						$statevar = json_encode($state);
-						echo "Class: $class, total: $total in state $statevar\n";
+						echo "Class: $class, total: $total";
+						echo ($statevar) ? " in state $statevar\n" : "\n";
 
 						if (strpos(PHP_OS, "WIN") !== false) $statevar = '"'.str_replace('"', '\\"', $statevar).'"';
 						else $statevar = "'".$statevar."'";
@@ -196,11 +198,9 @@ class Solr_Reindex extends BuildTask {
 							echo "$offset..";
 							
 							$cmd = "php $script dev/tasks/$self index=$index class=$class start=$offset variantstate=$statevar";
-							$res = `$cmd`;
-							if (isset($_GET['verbose'])) {
-								echo "\n  Running '$cmd'\n";
-								echo "  ".preg_replace('/\r\n|\n/', '$0  ', $res)."\n";
-							}
+							if($verbose) echo "\n  Running '$cmd'\n";
+							$res = $verbose ? passthru($cmd) : `$cmd`;
+							if($verbose) echo "  ".preg_replace('/\r\n|\n/', '$0  ', $res)."\n";
 
 							// If we're in dev mode, commit more often for fun and profit
 							if (Director::isDev()) Solr::service($index)->commit();
@@ -219,7 +219,6 @@ class Solr_Reindex extends BuildTask {
 		$classes = $index->getClasses();
 		$options = $classes[$class];
 
-		echo "Variant: "; print_r($variantstate);
 		SearchVariant::activate_state($variantstate);
 
 		$includeSubclasses = $options['include_children'];
