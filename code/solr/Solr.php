@@ -188,8 +188,12 @@ class Solr_Reindex extends BuildTask {
 						for ($offset = 0; $offset < $total; $offset += $this->stat('recordsPerRequest')) {
 							echo "$offset..";
 							
-							$res = `php $script dev/tasks/$self index=$index class=$class start=$offset variantstate=$statevar`;
-							if (isset($_GET['verbose'])) echo "\n  ".preg_replace('/\r\n|\n/', '$0  ', $res)."\n";
+							$cmd = "php $script dev/tasks/$self index=$index class=$class start=$offset variantstate=$statevar";
+							$res = `$cmd`;
+							if (isset($_GET['verbose'])) {
+								echo "\n  Running '$cmd'\n";
+								echo "  ".preg_replace('/\r\n|\n/', '$0  ', $res)."\n";
+							}
 
 							// If we're in dev mode, commit more often for fun and profit
 							if (Director::isDev()) Solr::service($index)->commit();
