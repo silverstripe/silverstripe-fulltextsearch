@@ -165,17 +165,14 @@ class Solr_Reindex extends BuildTask {
 					
 					foreach (SearchVariant::reindex_states($class, $includeSubclasses) as $state) {
 						SearchVariant::activate_state($state);
-						
+
 						$filter = $includeSubclasses ? "" : '"ClassName" = \''.$class."'";
-
 						$singleton = singleton($class);
-
-						$query = $singleton->buildSQL($filter);
-						$query->select('COUNT("'.$class.'"."ID")');
-						$query->orderby = null;
-						$singleton->extend('augmentSQL', $query);
-
-						$total = $query->execute()->value();
+						$query = $singleton->get($class,$filter,null);
+						$dtaQuery = $query->dataQuery();
+						$sqlQuery = $dtaQuery->getFinalisedQuery();
+						$singleton->extend('augmentSQL',$sqlQuery,$dtaQuery);
+						$total = $query->count();
 
 						$statevar = json_encode($state);
 						echo "Class: $class, total: $total in state $statevar\n";
