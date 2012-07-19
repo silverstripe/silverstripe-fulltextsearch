@@ -268,9 +268,9 @@ abstract class SolrIndex extends SearchIndex {
 
 		foreach ($res->response->docs as $doc) {
 			$result = DataObject::get_by_id($doc->ClassName, $doc->ID);
-			if ($result) $results[] = $result;
+			if($result) $results->push($result);
 		}
-
+		
 		$ret = array();
 		$ret['Matches'] = new PaginatedList($results);
 		$ret['Matches']->setLimitItems(false);
