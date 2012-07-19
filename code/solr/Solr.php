@@ -214,7 +214,7 @@ class Solr_Reindex extends BuildTask {
 		$includeSubclasses = $options['include_children'];
 		$filter = $includeSubclasses ? "" : '"ClassName" = \''.$class."'";
 
-		$items = DataObject::get($class, $filter, "", "", array('limit' => $this->stat('recordsPerRequest'), 'start' => $start));
+		$items = DataList::create($class)->where($filter)->limit($this->stat('recordsPerRequest'), $start);
 		foreach ($items as $item) { $index->add($item); $item->destroy(); }
 	}
 
