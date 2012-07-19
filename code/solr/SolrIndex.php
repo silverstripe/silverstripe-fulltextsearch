@@ -264,7 +264,7 @@ abstract class SolrIndex extends SearchIndex {
 
 		$res = $service->search($q ? implode(' ', $q) : '*:*', $offset, $limit, array('fq' => implode(' ', $fq)), Apache_Solr_Service::METHOD_POST);
 
-		$results = array();
+		$results = new ArrayList();
 
 		foreach ($res->response->docs as $doc) {
 			$result = DataObject::get_by_id($doc->ClassName, $doc->ID);
@@ -272,8 +272,14 @@ abstract class SolrIndex extends SearchIndex {
 		}
 
 		$ret = array();
-		$ret['Matches'] = new DataObjectSet($results);
-		$ret['Matches']->setPageLimits($offset, $limit, $res->numFound);
+		$ret['Matches'] = new PaginatedList($results);
+		$ret['Matches']->setLimitItems(false);
+		// Tell PaginatedList how many results there are
+		$ret['Matches']->setTotalItems($res->response->numFound);
+		// Results for current page start at $offset
+		$ret['Matches']->setPageStart($offset);
+		// Results per page
+		$ret['Matches']->setPageLength($limit);
 
 		return new ArrayData($ret);
 	}
