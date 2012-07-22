@@ -1,5 +1,4 @@
 Injector:
   RequestProcessor:
-    properties:
-      filters:
-        - '%$SearchUpdater_BindManipulationCaptureFilter'
+    constructor:
+      - ['%$SearchUpdater_BindManipulationCaptureFilter']
