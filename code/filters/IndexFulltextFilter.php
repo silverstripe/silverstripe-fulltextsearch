@@ -27,6 +27,7 @@ class IndexFulltextFilter extends SearchFilter {
 		$query = new SearchQuery();
 		$query->$method($this->value, $this->fields);
 		$query->inClass($this->model);
+		$query->limit(1000);
 
 		$results = $this->index->search($query);
 		$ids = $results->Matches->column('ID');
