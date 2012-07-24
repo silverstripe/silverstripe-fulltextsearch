@@ -76,6 +76,7 @@ class Solr  {
 }
 
 class Solr_Configure extends BuildTask {
+	static $customised_conf_extra_path=null;
 
 	public function run($request) {
 		$service = Solr::service();
@@ -90,7 +91,6 @@ class Solr_Configure extends BuildTask {
 			case 'file':
 				$local = $index['path'];
 				$remote = isset($index['remotepath']) ? $index['remotepath'] : $local;
-				
 				foreach (Solr::get_indexes() as $index => $instance) {
 					$confdir = "$local/$index/conf";
 					if (!is_dir($confdir)) mkdir($confdir, 0770, true);
@@ -98,7 +98,19 @@ class Solr_Configure extends BuildTask {
 					file_put_contents("$confdir/schema.xml", $instance->generateSchema());
 
 					foreach (glob(Director::baseFolder().'/fulltextsearch/conf/extras/*') as $file) {
-						if (is_file($file)) copy($file, $confdir.'/'.basename($file));
+						if (is_file($file)){
+							if(self::$customised_conf_extra_path) {
+								$filename = basename($file);
+								$file_customised = Director::baseFolder().'/'.self::$customised_conf_extra_path.'/'.$filename;
+								if(is_file($file_customised)){
+									copy($file_customised, $confdir.'/'.$filename);
+								}else{
+									copy($file, $confdir.'/'.basename($file));
+								}
+							}else{
+								copy($file, $confdir.'/'.basename($file));
+							}
+						}
 					}
 				}
 					
