@@ -86,7 +86,7 @@ class Solr_Configure extends BuildTask {
 
 		$remote = null;
 
-		$configure = function($index) use($service) {
+		$configure = function($index, $remote) use($service) {
 			if ($service->coreIsActive($index)) {
 				echo "Reloading configuration...";
 				$service->coreReload($index);
@@ -113,7 +113,7 @@ class Solr_Configure extends BuildTask {
 						if (is_file($file)) copy($file, $confdir.'/'.basename($file));
 					}
 
-					$configure($index);
+					$configure($index, $remote);
 				}
 
 				break;
@@ -141,7 +141,7 @@ class Solr_Configure extends BuildTask {
 						if (is_file($file)) WebDAV::upload_from_file($file, $confdir.'/'.basename($file));
 					}
 
-					$configure($index);
+					$configure($index, $remote);
 				}
 
 				break;
