@@ -76,6 +76,7 @@ class Solr  {
 }
 
 class Solr_Configure extends BuildTask {
+	static $customised_conf_extra_path=null;
 
 	public function run($request) {
 		$service = Solr::service();
@@ -90,7 +91,6 @@ class Solr_Configure extends BuildTask {
 			case 'file':
 				$local = $index['path'];
 				$remote = isset($index['remotepath']) ? $index['remotepath'] : $local;
-				
 				foreach (Solr::get_indexes() as $index => $instance) {
 					$confdir = "$local/$index/conf";
 					if (!is_dir($confdir)) mkdir($confdir, 0770, true);
@@ -98,7 +98,19 @@ class Solr_Configure extends BuildTask {
 					file_put_contents("$confdir/schema.xml", $instance->generateSchema());
 
 					foreach (glob(Director::baseFolder().'/fulltextsearch/conf/extras/*') as $file) {
-						if (is_file($file)) copy($file, $confdir.'/'.basename($file));
+						if (is_file($file)){
+							if(self::$customised_conf_extra_path) {
+								$filename = basename($file);
+								$file_customised = Director::baseFolder().'/'.self::$customised_conf_extra_path.'/'.$filename;
+								if(is_file($file_customised)){
+									copy($file_customised, $confdir.'/'.$filename);
+								}else{
+									copy($file, $confdir.'/'.basename($file));
+								}
+							}else{
+								copy($file, $confdir.'/'.basename($file));
+							}
+						}
 					}
 				}
 					
@@ -170,9 +182,15 @@ class Solr_Reindex extends BuildTask {
 			foreach (Solr::get_indexes() as $index => $instance) {
 				echo "Rebuilding {$instance->getIndexName()}\n\n";
 
-				Solr::service($index)->deleteByQuery('*:*');
+				$classes = $instance->getClasses();
+				if($request->getVar('class')) {
+					$limitClasses = explode(',', $request->getVar('class'));
+					$classes = array_intersect_key($classes, array_combine($limitClasses, $limitClasses));
+				}
 
-				foreach ($instance->getClasses() as $class => $options) {
+				Solr::service($index)->deleteByQuery('ClassHierarchy:(' . implode(' OR ', array_keys($classes)) . ')');
+
+				foreach ($classes as $class => $options) {
 					$includeSubclasses = $options['include_children'];
 					
 					foreach (SearchVariant::reindex_states($class, $includeSubclasses) as $state) {
@@ -196,7 +214,7 @@ class Solr_Reindex extends BuildTask {
 							echo "$offset..";
 							
 							$cmd = "php $script dev/tasks/$self index=$index class=$class start=$offset variantstate=$statevar";
-							$res = `$cmd`;
+							$res = passthru($cmd);
 							if (isset($_GET['verbose'])) {
 								echo "\n  Running '$cmd'\n";
 								echo "  ".preg_replace('/\r\n|\n/', '$0  ', $res)."\n";
