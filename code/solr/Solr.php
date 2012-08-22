@@ -208,7 +208,7 @@ class Solr_Reindex extends BuildTask {
 							echo "$offset..";
 							
 							$cmd = "php $script dev/tasks/$self index=$index class=$class start=$offset variantstate=$statevar";
-							$res = `$cmd`;
+							$res = passthru($cmd);
 							if (isset($_GET['verbose'])) {
 								echo "\n  Running '$cmd'\n";
 								echo "  ".preg_replace('/\r\n|\n/', '$0  ', $res)."\n";
