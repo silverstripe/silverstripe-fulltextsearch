@@ -182,9 +182,15 @@ class Solr_Reindex extends BuildTask {
 			foreach (Solr::get_indexes() as $index => $instance) {
 				echo "Rebuilding {$instance->getIndexName()}\n\n";
 
-				Solr::service($index)->deleteByQuery('*:*');
+				$classes = $instance->getClasses();
+				if($request->getVar('class')) {
+					$limitClasses = explode(',', $request->getVar('class'));
+					$classes = array_intersect_key($classes, array_combine($limitClasses, $limitClasses));
+				}
 
-				foreach ($instance->getClasses() as $class => $options) {
+				Solr::service($index)->deleteByQuery('ClassHierarchy:(' . implode(' OR ', array_keys($classes)) . ')');
+
+				foreach ($classes as $class => $options) {
 					$includeSubclasses = $options['include_children'];
 					
 					foreach (SearchVariant::reindex_states($class, $includeSubclasses) as $state) {
