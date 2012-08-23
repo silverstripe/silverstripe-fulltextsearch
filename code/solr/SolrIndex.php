@@ -22,6 +22,8 @@ abstract class SolrIndex extends SearchIndex {
 		'Double' => 'tdouble'
 	);
 
+	static $sortTypeMap = array();
+
 	function generateSchema() {
 		return $this->renderWith(Director::baseFolder() . '/fulltextsearch/conf/templates/schema.ss');
 	}
@@ -73,7 +75,9 @@ abstract class SolrIndex extends SearchIndex {
 			
 			$multiValued = (isset($field['multi_valued']) && $field['multi_valued']) ? "multiValued='true'" : '';
 
-			$type = self::$sortTypeMap[$field['type']];
+			$typeMap = array_merge(self::$filterTypeMap, self::$sortTypeMap);
+			$type = isset($typeMap[$field['type']]) ? $typeMap[$field['type']] : $typeMap['*'];
+			
 			$xml[] = "<field name='{$name}' type='{$type}' indexed='true' $stored $multiValued />";
 		}
 		
