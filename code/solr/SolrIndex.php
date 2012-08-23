@@ -99,6 +99,7 @@ abstract class SolrIndex extends SearchIndex {
 		if ($class != $field['origin'] && !is_subclass_of($class, $field['origin'])) return;
 
 		$value = $this->_getFieldValue($object, $field);
+		
 		$type = isset(self::$filterTypeMap[$field['type']]) ? self::$filterTypeMap[$field['type']] : self::$filterTypeMap['*'];
 
 		if (is_array($value)) foreach($value as $sub) {
@@ -169,8 +170,15 @@ abstract class SolrIndex extends SearchIndex {
 		Solr::service(get_class($this))->commit(false, false, false);
 	}
 
-	public function search($query, $offset = -1, $limit = -1) {
-		$service = Solr::service(get_class($this));
+	/**
+	 * @param SearchQuery $query
+	 * @param integer $offset
+	 * @param integer $limit
+	 * @return ArrayData Map with the following keys: 
+	 *  - 'Matches': ArrayList of the matched object instances
+	 */
+	public function search(SearchQuery $query, $offset = -1, $limit = -1) {
+		$service = $this->getService();
 
 		SearchVariant::with(count($query->classes) == 1 ? $query->classes[0]['class'] : null)->call('alterQuery', $query, $this);
 
@@ -186,12 +194,15 @@ abstract class SolrIndex extends SearchIndex {
 			$fuzzy = $search['fuzzy'] ? '~' : '';
 
 			foreach ($parts[0] as $part) {
-				if ($search['fields']) {
+				$fields = (isset($search['fields'])) ? $search['fields'] : array();
+				if(isset($search['boost'])) $fields = array_merge($fields, array_keys($search['boost']));
+				if ($fields) {
 					$searchq = array();
-					foreach ($search['fields'] as $field) {
-						$searchq[] = "{$field}:".$part.$fuzzy;
+					foreach ($fields as $field) {
+						$boost = (isset($search['boost'][$field])) ? '^' . $search['boost'][$field] : '';
+						$searchq[] = "{$field}:".$part.$fuzzy.$boost;
 					}
-					$q[] = '+('.implode(' ', $searchq).')';
+					$q[] = '+('.implode(' OR ', $searchq).')';
 				}
 				else {
 					$q[] = '+'.$part;
@@ -259,32 +270,59 @@ abstract class SolrIndex extends SearchIndex {
 			$fq[] = ($missing ? "+{$field}:[* TO *] " : '') . '-('.implode(' ', $excludeq).')';
 		}
 
-		if ($q) header('X-Query: '.implode(' ', $q));
-		if ($fq) header('X-Filters: "'.implode('", "', $fq).'"');
+		if(!headers_sent()) {
+			if ($q) header('X-Query: '.implode(' ', $q));
+			if ($fq) header('X-Filters: "'.implode('", "', $fq).'"');
+		}
 
 		if ($offset == -1) $offset = $query->start;
 		if ($limit == -1) $limit = $query->limit;
 		if ($limit == -1) $limit = SearchQuery::$default_page_size;
 
-		$res = $service->search($q ? implode(' ', $q) : '*:*', $offset, $limit, array('fq' => implode(' ', $fq)), Apache_Solr_Service::METHOD_POST);
+		$res = $service->search(
+			$q ? implode(' ', $q) : '*:*', 
+			$offset, 
+			$limit, 
+			array('fq' => implode(' ', $fq)), 
+			Apache_Solr_Service::METHOD_POST
+		);
 
 		$results = new ArrayList();
-
-		foreach ($res->response->docs as $doc) {
-			$result = DataObject::get_by_id($doc->ClassName, $doc->ID);
-			if($result) $results->push($result);
+		if($res->getHttpStatus() >= 200 && $res->getHttpStatus() < 300) {
+			foreach ($res->response->docs as $doc) {
+				$result = DataObject::get_by_id($doc->ClassName, $doc->ID);
+				if($result) $results->push($result);
+			}
+			$numFound = $res->response->numFound;
+		} else {
+			$numFound = 0;
 		}
 		
 		$ret = array();
 		$ret['Matches'] = new PaginatedList($results);
 		$ret['Matches']->setLimitItems(false);
 		// Tell PaginatedList how many results there are
-		$ret['Matches']->setTotalItems($res->response->numFound);
+		$ret['Matches']->setTotalItems($numFound);
 		// Results for current page start at $offset
 		$ret['Matches']->setPageStart($offset);
 		// Results per page
 		$ret['Matches']->setPageLength($limit);
 
 		return new ArrayData($ret);
+	}
+
+	protected $service;
+
+	/**
+	 * @return SolrService
+	 */
+	public function getService() {
+		if(!$this->service) $this->service = Solr::service(get_class($this));
+		return $this->service;
+	}
+
+	public function setService(SolrService $service) {
+		$this->service = $service;
+		return $this;
 	}
 }

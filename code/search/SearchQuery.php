@@ -31,11 +31,23 @@ class SearchQuery extends ViewableData {
 		if (self::$present === null) self::$present = new stdClass();
 	}
 
-	function search($text, $fields = null, $boost = 1) {
+	/**
+	 * @param  [type] $text   [description]
+	 * @param  [type] $fields [description]
+	 * @param  array  $boost  Map of field names to float values. The higher the value,
+	 * the more important the field gets for relevancy.
+	 */
+	function search($text, $fields = null, $boost = array()) {
 		$this->search[] = array('text' => $text, 'fields' => $fields ? (array)$fields : null, 'boost' => $boost, 'fuzzy' => false);
 	}
 
-	function fuzzysearch($text, $fields = null, $boost = 1) {
+	/**
+	 * @param  [type] $text   [description]
+	 * @param  [type] $fields [description]
+	 * @param  array  $boost  Map of field names to float values. The higher the value,
+	 * the more important the field gets for relevancy.
+	 */
+	function fuzzysearch($text, $fields = null, $boost = array()) {
 		$this->search[] = array('text' => $text, 'fields' => $fields ? (array)$fields : null, 'boost' => $boost, 'fuzzy' => true);
 	}
 
