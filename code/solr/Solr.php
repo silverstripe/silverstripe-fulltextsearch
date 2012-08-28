@@ -183,6 +183,8 @@ class Solr_Reindex extends BuildTask {
 					$includeSubclasses = $options['include_children'];
 					
 					foreach (SearchVariant::reindex_states($class, $includeSubclasses) as $state) {
+						if ($instance->variantStateExcluded($state)) continue;
+						
 						SearchVariant::activate_state($state);
 
 						$filter = $includeSubclasses ? "" : '"ClassName" = \''.$class."'";

@@ -250,12 +250,22 @@ class SearchUpdater extends Object {
 
 				$objs = DataObject::get($base, '"'.$base.'"."ID" IN ('.implode(',', array_keys($ids)).')');
 				if ($objs) foreach ($objs as $obj) {
-					foreach ($ids[$obj->ID] as $index) { $indexes[$index]->add($obj); $dirtyindexes[$index] = $index; }
+					foreach ($ids[$obj->ID] as $index) { 
+						if (!$indexes[$index]->variantStateExcluded($state)) { 
+							$indexes[$index]->add($obj); 
+							$dirtyindexes[$index] = $index; 
+						}
+					}
 					unset($ids[$obj->ID]);
 				}
 
 				foreach ($ids as $id => $fromindexes) {
-					foreach ($fromindexes as $index) { $indexes[$index]->delete($base, $id, $state); $dirtyindexes[$index] = $index; }
+					foreach ($fromindexes as $index) { 
+						if (!$indexes[$index]->variantStateExcluded($state)) {
+							$indexes[$index]->delete($base, $id, $state); 
+							$dirtyindexes[$index] = $index; 	
+						}
+					}
 				}
 			}
 		}

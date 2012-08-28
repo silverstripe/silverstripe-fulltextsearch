@@ -88,3 +88,24 @@ See Solr.md
 ### Sphinx
 
 Not written yet
+
+## FAQ
+
+### How do I exclude draft pages from the index?
+
+By default, the `SearchUpdater` class indexes all available "variant states",
+so in the case of the `Versioned` extension, both "draft" and "live".
+For most cases, you'll want to exclude draft content from your search results.
+
+You can either prevent the draft content from being indexed in the first place,
+by adding the following to your `SearchIndex->init()` method:
+
+	$this->excludeVariantState(array('SearchVariantVersioned' => 'Stage'));
+
+Alternatively, you can index draft content, but simply exclude it from searches. 
+This can be handy to preview search results on unpublished content, in case a CMS author is logged in.
+Before constructing your `SearchQuery`, conditionally switch to the "live" stage:
+
+	if(!Permission::check('CMS_ACCESS_CMSMain')) Versioned::reading_stage('Live');
+	$query = new SearchQuery();
+	// ...
