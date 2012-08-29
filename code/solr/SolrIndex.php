@@ -104,7 +104,11 @@ abstract class SolrIndex extends SearchIndex {
 
 		if (is_array($value)) foreach($value as $sub) {
 			/* Solr requires dates in the form 1995-12-31T23:59:59Z */
-			if ($type == 'tdate') $sub = gmdate('Y-m-d\TH:i:s\Z', strtotime($sub));
+			if ($type == 'tdate') {
+				if(!$sub) continue;
+				$sub = gmdate('Y-m-d\TH:i:s\Z', strtotime($sub));
+			}
+
 			/* Solr requires numbers to be valid if presented, not just empty */
 			if (($type == 'tint' || $type == 'tfloat' || $type == 'tdouble') && !is_numeric($sub)) continue;
 			
@@ -113,7 +117,11 @@ abstract class SolrIndex extends SearchIndex {
 
 		else {
 			/* Solr requires dates in the form 1995-12-31T23:59:59Z */
-			if ($type == 'tdate') $value = gmdate('Y-m-d\TH:i:s\Z', strtotime($value));
+			if ($type == 'tdate') {
+				if(!$value) return;
+				$value = gmdate('Y-m-d\TH:i:s\Z', strtotime($value));
+			}
+
 			/* Solr requires numbers to be valid if presented, not just empty */
 			if (($type == 'tint' || $type == 'tfloat' || $type == 'tdouble') && !is_numeric($value)) return;
 
@@ -140,17 +148,22 @@ abstract class SolrIndex extends SearchIndex {
 			if ($field['base'] == $base) $this->_addField($doc, $object, $field);
 		}
 
-		Solr::service(get_class($this))->addDocument($doc);
+		$this->getService()->addDocument($doc);
+
+		return $doc;
 	}
 
 	function add($object) {
 		$class = get_class($object);
+		$docs = array();
 
 		foreach ($this->getClasses() as $searchclass => $options) {
 			if ($searchclass == $class || ($options['include_children'] && is_subclass_of($class, $searchclass))) {
-				$this->_addAs($object, $searchclass, $options);
+				$docs[] = $this->_addAs($object, $searchclass, $options);
 			}
 		}
+
+		return $docs;
 	}
 
 	function canAdd($class) {
@@ -163,11 +176,11 @@ abstract class SolrIndex extends SearchIndex {
 
 	function delete($base, $id, $state) {
 		$documentID = $this->getDocumentIDForState($base, $id, $state);
-		Solr::service(get_class($this))->deleteById($documentID);
+		$this->getService()->deleteById($documentID);
 	}
 
 	function commit() {
-		Solr::service(get_class($this))->commit(false, false, false);
+		$this->getService()->commit(false, false, false);
 	}
 
 	/**
