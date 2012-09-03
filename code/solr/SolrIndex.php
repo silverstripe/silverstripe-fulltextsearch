@@ -24,6 +24,8 @@ abstract class SolrIndex extends SearchIndex {
 
 	static $sortTypeMap = array();
 
+	protected $analyzerFields = array();
+
 	function generateSchema() {
 		return $this->renderWith(Director::baseFolder() . '/fulltextsearch/conf/templates/schema.ss');
 	}
@@ -34,6 +36,24 @@ abstract class SolrIndex extends SearchIndex {
 
 	function getTypes() {
 		return $this->renderWith(Director::baseFolder() . '/fulltextsearch/conf/templates/types.ss');
+	}
+
+	/**
+	 * Index-time analyzer which is applied to a specific field.
+	 * Can be used to remove HTML tags, apply stemming, etc.
+	 * 
+	 * @see http://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters#solr.WhitespaceTokenizerFactory
+	 * 
+	 * @param String $field
+	 * @param String $type  
+	 * @param Array $params Parameters for the analyzer, usually at least a "class"
+	 */
+	function addAnalyzer($field, $type, $params) {
+		$fullFields = $this->fieldData($field);
+		if($fullFields) foreach($fullFields as $fullField => $spec) {
+			if(!isset($this->analyzerFields[$fullField])) $this->analyzerFields[$fullField] = array();
+			$this->analyzerFields[$fullField][$type] = $params;
+		}
 	}
 
 	function getFieldDefinitions() {
@@ -84,6 +104,13 @@ abstract class SolrIndex extends SearchIndex {
 		$multiValued = (isset($spec['multi_valued']) && $spec['multi_valued']) ? "true" : '';
 		$type = isset($typeMap[$spec['type']]) ? $typeMap[$spec['type']] : $typeMap['*'];
 
+		$analyzerXml = '';
+		if(isset($this->analyzerFields[$name])) {
+			foreach($this->analyzerFields[$name] as $analyzerType => $analyzerParams) {
+				$analyzerXml .= $this->toXmlTag($analyzerType, $analyzerParams);
+			}
+		}
+
 		$fieldParams = array_merge(
 			array(
 				'name' => $name, 
@@ -97,7 +124,8 @@ abstract class SolrIndex extends SearchIndex {
 
 		return $this->toXmlTag(
 			"field", 
-			$fieldParams
+			$fieldParams,
+			$analyzerXml ? "<analyzer>$analyzerXml</analyzer>" : null
 		);
 	}
 

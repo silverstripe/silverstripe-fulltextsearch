@@ -65,6 +65,23 @@ class SolrIndexTest extends SapphireTest {
 
 		Director::set_environment_type($origMode);
 	}
+
+	function testAddAnalyzer() {
+		$index = new SolrIndexTest_FakeIndex();
+
+		$defs = simplexml_load_string('<fields>' . $index->getFieldDefinitions() . '</fields>');
+		$defField1 = $defs->xpath('field[@name="SearchUpdaterTest_Container_Field1"]');
+		$analyzers = $defField1[0]->analyzer;
+		$this->assertFalse((bool)$analyzers);
+
+		$index->addAnalyzer('Field1', 'charFilter', array('class' => 'solr.HTMLStripCharFilterFactory'));
+		$defs = simplexml_load_string('<fields>' . $index->getFieldDefinitions() . '</fields>');
+		$defField1 = $defs->xpath('field[@name="SearchUpdaterTest_Container_Field1"]');
+		$analyzers = $defField1[0]->analyzer;
+		$this->assertTrue((bool)$analyzers);
+		$this->assertEquals('solr.HTMLStripCharFilterFactory', $analyzers[0]->charFilter[0]['class']);
+	}
+
 	protected function getServiceMock() {
 		$serviceMock = Phockito::mock('SolrService');
 		$fakeResponse = new Apache_Solr_Response(new Apache_Solr_HttpTransport_Response(null, null, null));
