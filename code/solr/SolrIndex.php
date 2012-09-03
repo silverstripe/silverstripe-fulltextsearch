@@ -269,10 +269,23 @@ abstract class SolrIndex extends SearchIndex {
 		$res = $service->search($q ? implode(' ', $q) : '*:*', $offset, $limit, array('fq' => implode(' ', $fq)), Apache_Solr_Service::METHOD_POST);
 
 		$results = new ArrayList();
-
-		foreach ($res->response->docs as $doc) {
+			foreach ($res->response->docs as $doc) {
 			$result = DataObject::get_by_id($doc->ClassName, $doc->ID);
-			if($result) $results->push($result);
+			if($result) {
+				$results->push($result);
+				// Add highlighting (optional)
+				$docId = $doc->_documentid;
+				if($res->highlighting && $res->highlighting->$docId) {
+					// TODO Create decorator class for search results rather than adding arbitrary object properties
+					// TODO Allow specifying highlighted field, and lazy loading
+					// in case the search API needs another query (similar to SphinxSearchable->buildExcerpt()).
+					$combinedHighlights = array();
+					foreach($res->highlighting->$docId as $field => $highlights) {
+						$combinedHighlights = array_merge($combinedHighlights, $highlights);
+					}
+					$result->Excerpt = implode(' ... ', $combinedHighlights);
+				}
+			}
 		}
 		
 		$ret = array();
