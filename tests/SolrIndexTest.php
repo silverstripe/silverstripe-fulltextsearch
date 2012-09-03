@@ -49,6 +49,22 @@ class SolrIndexTest extends SapphireTest {
 		$this->assertEquals('2010-12-30T00:00:00Z', $value['value'], 'Writes non-NULL dates');
 	}
 
+	function testAddFieldExtraOptions() {
+		$origMode = Director::get_environment_type();
+		Director::set_environment_type('live'); // dev mode would for stored=true for everything
+		$index = new SolrIndexTest_FakeIndex();
+
+		$defs = simplexml_load_string('<fields>' . $index->getFieldDefinitions() . '</fields>');
+		$defField1 = $defs->xpath('field[@name="SearchUpdaterTest_Container_Field1"]');
+		$this->assertEquals((string)$defField1[0]['stored'], 'false');
+
+		$index->addFilterField('Field1', null, array('stored' => 'true'));
+		$defs = simplexml_load_string('<fields>' . $index->getFieldDefinitions() . '</fields>');
+		$defField1 = $defs->xpath('field[@name="SearchUpdaterTest_Container_Field1"]');
+		$this->assertEquals((string)$defField1[0]['stored'], 'true');
+
+		Director::set_environment_type($origMode);
+	}
 	protected function getServiceMock() {
 		$serviceMock = Phockito::mock('SolrService');
 		$fakeResponse = new Apache_Solr_Response(new Apache_Solr_HttpTransport_Response(null, null, null));

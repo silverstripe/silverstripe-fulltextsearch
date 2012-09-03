@@ -57,31 +57,67 @@ abstract class SolrIndex extends SearchIndex {
 		// Add the user-specified fields
 
 		foreach ($this->fulltextFields as $name => $field) {
-			$type = isset(self::$fulltextTypeMap[$field['type']]) ? self::$fulltextTypeMap[$field['type']] : self::$fulltextTypeMap['*'];
-			$xml[] = "<field name='{$name}' type='$type' indexed='true' $stored />";
+			$xml[] = $this->getFieldDefinition($name, $field, self::$fulltextTypeMap);
 		}
 
 		foreach ($this->filterFields as $name => $field) {
 			if ($field['fullfield'] == 'ID' || $field['fullfield'] == 'ClassName') continue;
-
-			$multiValued = (isset($field['multi_valued']) && $field['multi_valued']) ? "multiValued='true'" : '';
-
-			$type = isset(self::$filterTypeMap[$field['type']]) ? self::$filterTypeMap[$field['type']] : self::$filterTypeMap['*'];
-			$xml[] = "<field name='{$name}' type='{$type}' indexed='true' $stored $multiValued />";
+			$xml[] = $this->getFieldDefinition($name, $field);
 		}
 
 		foreach ($this->sortFields as $name => $field) {
 			if ($field['fullfield'] == 'ID' || $field['fullfield'] == 'ClassName') continue;
-			
-			$multiValued = (isset($field['multi_valued']) && $field['multi_valued']) ? "multiValued='true'" : '';
-
-			$typeMap = array_merge(self::$filterTypeMap, self::$sortTypeMap);
-			$type = isset($typeMap[$field['type']]) ? $typeMap[$field['type']] : $typeMap['*'];
-			
-			$xml[] = "<field name='{$name}' type='{$type}' indexed='true' $stored $multiValued />";
+			$xml[] = $this->getFieldDefinition($name, $field);
 		}
 		
 		return implode("\n\t\t", $xml);
+	}
+
+	/**
+	 * @param String $name
+	 * @param Array $spec
+	 * @param Array $typeMap
+	 * @return String XML
+	 */
+	protected function getFieldDefinition($name, $spec, $typeMap = null) {
+		if(!$typeMap) $typeMap = self::$filterTypeMap;
+		$multiValued = (isset($spec['multi_valued']) && $spec['multi_valued']) ? "true" : '';
+		$type = isset($typeMap[$spec['type']]) ? $typeMap[$spec['type']] : $typeMap['*'];
+
+		$fieldParams = array_merge(
+			array(
+				'name' => $name, 
+				'type' => $type, 
+				'indexed' => 'true', 
+				'stored' => Director::isDev() ? 'true' : 'false', 
+				'multiValued' => $multiValued
+			),
+			isset($spec['extra_options']) ? $spec['extra_options'] : array()
+		);
+
+		return $this->toXmlTag(
+			"field", 
+			$fieldParams
+		);
+	}
+
+	/**
+	 * Convert definition to XML tag
+	 * 
+	 * @param String $tag
+	 * @param String $attrs Map of attributes
+	 * @param String $content Inner content
+	 * @return String XML tag
+	 */
+	protected function toXmlTag($tag, $attrs, $content = null) {
+		$xml = "<$tag ";
+		if($attrs) {
+			$attrStrs = array();
+			foreach($attrs as $attrName => $attrVal) $attrStrs[] = "$attrName='$attrVal'";
+			$xml .= $attrStrs ? implode(' ', $attrStrs) : '';
+		}
+		$xml .= $content ? ">$content</$tag>" : '/>';
+		return $xml;
 	}
 
 	function getCopyFieldDefinitions() {
