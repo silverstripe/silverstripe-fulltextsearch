@@ -32,9 +32,15 @@ by the user the Solr search server is started with (see below).
 		'host' => 'localhost',
 		'indexstore' => array(
 			'mode' => 'file',
-			'path' => BASE_PATH . '/fulltextsearch/thirdparty/fulltextsearch/server/solr'
+			'path' => BASE_PATH . '/.solr'
 		)
 	));
+
+Note: We recommend to put the `indexstore.path` directory outside of the webroot.
+If you place it inside of the webroot (as shown in the example),
+please ensure its contents are not accessible through the webserver.
+This can be achieved by server configuration, or (in most configurations)
+also by marking the folder as hidden via a "dot" prefix.
 
 Create an index
 
@@ -56,6 +62,16 @@ Initialize the configuration (via CLI)
 
 	sake dev/tasks/Solr_configure
 
+Based on the sample configuration above, this command will do the following:
+
+- Create a <BASE_PATH>/.solr/MyIndex` folder
+- Copy configuration files from `fulltextsearch/conf/extras/` to `<BASE_PATH>/.solr/MyIndex/conf`
+- Generate a `schema.xml`, and place it it in `<BASE_PATH>/.solr/MyIndex/conf`
+
+If you call the `Solr_configure` task with an existing index folder,
+it will overwrite all files from their default locations, 
+regenerate the `schema.xml`, and ask Solr to reload the configuration.
+
 ## Usage
 
 After configuring Solr, you have the option to add your existing
@@ -63,7 +79,14 @@ content to its indices. Run the following command:
 
 	sake dev/tasks/Solr_reindex
 
-This will rebuild all indices. You can narrow down the operation with the following options:
+This will delete and rebuild all indices. Depending on your data,
+this can take anywhere from minutes to hours.
+Keep in mind that the normal mode of updating indices is
+based on ORM manipulations of the underlying data.
+For example, calling `$myPage->write()` will automatically
+update the index entry for this record (and all its variants).
+
+You can narrow down the operation with the following options:
 
  - `index`: PHP class name of an index
  - `class`: PHP model class to reindex
@@ -72,9 +95,31 @@ This will rebuild all indices. You can narrow down the operation with the follow
  - `verbose`: Debug information
 
 Note: The Solr indexes will be stored as binary files inside your SilverStripe project. 
-You can also copy the `thirdparty/`solr directory somewhere else,
-just set the path value in `mysite/_config.php` to point to the new location.
-And of course run `java -jar start.jar` from the new directory.
+You can also copy the `thirdparty/` solr directory somewhere else,
+just set the `path` value in `mysite/_config.php` to point to the new location.
+
+### File-based configuration (solrconfig.xml etc)
+
+Many aspects of Solr are configured outside of the `schema.xml` file
+which SilverStripe generates based on the index PHP file.
+For example, stopwords are placed in their own `stopwords.txt` file,
+and spell checks are configured in `solrconfig.xml`.
+
+By default, these files are copied from the `fulltextsearch/conf/extras/`
+directory over to the new index location. In order to use your own files,
+copy these files into a location of your choosing (for example `mysite/data/solr/`),
+and tell Solr to use this folder with the `extraspath` configuration setting.
+	
+	// mysite/_config.php
+	Solr::configure_server(array(
+		// ...
+		'extraspath' => Director::baseFolder() . '/mysite/data/solr/',
+	));
+
+Please run the `Solr_configure` task for the changes to take effect.
+
+Note: You can also define those on an index-by-index basis by
+implementing `SolrIndex->getExtrasPath()`.
 
 ## Debugging
 
