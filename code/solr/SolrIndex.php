@@ -99,11 +99,16 @@ abstract class SolrIndex extends SearchIndex {
 		if ($class != $field['origin'] && !is_subclass_of($class, $field['origin'])) return;
 
 		$value = $this->_getFieldValue($object, $field);
+		
 		$type = isset(self::$filterTypeMap[$field['type']]) ? self::$filterTypeMap[$field['type']] : self::$filterTypeMap['*'];
 
 		if (is_array($value)) foreach($value as $sub) {
 			/* Solr requires dates in the form 1995-12-31T23:59:59Z */
-			if ($type == 'tdate') $sub = gmdate('Y-m-d\TH:i:s\Z', strtotime($sub));
+			if ($type == 'tdate') {
+				if(!$sub) continue;
+				$sub = gmdate('Y-m-d\TH:i:s\Z', strtotime($sub));
+			}
+
 			/* Solr requires numbers to be valid if presented, not just empty */
 			if (($type == 'tint' || $type == 'tfloat' || $type == 'tdouble') && !is_numeric($sub)) continue;
 			
@@ -112,7 +117,11 @@ abstract class SolrIndex extends SearchIndex {
 
 		else {
 			/* Solr requires dates in the form 1995-12-31T23:59:59Z */
-			if ($type == 'tdate') $value = gmdate('Y-m-d\TH:i:s\Z', strtotime($value));
+			if ($type == 'tdate') {
+				if(!$value) return;
+				$value = gmdate('Y-m-d\TH:i:s\Z', strtotime($value));
+			}
+
 			/* Solr requires numbers to be valid if presented, not just empty */
 			if (($type == 'tint' || $type == 'tfloat' || $type == 'tdouble') && !is_numeric($value)) return;
 
@@ -139,17 +148,22 @@ abstract class SolrIndex extends SearchIndex {
 			if ($field['base'] == $base) $this->_addField($doc, $object, $field);
 		}
 
-		Solr::service(get_class($this))->addDocument($doc);
+		$this->getService()->addDocument($doc);
+
+		return $doc;
 	}
 
 	function add($object) {
 		$class = get_class($object);
+		$docs = array();
 
 		foreach ($this->getClasses() as $searchclass => $options) {
 			if ($searchclass == $class || ($options['include_children'] && is_subclass_of($class, $searchclass))) {
-				$this->_addAs($object, $searchclass, $options);
+				$docs[] = $this->_addAs($object, $searchclass, $options);
 			}
 		}
+
+		return $docs;
 	}
 
 	function canAdd($class) {
@@ -162,15 +176,22 @@ abstract class SolrIndex extends SearchIndex {
 
 	function delete($base, $id, $state) {
 		$documentID = $this->getDocumentIDForState($base, $id, $state);
-		Solr::service(get_class($this))->deleteById($documentID);
+		$this->getService()->deleteById($documentID);
 	}
 
 	function commit() {
-		Solr::service(get_class($this))->commit(false, false, false);
+		$this->getService()->commit(false, false, false);
 	}
 
-	public function search($query, $offset = -1, $limit = -1) {
-		$service = Solr::service(get_class($this));
+	/**
+	 * @param SearchQuery $query
+	 * @param integer $offset
+	 * @param integer $limit
+	 * @return ArrayData Map with the following keys: 
+	 *  - 'Matches': ArrayList of the matched object instances
+	 */
+	public function search(SearchQuery $query, $offset = -1, $limit = -1) {
+		$service = $this->getService();
 
 		SearchVariant::with(count($query->classes) == 1 ? $query->classes[0]['class'] : null)->call('alterQuery', $query, $this);
 
@@ -186,12 +207,15 @@ abstract class SolrIndex extends SearchIndex {
 			$fuzzy = $search['fuzzy'] ? '~' : '';
 
 			foreach ($parts[0] as $part) {
-				if ($search['fields']) {
+				$fields = (isset($search['fields'])) ? $search['fields'] : array();
+				if(isset($search['boost'])) $fields = array_merge($fields, array_keys($search['boost']));
+				if ($fields) {
 					$searchq = array();
-					foreach ($search['fields'] as $field) {
-						$searchq[] = "{$field}:".$part.$fuzzy;
+					foreach ($fields as $field) {
+						$boost = (isset($search['boost'][$field])) ? '^' . $search['boost'][$field] : '';
+						$searchq[] = "{$field}:".$part.$fuzzy.$boost;
 					}
-					$q[] = '+('.implode(' ', $searchq).')';
+					$q[] = '+('.implode(' OR ', $searchq).')';
 				}
 				else {
 					$q[] = '+'.$part;
@@ -259,32 +283,59 @@ abstract class SolrIndex extends SearchIndex {
 			$fq[] = ($missing ? "+{$field}:[* TO *] " : '') . '-('.implode(' ', $excludeq).')';
 		}
 
-		if ($q) header('X-Query: '.implode(' ', $q));
-		if ($fq) header('X-Filters: "'.implode('", "', $fq).'"');
+		if(!headers_sent()) {
+			if ($q) header('X-Query: '.implode(' ', $q));
+			if ($fq) header('X-Filters: "'.implode('", "', $fq).'"');
+		}
 
 		if ($offset == -1) $offset = $query->start;
 		if ($limit == -1) $limit = $query->limit;
 		if ($limit == -1) $limit = SearchQuery::$default_page_size;
 
-		$res = $service->search($q ? implode(' ', $q) : '*:*', $offset, $limit, array('fq' => implode(' ', $fq)), Apache_Solr_Service::METHOD_POST);
+		$res = $service->search(
+			$q ? implode(' ', $q) : '*:*', 
+			$offset, 
+			$limit, 
+			array('fq' => implode(' ', $fq)), 
+			Apache_Solr_Service::METHOD_POST
+		);
 
 		$results = new ArrayList();
-
-		foreach ($res->response->docs as $doc) {
-			$result = DataObject::get_by_id($doc->ClassName, $doc->ID);
-			if($result) $results->push($result);
+		if($res->getHttpStatus() >= 200 && $res->getHttpStatus() < 300) {
+			foreach ($res->response->docs as $doc) {
+				$result = DataObject::get_by_id($doc->ClassName, $doc->ID);
+				if($result) $results->push($result);
+			}
+			$numFound = $res->response->numFound;
+		} else {
+			$numFound = 0;
 		}
 		
 		$ret = array();
 		$ret['Matches'] = new PaginatedList($results);
 		$ret['Matches']->setLimitItems(false);
 		// Tell PaginatedList how many results there are
-		$ret['Matches']->setTotalItems($res->response->numFound);
+		$ret['Matches']->setTotalItems($numFound);
 		// Results for current page start at $offset
 		$ret['Matches']->setPageStart($offset);
 		// Results per page
 		$ret['Matches']->setPageLength($limit);
 
 		return new ArrayData($ret);
+	}
+
+	protected $service;
+
+	/**
+	 * @return SolrService
+	 */
+	public function getService() {
+		if(!$this->service) $this->service = Solr::service(get_class($this));
+		return $this->service;
+	}
+
+	public function setService(SolrService $service) {
+		$this->service = $service;
+		return $this;
 	}
 }

@@ -3,7 +3,7 @@
 /**
  * Represents a search query
  *
- * API very much still in flux. Generally, calling with multiple arguments = OR, calling multiple times = AND.
+ * API very much still in flux.
  */
 class SearchQuery extends ViewableData {
 
@@ -31,11 +31,26 @@ class SearchQuery extends ViewableData {
 		if (self::$present === null) self::$present = new stdClass();
 	}
 
-	function search($text, $fields = null, $boost = 1) {
+	/**
+	 * @param  String $text Search terms. Exact format (grouping, boolean expressions, etc.) depends on the search implementation.
+	 * @param  array $fields Limits the search to specific fields (using composite field names)
+	 * @param  array  $boost  Map of composite field names to float values. The higher the value,
+	 * the more important the field gets for relevancy.
+	 */
+	function search($text, $fields = null, $boost = array()) {
 		$this->search[] = array('text' => $text, 'fields' => $fields ? (array)$fields : null, 'boost' => $boost, 'fuzzy' => false);
 	}
 
-	function fuzzysearch($text, $fields = null, $boost = 1) {
+	/**
+	 * Similar to {@link search()}, but uses stemming and other similarity algorithms
+	 * to find the searched terms. For example, a term "fishing" would also likely find results
+	 * containing "fish" or "fisher". Depends on search implementation.
+	 * 
+	 * @param  String $text See {@link search()}
+	 * @param  array $fields See {@link search()}
+	 * @param  array $boost See {@link search()}
+	 */
+	function fuzzysearch($text, $fields = null, $boost = array()) {
 		$this->search[] = array('text' => $text, 'fields' => $fields ? (array)$fields : null, 'boost' => $boost, 'fuzzy' => true);
 	}
 
@@ -43,12 +58,25 @@ class SearchQuery extends ViewableData {
 		$this->classes[] = array('class' => $class, 'includeSubclasses' => $includeSubclasses);
 	}
 
+	/**
+	 * Similar to {@link search()}, but typically used to further narrow down
+	 * based on other facets which don't influence the field relevancy.
+	 * 
+	 * @param  String $field Composite name of the field
+	 * @param  Mixed $values Scalar value, array of values, or an instance of SearchQuery_Range
+	 */
 	function filter($field, $values) {
 		$requires = isset($this->require[$field]) ? $this->require[$field] : array();
 		$values = is_array($values) ? $values : array($values);
 		$this->require[$field] = array_merge($requires, $values);
 	}
 
+	/**
+	 * Excludes results which match these criteria, inverse of {@link filter()}.
+	 * 
+	 * @param  String $field
+	 * @param  mixed $values
+	 */
 	function exclude($field, $values) {
 		$excludes = isset($this->exclude[$field]) ? $this->exclude[$field] : array();
 		$values = is_array($values) ? $values : array($values);
