@@ -26,6 +26,8 @@ abstract class SolrIndex extends SearchIndex {
 
 	protected $analyzerFields = array();
 
+	protected $copyFields = array();
+
 	function generateSchema() {
 		return $this->renderWith(Director::baseFolder() . '/fulltextsearch/conf/templates/schema.ss');
 	}
@@ -148,11 +150,29 @@ abstract class SolrIndex extends SearchIndex {
 		return $xml;
 	}
 
+	/**
+	 * @param String $source Composite field name (<class>_<fieldname>)
+	 * @param String $dest
+	 */
+	function addCopyField($source, $dest, $extraOptions = array()) {
+		if(!isset($this->copyFields[$source])) $this->copyFields[$source] = array();
+		$this->copyFields[$source][] = array_merge(
+			array('source' => $source, 'dest' => $dest),
+			$extraOptions
+		);
+	}
+
 	function getCopyFieldDefinitions() {
 		$xml = array();
 
 		foreach ($this->fulltextFields as $name => $field) {
 			$xml[] = "<copyField source='{$name}' dest='_text' />";
+		}
+
+		foreach ($this->copyFields as $source => $fields) {
+			foreach($fields as $fieldAttrs) {
+				$xml[] = $this->toXmlTag('copyField', $fieldAttrs);
+			}
 		}
 
 		return implode("\n\t", $xml);

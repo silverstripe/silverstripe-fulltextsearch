@@ -82,8 +82,18 @@ class SolrIndexTest extends SapphireTest {
 		$this->assertEquals('solr.HTMLStripCharFilterFactory', $analyzers[0]->charFilter[0]['class']);
 	}
 
-	protected function getServiceMock() {
-		$serviceMock = Phockito::mock('SolrService');
+	function testAddCopyField() {
+		$index = new SolrIndexTest_FakeIndex();		
+		$index->addCopyField('sourceField', 'destField');
+		$defs = simplexml_load_string('<fields>' . $index->getCopyFieldDefinitions() . '</fields>');
+		$lastDef = array_pop($defs);
+
+		$this->assertEquals('sourceField', $lastDef['source']);
+		$this->assertEquals('destField', $lastDef['dest']);
+	}
+
+	protected function getServiceSpy() {
+		$serviceSpy = Phockito::spy('SolrService');
 		$fakeResponse = new Apache_Solr_Response(new Apache_Solr_HttpTransport_Response(null, null, null));
 
 		Phockito::when($serviceMock)
