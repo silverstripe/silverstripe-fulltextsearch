@@ -11,6 +11,7 @@ An attempt to add stable support for Fulltext Search engines like Sphinx and Sol
 ## Requirements
 
 * SilverStripe 3.0
+* (optional) [silverstripe-phockito](https://github.com/hafriedlander/silverstripe-phockito) (for testing)
 
 ## Documentation
 

@@ -76,6 +76,27 @@ You can also copy the `thirdparty/`solr directory somewhere else,
 just set the path value in `mysite/_config.php` to point to the new location.
 And of course run `java -jar start.jar` from the new directory.
 
+### Adding Analyzers, Tokenizers and Token Filters
+
+When a document is indexed, its individual fields are subject to the analyzing and tokenizing filters that can transform and normalize the data in the fields. For example — removing blank spaces, removing html code, stemming, removing a particular character and replacing it with another 
+(see [Solr Wiki](http://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters)).
+
+Example: Replace synonyms on indexing (e.g. "i-pad" with "iPad")
+
+	<?php
+	class MyIndex extends SolrIndex {
+		function init() {
+			$this->addClass('Page');
+			$this->addField('Content');
+			$this->addAnalyzer('Content', 'filter', array('class' => 'solr.SynonymFilterFactory'));
+		}
+	}
+
+	// Generates the following XML schema definition:
+	// <field name="Page_Content" ...>
+	//   <filter class="solr.SynonymFilterFactory" synonyms="syn.txt" ignoreCase="true" expand="false"/>
+	// </field>
+
 ## Debugging
 
 ### Using the web admin interface
@@ -90,3 +111,17 @@ which is useful when debugging front-end queries,
 see `thirdparty/fulltextsearch/server/silverstripe-solr-test.xml`.
 
 	java -Durl=http://localhost:8983/solr/MyIndex/update/ -Dtype=text/xml -jar post.jar silverstripe-solr-test.xml
+
+## FAQ
+
+### How do I use date ranges where dates might not be defined?
+
+The Solr index updater only includes dates with values,
+so the field might not exist in all your index entries.
+A simple bounded range query (`<field>:[* TO <date>]`) will fail in this case.
+In order to query the field, reverse the search conditions and exclude the ranges you don't want:
+
+	// Wrong: Filter will ignore all empty field values
+	$myQuery->filter(<field>, new SearchQuery_Range('*', <date>));
+	// Better: Exclude the opposite range
+	$myQuery->exclude(<field>, new SearchQuery_Range(<date>, '*'));
