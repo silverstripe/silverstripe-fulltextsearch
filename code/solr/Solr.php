@@ -86,11 +86,23 @@ class Solr_Configure extends BuildTask {
 
 		$remote = null;
 
+		$configure = function($index, $remote) use($service) {
+			if ($service->coreIsActive($index)) {
+				echo "Reloading configuration...";
+				$service->coreReload($index);
+				echo "done\n";
+			} else {
+				echo "Creating configuration...";
+				$service->coreCreate($index, "$remote/$index");
+				echo "done\n";
+			}
+		};
+
 		switch ($index['mode']) {
 			case 'file':
 				$local = $index['path'];
 				$remote = isset($index['remotepath']) ? $index['remotepath'] : $local;
-				
+
 				foreach (Solr::get_indexes() as $index => $instance) {
 					$confdir = "$local/$index/conf";
 					if (!is_dir($confdir)) mkdir($confdir, 0770, true);
@@ -100,8 +112,10 @@ class Solr_Configure extends BuildTask {
 					foreach (glob(Director::baseFolder().'/fulltextsearch/conf/extras/*') as $file) {
 						if (is_file($file)) copy($file, $confdir.'/'.basename($file));
 					}
+
+					$configure($index, $remote);
 				}
-					
+
 				break;
 
 			case 'webdav':
@@ -111,7 +125,7 @@ class Solr_Configure extends BuildTask {
 					Solr::$solr_options['host'] . ':' . Solr::$solr_options['port'],
 					$index['path']
 				));
-					
+
 				$remote = $index['remotepath'];
 
 				foreach (Solr::get_indexes() as $index => $instance) {
@@ -126,22 +140,14 @@ class Solr_Configure extends BuildTask {
 					foreach (glob(Director::baseFolder().'/fulltextsearch/conf/extras/*') as $file) {
 						if (is_file($file)) WebDAV::upload_from_file($file, $confdir.'/'.basename($file));
 					}
+
+					$configure($index, $remote);
 				}
-					
+
 				break;
 
 			default:
 				user_error('Unknown Solr index mode '.$index['mode'], E_USER_ERROR);
-		}
-
-		if ($service->coreIsActive($index)) {
-			echo "Reloading configuration...";
-			$service->coreReload($index);
-			echo "done\n";
-		} else {
-			echo "Creating configuration...";
-			$service->coreCreate($index, "$remote/$index");
-			echo "done\n";
 		}
 	}
 }
@@ -181,7 +187,7 @@ class Solr_Reindex extends BuildTask {
 
 				foreach ($classes as $class => $options) {
 					$includeSubclasses = $options['include_children'];
-					
+
 					foreach (SearchVariant::reindex_states($class, $includeSubclasses) as $state) {
 						SearchVariant::activate_state($state);
 
@@ -202,7 +208,7 @@ class Solr_Reindex extends BuildTask {
 
 						for ($offset = 0; $offset < $total; $offset += $this->stat('recordsPerRequest')) {
 							echo "$offset..";
-							
+
 							$cmd = "php $script dev/tasks/$self index=$index class=$class start=$offset variantstate=$statevar";
 							if($verbose) echo "\n  Running '$cmd'\n";
 							$res = $verbose ? passthru($cmd) : `$cmd`;
