@@ -339,6 +339,10 @@ abstract class SolrIndex extends SearchIndex {
 		$ret['Matches']->setPageStart($offset);
 		// Results per page
 		$ret['Matches']->setPageLength($limit);
+		// Suggestions (requires custom setup, assumes spellcheck.collate=true)
+		if(isset($res->spellcheck->suggestions->collation)) {
+			$ret['Suggestion'] = $res->spellcheck->suggestions->collation;
+		}
 
 		return new ArrayData($ret);
 	}

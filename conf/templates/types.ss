@@ -192,6 +192,17 @@
       </analyzer>
     </fieldType>
 
+    <!-- Text optimized for spelling corrections, with minimal alterations (e.g. no stemming) -->
+    <fieldType name="textSpell" class="solr.TextField" positionIncrementGap="100">
+        <analyzer>
+            <tokenizer class="solr.StandardTokenizerFactory" />
+            <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt"/>
+            <filter class="solr.LengthFilterFactory" min="4" max="20" />
+            <filter class="solr.LowerCaseFilterFactory" /> 
+            <filter class="solr.RemoveDuplicatesTokenFilterFactory" /> 
+        </analyzer>
+    </fieldType>
+
 
     <!-- A general unstemmed text field - good if one does not know the language of the field -->
     <fieldType name="textgen" class="solr.TextField" positionIncrementGap="100">
