@@ -366,8 +366,8 @@ abstract class SearchIndex extends ViewableData {
 				// Just fail if we've fallen off the end of the chain
 				if (!$object) return null;
 
-				// If we're looking up this step on an array or DataObjectSet, do the step on every item, merge result
-				if (is_array($object) || $object instanceof DataObjectSet) {
+				// If we're looking up this step on an array or SS_List, do the step on every item, merge result
+				if (is_array($object) || $object instanceof SS_List) {
 					$next = array();
 
 					foreach ($object as $item) {
@@ -380,7 +380,7 @@ abstract class SearchIndex extends ViewableData {
 							$item = $item->$property;
 						}
 
-						if ($item instanceof DataObjectSet) $next = array_merge($next, $item->toArray());
+						if ($item instanceof SS_List) $next = array_merge($next, $item->toArray());
 						elseif (is_array($item)) $next = array_merge($next, $item);
 						else $next[] = $item;
 					}
