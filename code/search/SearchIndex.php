@@ -169,6 +169,8 @@ abstract class SearchIndex extends ViewableData {
 
 	protected $sortFields = array();
 
+	protected $excludedVariantStates = array();
+
 	/**
 	 * Add a DataObject subclass whose instances should be included in this index
 	 *
@@ -256,6 +258,23 @@ abstract class SearchIndex extends ViewableData {
 	 */
 	public function getFieldsIterator() {
 		return new MultipleArrayIterator($this->fulltextFields, $this->filterFields, $this->sortFields);
+	}
+
+	public function excludeVariantState($state) {
+		$this->excludedVariantStates[] = $state;
+	}
+
+	/** Returns true if some variant state should be ignored */
+	public function variantStateExcluded($state) {
+		foreach ($this->excludedVariantStates as $excludedstate) {
+			$matches = true;
+
+			foreach ($excludedstate as $variant => $variantstate) {
+				if (!isset($state[$variant]) || $state[$variant] != $variantstate) { $matches = false; break; }
+			}
+
+			if ($matches) return true;
+		}
 	}
 
 	public $dependancyList = array();
