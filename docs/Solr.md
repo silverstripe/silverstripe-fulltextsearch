@@ -90,3 +90,17 @@ which is useful when debugging front-end queries,
 see `thirdparty/fulltextsearch/server/silverstripe-solr-test.xml`.
 
 	java -Durl=http://localhost:8983/solr/MyIndex/update/ -Dtype=text/xml -jar post.jar silverstripe-solr-test.xml
+
+## FAQ
+
+### How do I use date ranges where dates might not be defined?
+
+The Solr index updater only includes dates with values,
+so the field might not exist in all your index entries.
+A simple bounded range query (`<field>:[* TO <date>]`) will fail in this case.
+In order to query the field, reverse the search conditions and exclude the ranges you don't want:
+
+	// Wrong: Filter will ignore all empty field values
+	$myQuery->filter(<field>, new SearchQuery_Range('*', <date>));
+	// Better: Exclude the opposite range
+	$myQuery->exclude(<field>, new SearchQuery_Range(<date>, '*'));

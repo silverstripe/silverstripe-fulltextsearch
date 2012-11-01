@@ -3,7 +3,8 @@
 class SearchUpdaterTest_Container extends DataObject {
 	static $db = array(
 		'Field1' => 'Varchar',
-		'Field2' => 'Varchar'
+		'Field2' => 'Varchar',
+		'MyDate' => 'Date',
 	);
 
 	static $has_one = array(
