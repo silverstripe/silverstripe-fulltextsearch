@@ -10,6 +10,12 @@ class Solr  {
 	 * port (default: 8983) - The port Solr is listening on
 	 * path (default: /solr) - The suburl the solr service is available on
 	 *
+	 * Optional fields:
+	 * extraspath (default: <basefolder>/fulltextsearch/conf/extras/) - Absolute path to 
+	 *   the folder containing templates which are used for generating the schema and field definitions.
+	 * templates (default: <basefolder>/fulltextsearch/conf/templates/) - Absolute path to 
+	 *   the configuration default files, e.g. solrconfig.xml.
+	 *
 	 * indexstore => an array with
 	 *
 	 *   mode - 'file' or 'webdav'
@@ -29,7 +35,9 @@ class Solr  {
 		self::$solr_options = array_merge(array(
 			'host' => 'localhost',
 			'port' => 8983,
-			'path' => '/solr'
+			'path' => '/solr',
+			'extraspath' => Director::baseFolder().'/fulltextsearch/conf/extras/',
+			'templatespath' => Director::baseFolder().'/fulltextsearch/conf/templates/',
 		), self::$solr_options, $options);
 	}
 
@@ -92,14 +100,17 @@ class Solr_Configure extends BuildTask {
 				$remote = isset($index['remotepath']) ? $index['remotepath'] : $local;
 				
 				foreach (Solr::get_indexes() as $index => $instance) {
-					$confdir = "$local/$index/conf";
-					if (!is_dir($confdir)) mkdir($confdir, 0770, true);
+					$sourceDir = $instance->getExtrasPath();
+					$targetDir = "$local/$index/conf";
+					if (!is_dir($targetDir)) mkdir($targetDir, 0770, true);
 
-					file_put_contents("$confdir/schema.xml", $instance->generateSchema());
+					file_put_contents("$targetDir/schema.xml", $instance->generateSchema());
 
-					foreach (glob(Director::baseFolder().'/fulltextsearch/conf/extras/*') as $file) {
-						if (is_file($file)) copy($file, $confdir.'/'.basename($file));
+					echo sprintf("Copying %s to %s...", $sourceDir, $targetDir);
+					foreach (glob($sourceDir . '/*') as $file) {
+						if (is_file($file)) copy($file, $targetDir.'/'.basename($file));
 					}
+					echo "done\n";
 				}
 					
 				break;
@@ -118,14 +129,17 @@ class Solr_Configure extends BuildTask {
 					$indexdir = "$url/$index";
 					if (!WebDAV::exists($indexdir)) WebDAV::mkdir($indexdir);
 
-					$confdir = "$url/$index/conf";
-					if (!WebDAV::exists($confdir)) WebDAV::mkdir($confdir);
+					$sourceDir = $instance->getExtrasPath();
+					$targetDir = "$url/$index/conf";
+					if (!WebDAV::exists($targetDir)) WebDAV::mkdir($targetDir);
 
-					WebDAV::upload_from_string($instance->generateSchema(), "$confdir/schema.xml");
+					WebDAV::upload_from_string($instance->generateSchema(), "$targetDir/schema.xml");
 
-					foreach (glob(Director::baseFolder().'/fulltextsearch/conf/extras/*') as $file) {
-						if (is_file($file)) WebDAV::upload_from_file($file, $confdir.'/'.basename($file));
+					echo sprintf("Copying %s to %s (via WebDAV)...", $sourceDir, $targetDir);
+					foreach (glob($sourceDir . '/*') as $file) {
+						if (is_file($file)) WebDAV::upload_from_file($file, $targetDir.'/'.basename($file));
 					}
+					echo "done\n";
 				}
 					
 				break;
