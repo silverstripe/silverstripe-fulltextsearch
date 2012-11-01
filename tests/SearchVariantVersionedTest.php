@@ -14,6 +14,14 @@ class SearchVariantVersionedTest_Index extends SearchIndex_Recording {
 	}
 }
 
+class SearchVariantVersionedTest_IndexNoStage extends SearchIndex_Recording {
+	function init() {
+		$this->addClass('SearchVariantVersionedTest_Item');
+		$this->addFilterField('TestText');
+		$this->excludeVariantState(array('SearchVariantVersioned' => 'Stage'));
+	}
+}
+
 class SearchVariantVersionedTest extends SapphireTest {
 
 	private static $index = null;
@@ -66,6 +74,25 @@ class SearchVariantVersionedTest extends SapphireTest {
 		SearchUpdater::flush_dirty_indexes();
 		$this->assertEquals(self::$index->getAdded(array('ID', '_versionedstage')), array(
 			array('ID' => $item->ID, '_versionedstage' => 'Stage')
+		));
+	}
+
+	function testExcludeVariantState() {
+		$index = singleton('SearchVariantVersionedTest_IndexNoStage');
+		FullTextSearch::force_index_list($index);
+
+		// Check that write doesn't update stage
+		$item = new SearchVariantVersionedTest_Item(array('TestText' => 'Foo'));
+		$item->write();
+		SearchUpdater::flush_dirty_indexes();
+		$this->assertEquals($index->getAdded(array('ID', '_versionedstage')), array());
+
+		// Check that publish updates Live
+		$index->reset();
+		$item->publish("Stage", "Live");
+		SearchUpdater::flush_dirty_indexes();
+		$this->assertEquals($index->getAdded(array('ID', '_versionedstage')), array(
+			array('ID' => $item->ID, '_versionedstage' => 'Live')
 		));
 	}
 }
