@@ -761,6 +761,11 @@
          <str>nameOfCustomComponent2</str>
        </arr>
       -->
+
+      <arr name="last-components">
+        <str>spellcheck</str>
+      </arr>
+      
     </requestHandler>
 
   <!-- A Robust Example
@@ -1082,13 +1087,13 @@
          component
       -->
 
-    <!-- a spellchecker built from a field of hte main index, and
-         written to disk
-      -->
+    <!-- a spellchecker built from a field of the main index, and written to disk -->
     <lst name="spellchecker">
       <str name="name">default</str>
-      <str name="field">name</str>
-      <str name="spellcheckIndexDir">spellchecker</str>
+      <str name="field">_text</str>
+      <str name="spellcheckIndexDir">./spellchecker</str>
+      <str name="classname">solr.IndexBasedSpellChecker</str>
+      <str name="buildOnCommit">true</str>
     </lst>
 
     <!-- a spellchecker that uses a different distance measure -->

@@ -138,6 +138,81 @@ from a new file `mysite/solr/templates/types.ss` instead:
 		}
 	}
 
+### Spell Checking ("Did you mean...")
+
+Solr has various spell checking strategies (see the ["SpellCheckComponent" docs](http://wiki.apache.org/solr/SpellCheckComponent)), all of which are configured through `solrconfig.xml`.
+In the default config which is copied into your index,
+spell checking data is collected from all fulltext fields
+(everything you added through `SolrIndex->addFulltextField()`).
+The values of these fields are collected in a special `_text` field.
+
+	$index = new MyIndex();
+	$query = new SearchQuery();
+	$query->search('My Term');
+	$params = array('spellcheck' => 'true', 'spellcheck.collate' => 'true');
+	$results = $index->search($query, -1, -1, $params);
+	$results->spellcheck
+
+The built-in `_text` data is better than nothing, but also has some problems:
+Its heavily processed, for example by stemming filters which butcher words.
+So misspelling "Govnernance" will suggest "govern" rather than "Governance".
+This can be fixed by aggregating spell checking data in a separate
+
+	<?php
+	class MyIndex extends SolrIndex {
+
+		function init() {
+			// ...
+			$this->addCopyField('SiteTree_Title', 'spellcheckData');
+			$this->addCopyField('DMSDocument_Title', 'spellcheckData');
+			$this->addCopyField('SiteTree_Content', 'spellcheckData');
+			$this->addCopyField('DMSDocument_Content', 'spellcheckData');
+		}
+
+		// ...
+
+		function getFieldDefinitions() {
+			$xml = parent::getFieldDefinitions();
+			
+			$xml .= "\n\n\t\t<!-- Additional custom fields for spell checking -->";
+			$xml .= "\n\t\t<field name='spellcheckData' type='textSpell' indexed='true' stored='false' multiValued='true' />";
+
+			return $xml;
+		}
+
+	}
+
+Now you need to tell solr to use our new field for gathering spelling data.
+In order to customize the spell checking configuration,
+create your own `solrconfig.xml` (see "File-based configuration").
+In there, change the following directive:
+
+	<!-- ... -->
+	<searchComponent name="spellcheck" class="solr.SpellCheckComponent">
+		<!-- ... -->
+		<str name="field">spellcheckData</str>
+	</searchComponent
+
+Don't forget to copy the new configuration via a call to the `Solr_Configure`
+task, and reindex your data before using the spell checker.	
+
+### Custom Types
+
+Solr supports custom field type definitions which are written to its XML schema.
+Many standard ones are already included in the default schema.
+As the XML file is generated dynamically, we can add our own types
+by overloading the template responsible for it: `types.ss`.
+
+In the following example, we read out type definitions
+from a new file `mysite/solr/templates/types.ss` instead:
+
+	<?php
+	class MyIndex extends SolrIndex {
+		function getTemplatesPath() {
+			return Director::baseFolder() . '/mysite/solr/templates/';
+		}
+	}
+
 ## Debugging
 
 ### Using the web admin interface
