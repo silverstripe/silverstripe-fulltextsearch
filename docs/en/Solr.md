@@ -306,6 +306,34 @@ Example: Replace synonyms on indexing (e.g. "i-pad" with "iPad")
 	//   <filter class="solr.SynonymFilterFactory" synonyms="syn.txt" ignoreCase="true" expand="false"/>
 	// </field>
 
+### Text Extraction
+
+Solr provides built-in text extraction capabilities for PDF and Office documents,
+and numerous other formats, through the `ExtractingRequestHandler` API
+(see http://wiki.apache.org/solr/ExtractingRequestHandler).
+If you're using a default Solr installation, it's most likely already
+bundled and set up. But if you plan on running the Solr server integrated
+into this module, you'll need to download the libraries and link the first.
+
+	wget http://archive.apache.org/dist/lucene/solr/3.1.0/apache-solr-3.1.0.tgz
+	mkdir tmp
+	tar -xvzf apache-solr-3.1.0.tgz
+	mkdir .solr/PageSolrIndexboot/dist
+	mkdir .solr/PageSolrIndexboot/contrib
+	cp apache-solr-3.1.0/dist/apache-solr-cell-3.1.0.jar .solr/PageSolrIndexboot/dist/
+	cp -R apache-solr-3.1.0/contrib/extraction .solr/PageSolrIndexboot/contrib/
+	rm -rf apache-solr-3.1.0 apache-solr-3.1.0.tgz
+
+Create a custom `solrconfig.xml` (see "File-based configuration").
+Add the following XML configuration.
+
+	<lib dir="./contrib/extraction/lib/" />
+  <lib dir="./dist" />
+
+Now apply the configuration:
+
+	sake dev/tasks/Solr_configure
+
 ## Debugging
 
 ### Using the web admin interface
