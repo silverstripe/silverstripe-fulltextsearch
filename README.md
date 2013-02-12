@@ -1,8 +1,6 @@
-# WARNING: Heavily experimental API. Likely to change without notice.
-
 # FullTextSearch module
 
-An attempt to add stable support for Fulltext Search engines like Sphinx and Solr to SilverStripe CMS
+Adds support for fulltext search engines like Sphinx and Solr to SilverStripe CMS.
 
 ## Maintainer Contact
 
