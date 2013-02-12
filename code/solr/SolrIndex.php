@@ -222,10 +222,11 @@ abstract class SolrIndex extends SearchIndex {
 	 * @param SearchQuery $query
 	 * @param integer $offset
 	 * @param integer $limit
+	 * @param  Array $params Extra request parameters passed through to Solr
 	 * @return ArrayData Map with the following keys: 
 	 *  - 'Matches': ArrayList of the matched object instances
 	 */
-	public function search(SearchQuery $query, $offset = -1, $limit = -1) {
+	public function search(SearchQuery $query, $offset = -1, $limit = -1, $params = array()) {
 		$service = $this->getService();
 
 		SearchVariant::with(count($query->classes) == 1 ? $query->classes[0]['class'] : null)->call('alterQuery', $query, $this);
@@ -327,11 +328,13 @@ abstract class SolrIndex extends SearchIndex {
 		if ($limit == -1) $limit = $query->limit;
 		if ($limit == -1) $limit = SearchQuery::$default_page_size;
 
+		$params = array_merge($params, array('fq' => implode(' ', $fq)));
+
 		$res = $service->search(
 			$q ? implode(' ', $q) : '*:*', 
 			$offset, 
 			$limit, 
-			array('fq' => implode(' ', $fq)), 
+			$params, 
 			Apache_Solr_Service::METHOD_POST
 		);
 
