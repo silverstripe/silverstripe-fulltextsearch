@@ -47,7 +47,7 @@ abstract class SearchIndex extends ViewableData {
 	 * Examines the classes this index is built on to try and find defined fields in the class hierarchy for those classes.
 	 * Looks for db and viewable-data fields, although can't nessecarily find type for viewable-data fields.
 	 */
-	function fieldData($field, $forceType = null) {
+	function fieldData($field, $forceType = null, $extraOptions = array()) {
 		$fullfield = str_replace(".", "_", $field);
 		$sources = $this->getClasses();
 
@@ -150,7 +150,8 @@ abstract class SearchIndex extends ViewableData {
 						'class' => $dataclass,
 						'lookup_chain' => $fieldoptions['lookup_chain'],
 						'type' => $forceType ? $forceType : $type,
-						'multi_valued' => isset($fieldoptions['multi_valued']) ? true : false
+						'multi_valued' => isset($fieldoptions['multi_valued']) ? true : false,
+						'extra_options' => $extraOptions
 					);
 				}
 			}
@@ -202,9 +203,10 @@ abstract class SearchIndex extends ViewableData {
 	 * Add a field that should be fulltext searchable
 	 * @param String $field - The field to add
 	 * @param String $forceType - The type to force this field as (required in some cases, when not detectable from metadata)
+	 * @param String $extraOptions - Dependent on search implementation
 	 */
-	public function addFulltextField($field, $forceType = null) {
-		$this->fulltextFields = array_merge($this->fulltextFields, $this->fieldData($field, $forceType));
+	public function addFulltextField($field, $forceType = null, $extraOptions = array()) {
+		$this->fulltextFields = array_merge($this->fulltextFields, $this->fieldData($field, $forceType, $extraOptions));
 	}
 
 	public function getFulltextFields() { return $this->fulltextFields; }
@@ -213,9 +215,10 @@ abstract class SearchIndex extends ViewableData {
 	 * Add a field that should be filterable
 	 * @param String $field - The field to add
 	 * @param String $forceType - The type to force this field as (required in some cases, when not detectable from metadata)
+	 * @param String $extraOptions - Dependent on search implementation
 	 */
-	public function addFilterField($field, $forceType = null) {
-		$this->filterFields = array_merge($this->filterFields, $this->fieldData($field, $forceType));
+	public function addFilterField($field, $forceType = null, $extraOptions = array()) {
+		$this->filterFields = array_merge($this->filterFields, $this->fieldData($field, $forceType, $extraOptions));
 	}
 
 	public function getFilterFields() { return $this->filterFields; }
@@ -224,9 +227,10 @@ abstract class SearchIndex extends ViewableData {
 	 * Add a field that should be sortable
 	 * @param String $field - The field to add
 	 * @param String $forceType - The type to force this field as (required in some cases, when not detectable from metadata)
+	 * @param String $extraOptions - Dependent on search implementation
 	 */
-	public function addSortField($field, $forceType = null) {
-		$this->sortFields = array_merge($this->sortFields, $this->fieldData($field, $forceType));
+	public function addSortField($field, $forceType = null, $extraOptions = array()) {
+		$this->sortFields = array_merge($this->sortFields, $this->fieldData($field, $forceType, $extraOptions));
 	}
 
 	public function getSortFields() { return $this->sortFields; }

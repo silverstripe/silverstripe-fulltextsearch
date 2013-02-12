@@ -285,6 +285,27 @@ The searched term is highlighted with an `<em>` tag by default.
 Note: It is recommended to strip out all HTML tags and convert entities on the indexed content,
 to avoid matching HTML attributes, and cluttering highlighted content with unparsed HTML.
 
+### Adding Analyzers, Tokenizers and Token Filters
+
+When a document is indexed, its individual fields are subject to the analyzing and tokenizing filters that can transform and normalize the data in the fields. For example — removing blank spaces, removing html code, stemming, removing a particular character and replacing it with another 
+(see [Solr Wiki](http://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters)).
+
+Example: Replace synonyms on indexing (e.g. "i-pad" with "iPad")
+
+	<?php
+	class MyIndex extends SolrIndex {
+		function init() {
+			$this->addClass('Page');
+			$this->addField('Content');
+			$this->addAnalyzer('Content', 'filter', array('class' => 'solr.SynonymFilterFactory'));
+		}
+	}
+
+	// Generates the following XML schema definition:
+	// <field name="Page_Content" ...>
+	//   <filter class="solr.SynonymFilterFactory" synonyms="syn.txt" ignoreCase="true" expand="false"/>
+	// </field>
+
 ## Debugging
 
 ### Using the web admin interface
