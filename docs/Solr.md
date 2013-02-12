@@ -196,6 +196,46 @@ In there, change the following directive:
 Don't forget to copy the new configuration via a call to the `Solr_Configure`
 task, and reindex your data before using the spell checker.	
 
+### Limiting search fields
+
+Solr has a way of specifying which fields to search on. You specify these
+fields as a parameter to `SearchQuery`.
+
+In the following example, we're telling Solr to *only* search the
+`Title` and `Content` fields. Note that the fields must be specified in
+the search parameters as "composite fields", which means they should be
+specified in the form of `{table}_{field}`.
+
+These fields are defined in the schema.xml file that gets sent to Solr.
+
+	$query = new SearchQuery();
+	$query->classes = array(array('class' => 'Page', 'includeSubclasses' => true));
+	$query->search('someterms', array('SiteTree_Title', 'SiteTree_Content'));
+	$result = singleton('SolrSearchIndex')->search($query, -1, -1);
+
+	// the request to Solr would be:
+	// q=(SiteTree_Title:Lorem+OR+SiteTree_Content:Lorem)
+
+### Configuring boosts on fields
+
+Solr has a way of specifying which fields should be boosted as a parameter to `SearchQuery`.
+
+This means if you boost a certain field, search query matches on that field will be considered
+higher relevance than other fields with matches, and therefore those results will be closer
+to the top of the results.
+
+In this example, we enter "Lorem" as the search term, and boost the `Content` field:
+
+	$query = new SearchQuery();
+	$query->classes = array(array('class' => 'Page', 'includeSubclasses' => true));
+	$query->search('Lorem', null, array('SiteTree_Content' => 2));
+	$result = singleton('SolrSearchIndex')->search($query, -1, -1);
+
+	// the request to Solr would be:
+	// q=SiteTree_Content:Lorem^2
+
+More information on [relevancy on the Solr wiki](http://wiki.apache.org/solr/SolrRelevancyFAQ).
+
 ### Custom Types
 
 Solr supports custom field type definitions which are written to its XML schema.
