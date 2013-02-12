@@ -64,7 +64,7 @@ Initialize the configuration (via CLI)
 
 Based on the sample configuration above, this command will do the following:
 
-- Create a <BASE_PATH>/.solr/MyIndex` folder
+- Create a `<BASE_PATH>/.solr/MyIndex` folder
 - Copy configuration files from `fulltextsearch/conf/extras/` to `<BASE_PATH>/.solr/MyIndex/conf`
 - Generate a `schema.xml`, and place it it in `<BASE_PATH>/.solr/MyIndex/conf`
 
