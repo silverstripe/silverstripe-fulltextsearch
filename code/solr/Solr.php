@@ -102,7 +102,11 @@ class Solr_Configure extends BuildTask {
 				foreach (Solr::get_indexes() as $index => $instance) {
 					$sourceDir = $instance->getExtrasPath();
 					$targetDir = "$local/$index/conf";
-					if (!is_dir($targetDir)) mkdir($targetDir, 0770, true);
+					if (!is_dir($targetDir)) {
+						$worked = @mkdir($targetDir, 0770, true);
+						if(!$worked) echo sprintf('Failed creating target directory %s, please check permissions', $targetDir);
+						return;
+					}
 
 					file_put_contents("$targetDir/schema.xml", $instance->generateSchema());
 
