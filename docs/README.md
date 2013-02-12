@@ -1,17 +1,3 @@
-# WARNING: Heavily experimental API. Likely to change without notice.
-
-# FullTextSearch module
-
-An attempt to add stable support for Fulltext Search engines like Sphinx and Solr to SilverStripe CMS
-
-## Maintainer Contact
-
-* Hamish Friedlander <hamish (at) silverstripe (dot) com>
-
-## Requirements
-
-* SilverStripe 3.0
-
 ## Introduction
 
 This is a module aimed at adding support for standalone fulltext search engines to SilverStripe.
