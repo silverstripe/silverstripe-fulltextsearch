@@ -253,6 +253,38 @@ from a new file `mysite/solr/templates/types.ss` instead:
 		}
 	}
 
+### Highlighting
+
+Solr can highlight the searched terms in context of the matched content,
+to help users determine the relevancy of results (e.g. in which part of a sentence
+the term is used). In order to use this feature, the full content of the
+field to be highlighted needs to be stored in the index,
+by declaring it through `addStoredField()`.
+
+	<?php
+	class MyIndex extends SolrIndex {
+		function init() {
+			$this->addClass('Page');
+			$this->addAllFulltextFields();
+			$this->addStoredField('Content');
+		}
+	}
+
+To search with highlighting enabled, you need to pass in a custom query parameter.
+There's a lot more parameters to tweak results on the [Solr Wiki](http://wiki.apache.org/solr/HighlightingParameters).
+
+	$index = new MyIndex();
+	$query = new SearchQuery();
+	$query->search('My Term');
+	$results = $index->search($query, -1, -1, array('hl' => 'true'));
+
+Each result will automatically contain an "Excerpt" property
+which you can use in your own results template.
+The searched term is highlighted with an `<em>` tag by default.
+
+Note: It is recommended to strip out all HTML tags and convert entities on the indexed content,
+to avoid matching HTML attributes, and cluttering highlighted content with unparsed HTML.
+
 ## Debugging
 
 ### Using the web admin interface
