@@ -167,7 +167,12 @@ abstract class SolrIndex extends SearchIndex {
 			if ($field['base'] == $base) $this->_addField($doc, $object, $field);
 		}
 
-		$this->getService()->addDocument($doc);
+		try {
+			$this->getService()->addDocument($doc);
+		} catch (Exception $e) {
+			SS_Log::log($e, SS_Log::WARN);
+			return false;
+		}
 
 		return $doc;
 	}
@@ -195,11 +200,22 @@ abstract class SolrIndex extends SearchIndex {
 
 	function delete($base, $id, $state) {
 		$documentID = $this->getDocumentIDForState($base, $id, $state);
-		$this->getService()->deleteById($documentID);
+
+		try {
+			$this->getService()->deleteById($documentID);
+		} catch (Exception $e) {
+			SS_Log::log($e, SS_Log::WARN);
+			return false;
+		}
 	}
 
 	function commit() {
-		$this->getService()->commit(false, false, false);
+		try {
+			$this->getService()->commit(false, false, false);
+		} catch (Exception $e) {
+			SS_Log::log($e, SS_Log::WARN);
+			return false;
+		}
 	}
 
 	/**
