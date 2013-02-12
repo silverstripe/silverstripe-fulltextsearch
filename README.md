@@ -13,7 +13,7 @@ Adds support for fulltext search engines like Sphinx and Solr to SilverStripe CM
 
 ## Documentation
 
-See docs/README.md
+See docs/en/index.md
 
 ## TODO
 
