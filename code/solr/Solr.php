@@ -87,6 +87,7 @@ class Solr_Configure extends BuildTask {
 
 	public function run($request) {
 		$service = Solr::service();
+		$indexes = Solr::get_indexes();
 
 		if (!isset(Solr::$solr_options['indexstore']) || !($index = Solr::$solr_options['indexstore'])) {
 			user_error('No index configuration for Solr provided', E_USER_ERROR);
@@ -99,13 +100,15 @@ class Solr_Configure extends BuildTask {
 				$local = $index['path'];
 				$remote = isset($index['remotepath']) ? $index['remotepath'] : $local;
 				
-				foreach (Solr::get_indexes() as $index => $instance) {
+				foreach ($indexes as $index => $instance) {
 					$sourceDir = $instance->getExtrasPath();
 					$targetDir = "$local/$index/conf";
 					if (!is_dir($targetDir)) {
 						$worked = @mkdir($targetDir, 0770, true);
-						if(!$worked) echo sprintf('Failed creating target directory %s, please check permissions', $targetDir);
-						return;
+						if(!$worked) {
+							echo sprintf('Failed creating target directory %s, please check permissions', $targetDir);
+							return;
+						}
 					}
 
 					file_put_contents("$targetDir/schema.xml", $instance->generateSchema());
@@ -152,18 +155,22 @@ class Solr_Configure extends BuildTask {
 				user_error('Unknown Solr index mode '.$index['mode'], E_USER_ERROR);
 		}
 
-		if ($service->coreIsActive($index)) {
-			echo "Reloading configuration...";
-			$service->coreReload($index);
-			echo "done\n";
-		} else {
-			echo "Creating configuration...";
-			$instanceDir = $indexName;
-			if ($remote) {
-				$instanceDir = "$remote/$instanceDir";
+		foreach ($indexes as $index => $instance) {
+			$indexName = $instance->getName();
+
+			if ($service->coreIsActive($index)) {
+				echo "Reloading configuration...";
+				$service->coreReload($index);
+				echo "done\n";
+			} else {
+				echo "Creating configuration...";
+				$instanceDir = $indexName;
+				if ($remote) {
+					$instanceDir = "$remote/$instanceDir";
+				}
+				$service->coreCreate($indexName, $instanceDir);
+				echo "done\n";
 			}
-			$service->coreCreate($indexName, $instanceDir);
-			echo "done\n";
 		}
 	}
 }
