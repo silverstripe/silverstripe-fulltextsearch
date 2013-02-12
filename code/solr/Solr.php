@@ -132,7 +132,7 @@ class Solr_Configure extends BuildTask {
 					
 				$remote = $index['remotepath'];
 
-				foreach (Solr::get_indexes() as $index => $instance) {
+				foreach ($indexes as $index => $instance) {
 					$indexdir = "$url/$index";
 					if (!WebDAV::exists($indexdir)) WebDAV::mkdir($indexdir);
 
@@ -156,7 +156,7 @@ class Solr_Configure extends BuildTask {
 		}
 
 		foreach ($indexes as $index => $instance) {
-			$indexName = $instance->getName();
+			$indexName = $instance->getIndexName();
 
 			if ($service->coreIsActive($index)) {
 				echo "Reloading configuration...";
