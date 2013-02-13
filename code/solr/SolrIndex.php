@@ -439,7 +439,7 @@ abstract class SolrIndex extends SearchIndex {
 						foreach($res->highlighting->$docId as $field => $highlights) {
 							$combinedHighlights = array_merge($combinedHighlights, $highlights);
 						}
-						$result->Excerpt = implode(' ... ', $combinedHighlights);
+						$result->Excerpt = DBField::create_field('HTMLText', implode(' ... ', $combinedHighlights));
 					}
 				}
 			}
