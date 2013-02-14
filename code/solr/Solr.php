@@ -55,7 +55,11 @@ class Solr  {
 			if (!self::$solr_options) user_error('No configuration for Solr server provided', E_USER_ERROR);
 
 			$class = self::$service_class;
-			self::$service = new $class(self::$solr_options['host'], self::$solr_options['port'], self::$solr_options['path']);
+			$host = self::$solr_options['host'];
+			if (isset(self::$solr_options['indexstore']) && isset(self::$solr_options['indexstore']['auth']) && self::$solr_options['indexstore']['auth']) {
+				$host = self::$solr_options['indexstore']['auth'] . '@' . $host;
+			}
+			self::$service = new $class($host, self::$solr_options['port'], self::$solr_options['path']);
 		}
 
 		return $core ? self::$service->serviceForCore($core) : self::$service;
