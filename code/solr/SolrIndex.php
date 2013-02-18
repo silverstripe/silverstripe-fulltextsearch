@@ -348,7 +348,7 @@ abstract class SolrIndex extends SearchIndex {
 		$classq = array();
 
 		foreach ($query->classes as $class) {
-			if ($class['includeSubclasses']) $classq[] = 'ClassHierarchy:'.$class['class'];
+			if (!empty($class['includeSubclasses'])) $classq[] = 'ClassHierarchy:'.$class['class'];
 			else $classq[] = 'ClassName:'.$class['class'];
 		}
 
