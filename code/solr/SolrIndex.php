@@ -312,7 +312,7 @@ abstract class SolrIndex extends SearchIndex {
 	 */
 	public function search(SearchQuery $query, $offset = -1, $limit = -1, $params = array()) {
 		$service = $this->getService();
-
+		
 		SearchVariant::with(count($query->classes) == 1 ? $query->classes[0]['class'] : null)->call('alterQuery', $query, $this);
 
 		$q = array();
@@ -440,6 +440,9 @@ abstract class SolrIndex extends SearchIndex {
 							$combinedHighlights = array_merge($combinedHighlights, $highlights);
 						}
 						$result->Excerpt = DBField::create_field('HTMLText', implode(' ... ', $combinedHighlights));
+						// Remove entity-encoded U+FFFD REPLACEMENT CHARACTER. 
+						// It signifies non-displayable characters, and shows up as such itself in browsers (questionmark icon)
+						$result->Excerpt = str_replace('&#65533;', '', $result->Excerpt);
 					}
 				}
 			}
@@ -447,7 +450,7 @@ abstract class SolrIndex extends SearchIndex {
 		} else {
 			$numFound = 0;
 		}
-		
+
 		$ret = array();
 		$ret['Matches'] = new PaginatedList($results);
 		$ret['Matches']->setLimitItems(false);
