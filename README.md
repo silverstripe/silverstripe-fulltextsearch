@@ -1,5 +1,7 @@
 # FullTextSearch module
 
+[![Build Status](https://secure.travis-ci.org/silverstripe-labs/silverstripe-fulltextsearch.png?branch=master)](http://travis-ci.org/silverstripe-labs/silverstripe-fulltextsearch)
+
 Adds support for fulltext search engines like Sphinx and Solr to SilverStripe CMS.
 
 ## Maintainer Contact
