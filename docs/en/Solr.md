@@ -55,12 +55,12 @@ Create an index
 
 Start the search server (via CLI, in a separate terminal window or background process)
 
-	cd fulltextsearch/thirdparty/fulltextsearch/server/
+	cd fulltextsearch/thirdparty/solr/server/
 	java -jar start.jar
 
 Initialize the configuration (via CLI)
 
-	sake dev/tasks/Solr_configure
+	sake dev/tasks/Solr_Configure
 
 Based on the sample configuration above, this command will do the following:
 
