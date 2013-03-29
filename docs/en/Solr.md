@@ -55,12 +55,12 @@ Create an index
 
 Start the search server (via CLI, in a separate terminal window or background process)
 
-	cd fulltextsearch/thirdparty/fulltextsearch/server/
+	cd fulltextsearch/thirdparty/solr/server/
 	java -jar start.jar
 
 Initialize the configuration (via CLI)
 
-	sake dev/tasks/Solr_configure
+	sake dev/tasks/Solr_Configure
 
 Based on the sample configuration above, this command will do the following:
 
@@ -77,7 +77,7 @@ regenerate the `schema.xml`, and ask Solr to reload the configuration.
 After configuring Solr, you have the option to add your existing
 content to its indices. Run the following command:
 
-	sake dev/tasks/Solr_reindex
+	sake dev/tasks/Solr_Reindex
 
 This will delete and rebuild all indices. Depending on your data,
 this can take anywhere from minutes to hours.
