@@ -70,7 +70,7 @@ class SearchIntrospection {
 	 */
 	static function has_extension($class, $extension, $includeSubclasses = true) {
 		foreach (self::hierarchy($class, $includeSubclasses) as $relatedclass) {
-			if (Object::has_extension($relatedclass, $extension)) return true;
+			if ($relatedclass::has_extension($extension)) return true;
 		}
 		return false;
 	}
