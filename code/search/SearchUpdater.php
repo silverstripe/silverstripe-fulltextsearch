@@ -49,7 +49,7 @@ class SearchUpdater extends Object {
 		$current = DB::getConn();
 		if (!$current || @$current->isManipulationCapture) return; // If not yet set, or its already captured, just return
 
-		$type = $databaseConfig['type'];
+		$type = get_class($current);
 		$file = TEMP_FOLDER."/.cache.SMC.$type";
 
 		if (!is_file($file)) {
@@ -115,9 +115,7 @@ class SearchUpdater extends Object {
 	 * (so a class => array( 'fields' => array() ) item), in order to find the actual class for a set of table manipulations
 	 */
 	static function handle_manipulation($manipulation) {
-
 		// First, extract any state that is in the manipulation itself
-
 		foreach ($manipulation as $table => $details) {
 			$manipulation[$table]['class'] = $table;
 			$manipulation[$table]['state'] = array();
