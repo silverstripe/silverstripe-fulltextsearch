@@ -334,6 +334,9 @@ Now apply the configuration:
 
 	sake dev/tasks/Solr_configure
 
+Now you can use Solr text extraction either directly through the HTTP API,
+or indirectly through the ["textextraction" module](https://github.com/silverstripe-labs/silverstripe-textextraction).
+
 ## Debugging
 
 ### Using the web admin interface
