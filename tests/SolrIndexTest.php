@@ -92,6 +92,16 @@ class SolrIndexTest extends SapphireTest {
 		$this->assertEquals('destField', $lastDef['dest']);
 	}
 
+	function testSharedField() {
+		$index = new SolrIndexTest_FakeIndex();		
+		$defs = simplexml_load_string('<fields>' . $index->getFieldDefinitions() . '</fields>');
+		$this->assertTrue((bool)$defs->xpath('field[@name="SearchUpdaterTest_Container_SharedField1"]'));
+		$this->assertTrue((bool)$defs->xpath('field[@name="SearchUpdaterTest_OtherContainer_SharedField1"]'));
+		$this->assertFalse((bool)$defs->xpath('field[@name="SearchUpdaterTest_Container_SharedField2"]'));
+		$this->assertFalse((bool)$defs->xpath('field[@name="SearchUpdaterTest_OtherContainer_SharedField2"]'));
+		$this->assertTrue((bool)$defs->xpath('field[@name="SharedField2"]'));
+	}
+
 	protected function getServiceSpy() {
 		$serviceSpy = Phockito::spy('SolrService');
 		$fakeResponse = new Apache_Solr_Response(new Apache_Solr_HttpTransport_Response(null, null, null));
@@ -108,8 +118,11 @@ class SolrIndexTest extends SapphireTest {
 class SolrIndexTest_FakeIndex extends SolrIndex {
 	function init() {
 		$this->addClass('SearchUpdaterTest_Container');
+		$this->addClass('SearchUpdaterTest_OtherContainer');
 
 		$this->addFilterField('Field1');
+		$this->addFilterField('SharedField1');
+		$this->addFilterField('SharedField2', null, array('shared' => true));
 		$this->addFilterField('MyDate', 'Date');
 		$this->addFilterField('HasOneObject.Field1');
 		$this->addFilterField('HasManyObjects.Field1');

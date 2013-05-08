@@ -199,10 +199,12 @@ abstract class SolrIndex extends SearchIndex {
 
 	protected function _addField($doc, $object, $field) {
 		$class = get_class($object);
-		if ($class != $field['origin'] && !is_subclass_of($class, $field['origin'])) return;
+		if (isset($field['origin']) && ($class != $field['origin'] && !is_subclass_of($class, $field['origin']))) {
+			return;
+		}
 
 		$value = $this->_getFieldValue($object, $field);
-		
+
 		$type = isset(self::$filterTypeMap[$field['type']]) ? self::$filterTypeMap[$field['type']] : self::$filterTypeMap['*'];
 
 		if (is_array($value)) foreach($value as $sub) {
@@ -248,7 +250,10 @@ abstract class SolrIndex extends SearchIndex {
 		// Add the user-specified fields
 
 		foreach ($this->getFieldsIterator() as $name => $field) {
-			if ($field['base'] == $base) $this->_addField($doc, $object, $field);
+			$isShared = (isset($field['extra_options']['shared']) && $field['extra_options']['shared']);
+			if ($field['base'] == $base || $isShared) {
+				$this->_addField($doc, $object, $field);
+			}
 		}
 
 		try {

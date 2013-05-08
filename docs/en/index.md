@@ -110,14 +110,31 @@ The `SearchQuery` API has the concept of a "missing" and "present" field value f
 An index is a denormalized view of your data, so can hold data from more than one model.
 As you can only search one index at a time, all searchable classes need to be included.
 
-	// File: mysite/code/MyIndex.php:
-	<?php
+	:::php
 	class MyIndex extends SolrIndex {
 		function init() {
 			$this->addClass('Page');
 			$this->addClass('Member');
 			$this->addFulltextField('Content'); // only applies to Page class
 			$this->addFulltextField('FirstName'); // only applies to Member class
+		}
+	}
+
+Sometimes properties overlap in disparate classes, for example `Page.Title`
+and `File.Title`. By default, two separate index fields will be created.
+You can search through both by including both fields in your query,
+and connecting them through a logical `OR` criteria (syntax varies based on search engine).
+But in order to sort records from both classes by this field, it needs to be
+contained in a unified index field. You can use the `shared` flag to denote your
+preference on field storage. The engine will assume that the property is of the same
+type on all classes.
+
+	:::php
+	class MyIndex extends SolrIndex {
+		function init() {
+			$this->addClass('Page');
+			$this->addClass('File');
+			$this->addFilterField('Title', null, array('shared' => true));
 		}
 	}
 
