@@ -8,9 +8,9 @@ class SolrIndexTest extends SapphireTest {
 	}
 	
 	function testBoost() {
-		$serviceMock = $this->getServiceMock();
+		$serviceSpy = $this->getServiceSpy();
 		$index = new SolrIndexTest_FakeIndex();
-		$index->setService($serviceMock);
+		$index->setService($serviceSpy);
 
 		$query = new SearchQuery();
 		$query->search(
@@ -20,32 +20,32 @@ class SolrIndexTest extends SapphireTest {
 		);
 		$index->search($query);
 
-		Phockito::verify($serviceMock)->search(
+		Phockito::verify($serviceSpy)->search(
 			'+(Field1:term^1.5 OR HasOneObject_Field1:term^3)',
 			anything(), anything(), anything(), anything()
 		);
 	}
 
 	function testIndexExcludesNullValues() {
-		$serviceMock = $this->getServiceMock();
+		$serviceSpy = $this->getServiceSpy();
 		$index = new SolrIndexTest_FakeIndex();
-		$index->setService($serviceMock);		
+		$index->setService($serviceSpy);		
 		$obj = new SearchUpdaterTest_Container();
 
 		$obj->Field1 = 'Field1 val';
 		$obj->Field2 = null;
 		$obj->MyDate = null;
 		$docs = $index->add($obj);
-		$value = $docs[0]->getField('SearchUpdaterTest_Container_Field1');
+		$value = $docs[0]->getField('Field1');
 		$this->assertEquals('Field1 val', $value['value'], 'Writes non-NULL string fields');
-		$value = $docs[0]->getField('SearchUpdaterTest_Container_Field2');
+		$value = $docs[0]->getField('Field2');
 		$this->assertFalse($value, 'Ignores string fields if they are NULL');
-		$value = $docs[0]->getField('SearchUpdaterTest_Container_MyDate');
+		$value = $docs[0]->getField('MyDate');
 		$this->assertFalse($value, 'Ignores date fields if they are NULL');
 
 		$obj->MyDate = '2010-12-30';
 		$docs = $index->add($obj);
-		$value = $docs[0]->getField('SearchUpdaterTest_Container_MyDate');
+		$value = $docs[0]->getField('MyDate');
 		$this->assertEquals('2010-12-30T00:00:00Z', $value['value'], 'Writes non-NULL dates');
 	}
 
@@ -55,12 +55,12 @@ class SolrIndexTest extends SapphireTest {
 		$index = new SolrIndexTest_FakeIndex();
 
 		$defs = simplexml_load_string('<fields>' . $index->getFieldDefinitions() . '</fields>');
-		$defField1 = $defs->xpath('field[@name="SearchUpdaterTest_Container_Field1"]');
+		$defField1 = $defs->xpath('field[@name="Field1"]');
 		$this->assertEquals((string)$defField1[0]['stored'], 'false');
 
 		$index->addFilterField('Field1', null, array('stored' => 'true'));
 		$defs = simplexml_load_string('<fields>' . $index->getFieldDefinitions() . '</fields>');
-		$defField1 = $defs->xpath('field[@name="SearchUpdaterTest_Container_Field1"]');
+		$defField1 = $defs->xpath('field[@name="Field1"]');
 		$this->assertEquals((string)$defField1[0]['stored'], 'true');
 
 		Director::set_environment_type($origMode);
@@ -70,13 +70,13 @@ class SolrIndexTest extends SapphireTest {
 		$index = new SolrIndexTest_FakeIndex();
 
 		$defs = simplexml_load_string('<fields>' . $index->getFieldDefinitions() . '</fields>');
-		$defField1 = $defs->xpath('field[@name="SearchUpdaterTest_Container_Field1"]');
+		$defField1 = $defs->xpath('field[@name="Field1"]');
 		$analyzers = $defField1[0]->analyzer;
 		$this->assertFalse((bool)$analyzers);
 
 		$index->addAnalyzer('Field1', 'charFilter', array('class' => 'solr.HTMLStripCharFilterFactory'));
 		$defs = simplexml_load_string('<fields>' . $index->getFieldDefinitions() . '</fields>');
-		$defField1 = $defs->xpath('field[@name="SearchUpdaterTest_Container_Field1"]');
+		$defField1 = $defs->xpath('field[@name="Field1"]');
 		$analyzers = $defField1[0]->analyzer;
 		$this->assertTrue((bool)$analyzers);
 		$this->assertEquals('solr.HTMLStripCharFilterFactory', $analyzers[0]->charFilter[0]['class']);
@@ -85,7 +85,7 @@ class SolrIndexTest extends SapphireTest {
 	function testAddCopyField() {
 		$index = new SolrIndexTest_FakeIndex();		
 		$index->addCopyField('sourceField', 'destField');
-		$defs = simplexml_load_string('<fields>' . $index->getCopyFieldDefinitions() . '</fields>');
+		$defs = (array)simplexml_load_string('<fields>' . $index->getCopyFieldDefinitions() . '</fields>');
 		$lastDef = array_pop($defs);
 
 		$this->assertEquals('sourceField', $lastDef['source']);
@@ -104,13 +104,13 @@ class SolrIndexTest extends SapphireTest {
 
 	protected function getServiceSpy() {
 		$serviceSpy = Phockito::spy('SolrService');
-		$fakeResponse = new Apache_Solr_Response(new Apache_Solr_HttpTransport_Response(null, null, null));
+		$fakeResponse = new Apache_Solr_Response(new Apache_Solr_HttpTransport_Response(null, null, "{}"));
 
-		Phockito::when($serviceMock)
+		Phockito::when($serviceSpy)
 			->_sendRawPost(anything(), anything(), anything(), anything())
 			->return($fakeResponse);
 
-		return $serviceMock;
+		return $serviceSpy;
 	}
 
 }
