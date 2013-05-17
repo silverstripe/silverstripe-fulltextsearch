@@ -128,8 +128,7 @@ abstract class SearchIndex extends ViewableData {
 						$type = $singleton->castingClass($field);
 						if (!$type) $type = 'String';
 
-						if ($singleton->hasMethod("get$field")) $fieldoptions['lookup_chain'][] = array('call' => 'method', 'method' => "get$field");
-						else $fieldoptions['lookup_chain'][] = array('call' => 'property', 'property' => $field);
+						$fieldoptions['lookup_chain'][] = array('call' => 'property', 'property' => $field);
 					}
 				}
 
@@ -138,16 +137,40 @@ abstract class SearchIndex extends ViewableData {
 					$dataclasses = array_diff($dataclasses, array_values(ClassInfo::subclassesFor($dataclass)));
 					// Trim arguments off the type string
 					if (preg_match('/^(\w+)\(/', $type, $match)) $type = $match[1];
+					
 					// Get the origin
 					$origin = isset($fieldoptions['origin']) ? $fieldoptions['origin'] : $dataclass;
 
-					$found["{$origin}_{$fullfield}"] = array(
-						'name' => "{$origin}_{$fullfield}",
+					// Namespace field name to owning class by default, but allow
+					// sharing of fields across classes (assumes they have the same type)
+					$isShared = isset($extraOptions['shared']) && $extraOptions['shared'];
+					$name = $isShared ? $fullfield : "{$origin}_{$fullfield}";
+
+					if(
+						$isShared 
+						&& !$forceType
+						&& isset($found[$name])
+						&& $found[$name]['type'] != $type
+					) {
+						throw new InvalidArgumentException(sprintf(
+							'The shared field "%s" has different types in the available classes (%s: "%s", %s: "%s"), '
+							. 'which can lead to unexpected behaviour. Normalize the types, remove the "shared" flag, '
+							. 'or enforce sharing through the $forceType argument.',
+							$name,
+							$found[$name]['base'],
+							$found[$name]['type'],
+							$fieldoptions['base'],
+							$type
+						));
+					}
+					
+					$found[$name] = array(
+						'name' => $name,
 						'field' => $field,
 						'fullfield' => $fullfield,
 						'base' => $fieldoptions['base'],
-						'origin' => $origin,
-						'class' => $dataclass,
+						'origin' => $isShared ? null : $origin,
+						'class' => $isShared ? null : $dataclass,
 						'lookup_chain' => $fieldoptions['lookup_chain'],
 						'type' => $forceType ? $forceType : $type,
 						'multi_valued' => isset($fieldoptions['multi_valued']) ? true : false,

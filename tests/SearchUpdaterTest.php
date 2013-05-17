@@ -2,9 +2,11 @@
 
 class SearchUpdaterTest_Container extends DataObject {
 	static $db = array(
-		'Field1' => 'Varchar',
+		'Field1' => 'Varchar', 
 		'Field2' => 'Varchar',
 		'MyDate' => 'Date',
+		'SharedField1' => 'Varchar', // same field as SearchUpdaterTest_OtherContainer
+		'SharedField2' => 'Varchar', // same field as SearchUpdaterTest_OtherContainer
 	);
 
 	static $has_one = array(
@@ -13,6 +15,13 @@ class SearchUpdaterTest_Container extends DataObject {
 
 	static $has_many = array(
 		'HasManyObjects' => 'SearchUpdaterTest_HasMany'
+	);
+}
+
+class SearchUpdaterTest_OtherContainer extends DataObject {
+	static $db = array(
+		'SharedField1' => 'Varchar', // same field as SearchUpdaterTest_Container
+		'SharedField2' => 'Varchar', // same field as SearchUpdaterTest_Container
 	);
 }
 
