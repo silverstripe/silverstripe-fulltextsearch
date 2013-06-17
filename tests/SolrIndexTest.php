@@ -8,7 +8,7 @@ class SolrIndexTest extends SapphireTest {
 	}
 	
 	function testBoost() {
-		$serviceMock = $this->getServiceMock();
+		$serviceMock = $this->getServiceSpy();
 		$index = new SolrIndexTest_FakeIndex();
 		$index->setService($serviceMock);
 
@@ -27,7 +27,7 @@ class SolrIndexTest extends SapphireTest {
 	}
 
 	function testIndexExcludesNullValues() {
-		$serviceMock = $this->getServiceMock();
+		$serviceMock = $this->getServiceSpy();
 		$index = new SolrIndexTest_FakeIndex();
 		$index->setService($serviceMock);		
 		$obj = new SearchUpdaterTest_Container();
@@ -96,11 +96,11 @@ class SolrIndexTest extends SapphireTest {
 		$serviceSpy = Phockito::spy('SolrService');
 		$fakeResponse = new Apache_Solr_Response(new Apache_Solr_HttpTransport_Response(null, null, null));
 
-		Phockito::when($serviceMock)
+		Phockito::when($serviceSpy)
 			->_sendRawPost(anything(), anything(), anything(), anything())
 			->return($fakeResponse);
 
-		return $serviceMock;
+		return $serviceSpy;
 	}
 
 }
