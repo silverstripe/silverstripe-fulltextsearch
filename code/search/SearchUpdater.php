@@ -179,7 +179,6 @@ class SearchUpdater extends Object {
 
 		// Don't do it if we're testing - there's no database connection outside the test methods, so we'd
 		// just get errors
-
 		if (self::$dirty && !self::$registered && !(class_exists('SapphireTest',false) && SapphireTest::is_running_test())) {
 			register_shutdown_function(array("SearchUpdater", "flush_dirty_indexes"));
 			self::$registered = true;
@@ -236,8 +235,15 @@ class SearchUpdater extends Object {
 	static function process_dirty_indexes($dirty) {
 		$indexes = FullTextSearch::get_indexes();
 		$dirtyindexes = array();
-
 		$originalState = SearchVariant::current_state();
+
+		$listsByClass = array();
+		foreach($indexes as $index) {
+			foreach($index->getClasses() as $class => $options) {
+				$base = ClassInfo::baseDataClass($class);
+				$listsByClass[$base] = ($options['list']) ? $options['list'] : DataList::create($base);
+			}
+		}
 
 		foreach ($dirty as $base => $statefulids) {
 			if (!$statefulids) continue;
@@ -247,8 +253,7 @@ class SearchUpdater extends Object {
 				$ids = $statefulid['ids'];
 
 				SearchVariant::activate_state($state);
-
-				$objs = DataObject::get($base, '"'.$base.'"."ID" IN ('.implode(',', array_keys($ids)).')');
+				$objs = $listsByClass[$base]->filter('ID', array_keys($ids));
 				if ($objs) foreach ($objs as $obj) {
 					foreach ($ids[$obj->ID] as $index) { 
 						if (!$indexes[$index]->variantStateExcluded($state)) { 

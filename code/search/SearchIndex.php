@@ -180,15 +180,22 @@ abstract class SearchIndex extends ViewableData {
 	 *
 	 * @throws Exception
 	 * @param String $class - The class to include
-	 * @param array $options - TODO: Remove
+	 * @param array $options
+	 *  - 'include_children': TODO remove
+	 *  - 'list': A {@link DataList} to pre-filter records to be indexed
 	 */
 	public function addClass($class, $options = array()) {
 		if ($this->fulltextFields || $this->filterFields || $this->sortFields) {
 			throw new Exception('Can\'t add class to Index after fields have already been added');
 		}
 
+		if(isset($options['list']) && !($options['list'] instanceof SS_List)) {
+			throw new InvalidArgumentException('The "list" option needs to be of type SS_List');
+		}
+
  		$options = array_merge(array(
-			'include_children' => true
+			'include_children' => true,
+			'list' => null
 		), $options);
 
 		$this->classes[$class] = $options;
