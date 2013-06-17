@@ -236,8 +236,14 @@ class SearchUpdater extends Object {
 	static function process_dirty_indexes($dirty) {
 		$indexes = FullTextSearch::get_indexes();
 		$dirtyindexes = array();
-
 		$originalState = SearchVariant::current_state();
+
+		$listsByClass = array();
+		foreach($indexes as $index) {
+			foreach($index->getClasses() as $class => $options) {
+				$listsByClass[$class] = ($options['list']) ? $options['list'] : DataList::create($class);
+			}
+		}
 
 		foreach ($dirty as $base => $statefulids) {
 			if (!$statefulids) continue;
@@ -247,8 +253,7 @@ class SearchUpdater extends Object {
 				$ids = $statefulid['ids'];
 
 				SearchVariant::activate_state($state);
-
-				$objs = DataObject::get($base, '"'.$base.'"."ID" IN ('.implode(',', array_keys($ids)).')');
+				$objs = $listsByClass[$class]->filter('ID', array_keys($ids));
 				if ($objs) foreach ($objs as $obj) {
 					foreach ($ids[$obj->ID] as $index) { 
 						if (!$indexes[$index]->variantStateExcluded($state)) { 
