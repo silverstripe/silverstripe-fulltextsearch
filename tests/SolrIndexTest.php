@@ -4,11 +4,22 @@ class SolrIndexTest extends SapphireTest {
 	function setUpOnce() {
 		parent::setUpOnce();
 
-		Phockito::include_hamcrest();
+		if (class_exists('Phockito')) Phockito::include_hamcrest();
 	}
-	
+
+	function setUp() {
+		if (!class_exists('Phockito')) {
+			$this->markTestSkipped("These tests need the Phockito module installed to run");
+			$this->skipTest = true;
+		}
+
+		parent::setUp();
+	}
+
 	function testBoost() {
 		$serviceMock = $this->getServiceMock();
+		Phockito::when($serviceMock)->search()->return($this->getFakeRawSolrResponse());
+
 		$index = new SolrIndexTest_FakeIndex();
 		$index->setService($serviceMock);
 
@@ -20,10 +31,7 @@ class SolrIndexTest extends SapphireTest {
 		);
 		$index->search($query);
 
-		Phockito::verify($serviceMock)->search(
-			'+(Field1:term^1.5 OR HasOneObject_Field1:term^3)',
-			anything(), anything(), anything(), anything()
-		);
+		Phockito::verify($serviceMock)->search('+(Field1:term^1.5 OR HasOneObject_Field1:term^3)');
 	}
 
 	function testIndexExcludesNullValues() {
@@ -85,24 +93,34 @@ class SolrIndexTest extends SapphireTest {
 	function testAddCopyField() {
 		$index = new SolrIndexTest_FakeIndex();		
 		$index->addCopyField('sourceField', 'destField');
-		$defs = simplexml_load_string('<fields>' . $index->getCopyFieldDefinitions() . '</fields>');
-		$lastDef = array_pop($defs);
 
-		$this->assertEquals('sourceField', $lastDef['source']);
-		$this->assertEquals('destField', $lastDef['dest']);
+		$defs = simplexml_load_string('<fields>' . $index->getCopyFieldDefinitions() . '</fields>');
+		$copyField = $defs->xpath('copyField');
+
+		$this->assertEquals('sourceField', $copyField[0]['source']);
+		$this->assertEquals('destField', $copyField[0]['dest']);
+	}
+
+	protected function getServiceMock() {
+		return Phockito::mock('SolrService');
 	}
 
 	protected function getServiceSpy() {
 		$serviceSpy = Phockito::spy('SolrService');
-		$fakeResponse = new Apache_Solr_Response(new Apache_Solr_HttpTransport_Response(null, null, null));
+		Phockito::when($serviceSpy)->_sendRawPost()->return($this->getFakeRawSolrResponse());
 
-		Phockito::when($serviceMock)
-			->_sendRawPost(anything(), anything(), anything(), anything())
-			->return($fakeResponse);
-
-		return $serviceMock;
+		return $serviceSpy;
 	}
 
+	protected function getFakeRawSolrResponse() {
+		return new Apache_Solr_Response(
+			new Apache_Solr_HttpTransport_Response(
+				null,
+				null,
+				'{}'
+			)
+		);
+	}
 }
 
 class SolrIndexTest_FakeIndex extends SolrIndex {

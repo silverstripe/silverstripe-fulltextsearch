@@ -13,8 +13,7 @@
 		"silverstripe/framework": ">=3.1.0-beta1,<4.0"
 	},
 	"require-dev": {
-		"hafriedlander/phockito": "*",
-		"silverstripe/subsites": "*",
-		"silverstripe/cms": ">=3.1.0-beta1,<4.0"
-	}
+		"hafriedlander/silverstripe-phockito": "*"
+	},
+	"minimum-stability": "dev"
 }
