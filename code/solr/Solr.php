@@ -257,7 +257,7 @@ class Solr_Reindex extends BuildTask {
 		SearchVariant::activate_state($variantstate);
 
 		$list = ($options['list']) ? $options['list'] : DataList::create($class);
-		if($options['include_children']) $list = $list->filter('ClassName', $class);
+		if(!$options['include_children']) $list = $list->filter('ClassName', $class);
 		$list = $list->limit($this->stat('recordsPerRequest'), $start);
 		foreach ($list as $item) { $index->add($item); $item->destroy(); }
 	}
