@@ -209,15 +209,14 @@ class Solr_Reindex extends BuildTask {
 				Solr::service($index)->deleteByQuery('ClassHierarchy:(' . implode(' OR ', array_keys($classes)) . ')');
 
 				foreach ($classes as $class => $options) {
-					$includeSubclasses = $options['include_children'];
 					
-					foreach (SearchVariant::reindex_states($class, $includeSubclasses) as $state) {
+					foreach (SearchVariant::reindex_states($class, $options['include_children']) as $state) {
 						if ($instance->variantStateExcluded($state)) continue;
 						
 						SearchVariant::activate_state($state);
 
 						$list = ($options['list']) ? $options['list'] : DataList::create($class);
-						if($options['include_children']) $list = $list->filter('ClassName', $class);
+						if (!$options['include_children']) $list = $list->filter('ClassName', $class);
 						$dtaQuery = $list->dataQuery();						
 						$sqlQuery = $dtaQuery->getFinalisedQuery();
 						singleton($class)->extend('augmentSQL',$sqlQuery,$dtaQuery);
