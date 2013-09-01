@@ -1,39 +1,39 @@
 <?php
 
 class SearchUpdaterTest_Container extends DataObject {
-	static $db = array(
+	private static $db = array(
 		'Field1' => 'Varchar',
 		'Field2' => 'Varchar',
 		'MyDate' => 'Date',
 	);
 
-	static $has_one = array(
+	private static $has_one = array(
 		'HasOneObject' => 'SearchUpdaterTest_HasOne'
 	);
 
-	static $has_many = array(
+	private static $has_many = array(
 		'HasManyObjects' => 'SearchUpdaterTest_HasMany'
 	);
 }
 
 class SearchUpdaterTest_HasOne extends DataObject {
-	static $db = array(
+	private static $db = array(
 		'Field1' => 'Varchar',
 		'Field2' => 'Varchar'
 	);
 
-	static $has_many = array(
+	private static $has_many = array(
 		'HasManyContainers' => 'SearchUpdaterTest_Container'
 	);
 }
 
 class SearchUpdaterTest_HasMany extends DataObject {
-	static $db = array(
+	private static $db = array(
 		'Field1' => 'Varchar',
 		'Field2' => 'Varchar'
 	);
 
-	static $has_one = array(
+	private static $has_one = array(
 		'HasManyContainer' => 'SearchUpdaterTest_Container'
 	);
 }
@@ -49,6 +49,8 @@ class SearchUpdaterTest_Index extends SearchIndex_Recording {
 }
 
 class SearchUpdaterTest extends SapphireTest {
+
+	protected $usesDatabase = true;
 
 	private static $index = null;
 	
@@ -72,6 +74,8 @@ class SearchUpdaterTest extends SapphireTest {
 
 	function tearDown() {
 		Config::unnest();
+
+		parent::tearDown();
 	}
 
 	function testBasic() {
