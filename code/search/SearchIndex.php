@@ -464,13 +464,13 @@ abstract class SearchIndex extends ViewableData {
 
 				foreach ($derivation['chain'] as $step) {
 					if ($step['through'] == 'has_one') {
-						$sql = new SQLQuery('ID', $step['class'], $step['foreignkey'].' IN ('.implode(',', $ids).')');
+						$sql = new SQLQuery('"ID"', '"'.$step['class'].'"', '"'.$step['foreignkey'].'" IN ('.implode(',', $ids).')');
 						singleton($step['class'])->extend('augmentSQL', $sql);
 
 						$ids = $sql->execute()->column();
 					}
 					else if ($step['through'] == 'has_many') {
-						$sql = new SQLQuery('"'.$step['class'].'"."ID"', $step['class'], '"'.$step['otherclass'].'"."ID" IN ('.implode(',', $ids).')');
+						$sql = new SQLQuery('"'.$step['class'].'"."ID"', '"'.$step['class'].'"', '"'.$step['otherclass'].'"."ID" IN ('.implode(',', $ids).')');
 						$sql->addInnerJoin($step['otherclass'], '"'.$step['class'].'"."ID" = "'.$step['otherclass'].'"."'.$step['foreignkey'].'"');
 						singleton($step['class'])->extend('augmentSQL', $sql);
 

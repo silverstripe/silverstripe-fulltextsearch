@@ -18,7 +18,7 @@ class SolrIndexTest extends SapphireTest {
 
 	function testBoost() {
 		$serviceMock = $this->getServiceMock();
-		Phockito::when($serviceMock)->search()->return($this->getFakeRawSolrResponse());
+		Phockito::when($serviceMock)->search(anything(), anything(), anything(), anything(), anything())->return($this->getFakeRawSolrResponse());
 
 		$index = new SolrIndexTest_FakeIndex();
 		$index->setService($serviceMock);
@@ -31,7 +31,7 @@ class SolrIndexTest extends SapphireTest {
 		);
 		$index->search($query);
 
-		Phockito::verify($serviceMock)->search('+(Field1:term^1.5 OR HasOneObject_Field1:term^3)');
+		Phockito::verify($serviceMock)->search('+(Field1:term^1.5 OR HasOneObject_Field1:term^3)', anything(), anything(), anything(), anything());
 	}
 
 	function testIndexExcludesNullValues() {
@@ -58,8 +58,9 @@ class SolrIndexTest extends SapphireTest {
 	}
 
 	function testAddFieldExtraOptions() {
-		$origMode = Director::get_environment_type();
-		Director::set_environment_type('live'); // dev mode would for stored=true for everything
+		Config::inst()->nest();
+		Config::inst()->update('Director', 'environment_type', 'live'); // dev mode sets stored=true for everything
+
 		$index = new SolrIndexTest_FakeIndex();
 
 		$defs = simplexml_load_string('<fields>' . $index->getFieldDefinitions() . '</fields>');
@@ -71,7 +72,7 @@ class SolrIndexTest extends SapphireTest {
 		$defField1 = $defs->xpath('field[@name="SearchUpdaterTest_Container_Field1"]');
 		$this->assertEquals((string)$defField1[0]['stored'], 'true');
 
-		Director::set_environment_type($origMode);
+		Config::inst()->unnest();
 	}
 
 	function testAddAnalyzer() {

@@ -2,7 +2,7 @@
 
 class SearchVariantSiteTreeSubsitesPolyhomeTest_Item extends SiteTree {
 	// TODO: Currently theres a failure if you addClass a non-table class
-	static $db = array(
+	private static $db = array(
 		'TestText' => 'Varchar'
 	);
 }
