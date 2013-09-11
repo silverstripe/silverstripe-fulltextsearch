@@ -18,13 +18,13 @@ class Solr  {
 	 *
 	 * indexstore => an array with
 	 *
-	 *   mode - 'file' or 'webdav'
+	 *   mode - a classname which implements SolrConfigStore, or 'file' or 'webdav'
 	 *
-	 *   When mode == file (indexes should be written on a local filesystem)
+	 *   When mode == SolrConfigStore_File or file (indexes should be written on a local filesystem)
 	 *      path - The (locally accessible) path to write the index configurations to.
 	 *      remotepath (default: the same as indexpath) - The path that the Solr server will read the index configurations from
 	 *
-	 *   When mode == webdav (indexes should stored on a remote Solr server via webdav)
+	 *   When mode == SolrConfigStore_WebDAV or webdav (indexes should stored on a remote Solr server via webdav)
 	 *      auth (default: none) - A username:password pair string to use to auth against the webdav server
 	 *      path (default: /solrindex) - The suburl on the solr host that is set up to accept index configurations via webdav
 	 *      remotepath - The path that the Solr server will read the index configurations from
@@ -80,8 +80,8 @@ class Solr  {
 			$included = true;
 		}
 	}
-
 }
+
 
 class Solr_Configure extends BuildTask {
 
@@ -89,91 +89,57 @@ class Solr_Configure extends BuildTask {
 		$service = Solr::service();
 		$indexes = Solr::get_indexes();
 
-		if (!isset(Solr::$solr_options['indexstore']) || !($index = Solr::$solr_options['indexstore'])) {
+		if (!isset(Solr::$solr_options['indexstore']) || !($indexstore = Solr::$solr_options['indexstore'])) {
 			user_error('No index configuration for Solr provided', E_USER_ERROR);
 		}
 
-		$remote = null;
+		// Find the IndexStore handler, which will handle uploading config files to Solr
+		$mode = $indexstore['mode'];
 
-		switch ($index['mode']) {
-			case 'file':
-				$local = $index['path'];
-				$remote = isset($index['remotepath']) ? $index['remotepath'] : $local;
-				
-				foreach ($indexes as $index => $instance) {
-					$sourceDir = $instance->getExtrasPath();
-					$targetDir = "$local/$index/conf";
-					if (!is_dir($targetDir)) {
-						$worked = @mkdir($targetDir, 0770, true);
-						if(!$worked) {
-							echo sprintf('Failed creating target directory %s, please check permissions', $targetDir);
-							return;
-						}
-					}
-
-					file_put_contents("$targetDir/schema.xml", $instance->generateSchema());
-
-					echo sprintf("Copying %s to %s...", $sourceDir, $targetDir);
-					foreach (glob($sourceDir . '/*') as $file) {
-						if (is_file($file)) copy($file, $targetDir.'/'.basename($file));
-					}
-					echo "done\n";
-				}
-					
-				break;
-
-			case 'webdav':
-				$url = implode('', array(
-					'http://',
-					isset($index['auth']) ? $index['auth'].'@' : '',
-					Solr::$solr_options['host'] . ':' . Solr::$solr_options['port'],
-					$index['path']
-				));
-					
-				$remote = $index['remotepath'];
-
-				foreach ($indexes as $index => $instance) {
-					$indexdir = "$url/$index";
-					if (!WebDAV::exists($indexdir)) WebDAV::mkdir($indexdir);
-
-					$sourceDir = $instance->getExtrasPath();
-					$targetDir = "$url/$index/conf";
-					if (!WebDAV::exists($targetDir)) WebDAV::mkdir($targetDir);
-
-					WebDAV::upload_from_string($instance->generateSchema(), "$targetDir/schema.xml");
-
-					echo sprintf("Copying %s to %s (via WebDAV)...", $sourceDir, $targetDir);
-					foreach (glob($sourceDir . '/*') as $file) {
-						if (is_file($file)) WebDAV::upload_from_file($file, $targetDir.'/'.basename($file));
-					}
-					echo "done\n";
-				}
-					
-				break;
-
-			default:
-				user_error('Unknown Solr index mode '.$index['mode'], E_USER_ERROR);
+		if ($mode == 'file') {
+			$store = new SolrConfigStore_File($indexstore);
+		} elseif ($mode == 'webdav') {
+			$store = new SolrConfigStore_WebDAV($indexstore);
+		} elseif (ClassInfo::exists($mode) && ClassInfo::classImplements($mode, 'SolrConfigStore')) {
+			$store = new $mode($indexstore);
+		} else {
+			user_error('Unknown Solr index mode '.$indexstore['mode'], E_USER_ERROR);
 		}
 
-		foreach ($indexes as $index => $instance) {
-			$indexName = $instance->getIndexName();
+		foreach ($indexes as $instance) {
+			$index = $instance->getIndexName();
+			echo "Configuring $index. "; flush();
 
-			if ($service->coreIsActive($index)) {
-				echo "Reloading configuration...";
-				$service->coreReload($index);
-				echo "done\n";
-			} else {
-				echo "Creating configuration...";
-				$instanceDir = $indexName;
-				if ($remote) {
-					$instanceDir = "$remote/$instanceDir";
+			try {
+				// Upload the config files for this index
+				echo "Uploading configuration ... "; flush();
+
+				$store->uploadString($index, 'schema.xml', (string)$instance->generateSchema());
+
+				foreach (glob($instance->getExtrasPath().'/*') as $file) {
+					if (is_file($file)) $store->uploadFile($index, $file);
 				}
-				$service->coreCreate($indexName, $instanceDir);
-				echo "done\n";
+
+				// Then tell Solr to use those config files
+				if ($service->coreIsActive($index)) {
+					echo "Reloading core ... ";
+					$service->coreReload($index);
+				} else {
+					echo "Creating core ... ";
+					$service->coreCreate($index, $store->instanceDir($index));
+				}
+
+				// And done
+				echo "Done\n";
+
+			} catch(Exception $e) {
+				// We got an exception. Warn, but continue to next index.
+				echo "Failure: " . $e->getMessage() . "\n"; flush();
 			}
 		}
 	}
 }
+
 
 class Solr_Reindex extends BuildTask {
 	static $recordsPerRequest = 200;
@@ -233,7 +199,7 @@ class Solr_Reindex extends BuildTask {
 
 						for ($offset = 0; $offset < $total; $offset += $this->stat('recordsPerRequest')) {
 							echo "$offset..";
-							
+
 							$cmd = "php $script dev/tasks/$self index=$index class=$class start=$offset variantstate=$statevar";
 							if($verbose) echo "\n  Running '$cmd'\n";
 							$res = $verbose ? passthru($cmd) : `$cmd`;
