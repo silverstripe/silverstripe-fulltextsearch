@@ -31,14 +31,10 @@ class SearchVariantSubsites extends SearchVariant {
 	}
 
 	function activateState($state) {
-		if (Controller::has_curr()) {
-			Subsite::changeSubsite($state);
-		}
-		else {
-			// TODO: This is a nasty hack - calling Subsite::changeSubsite after request ends
-			// throws error because no current controller to access session on
-			$_GET['SubsiteID'] = $state;
-		}
+		// We always just set the $_GET variable rather than store in Session - this always works, has highest priority
+		// in Subsite::currentSubsiteID() and doesn't persist unlike Subsite::changeSubsite
+		$_GET['SubsiteID'] = $state;
+		Permission::flush_permission_cache();
 	}
 
 	function alterDefinition($base, $index) {
