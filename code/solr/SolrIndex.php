@@ -338,7 +338,7 @@ abstract class SolrIndex extends SearchIndex {
 					$q[] = '+('.implode(' OR ', $searchq).')';
 				}
 				else {
-					$q[] = '+'.$part;
+					$q[] = '+'.$part.$fuzzy;
 				}
 			}
 		}
