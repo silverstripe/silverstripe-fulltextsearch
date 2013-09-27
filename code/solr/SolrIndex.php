@@ -499,7 +499,7 @@ abstract class SolrIndex extends SearchIndex {
 	 * @return SolrService
 	 */
 	public function getService() {
-		if(!$this->service) $this->service = Solr::service(get_class($this));
+		if(!$this->service) $this->service = Solr::service($this->getIndexName());
 		return $this->service;
 	}
 
