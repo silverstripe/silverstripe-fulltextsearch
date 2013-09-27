@@ -6,6 +6,35 @@ class SolrIndexTest extends SapphireTest {
 
 		Phockito::include_hamcrest();
 	}
+
+	function testFilterFields() {
+		$serviceSpy = $this->getServiceSpy();
+		$index = new SolrIndexTest_FakeIndex();
+		$index->setService($serviceSpy);
+
+		$query = new SearchQuery();
+		$query->search(
+			'term', 
+			array('Field1')
+		);
+		$index->search($query);
+
+		Phockito::verify($serviceSpy)->search(
+			'+term', 
+			anything(), 
+			anything(), 
+			array(
+				'fq' => '+(_versionedstage:"" (*:* -_versionedstage:[* TO *]))',
+				'qf' => implode(' ', array(
+					'SearchUpdaterTest_Container_Field1',
+					// 'SearchUpdaterTest_Container_MyDate',
+					'SearchUpdaterTest_Container_HasOneObject_Field1',
+					'SearchUpdaterTest_Container_HasManyObjects_Field1',
+				))
+			),
+			anything()
+		);
+	}
 	
 	function testBoost() {
 		$serviceSpy = $this->getServiceSpy();
@@ -16,13 +45,53 @@ class SolrIndexTest extends SapphireTest {
 		$query->search(
 			'term', 
 			null, 
-			array('Field1' => 1.5, 'HasOneObject_Field1' => 3)
+			array('Field1' => 1.5)
 		);
 		$index->search($query);
 
-			'+(Field1:term^1.5 OR HasOneObject_Field1:term^3)',
-			anything(), anything(), anything(), anything()
+		// Test that all fields are included
 		Phockito::verify($serviceSpy)->search(
+			'+term', 
+			anything(), 
+			anything(), 
+			array(
+				'fq' => '+(_versionedstage:"" (*:* -_versionedstage:[* TO *]))',
+				'qf' => implode(' ', array(
+					'SearchUpdaterTest_Container_Field1^1.5',
+					// 'SearchUpdaterTest_Container_MyDate',
+					'SearchUpdaterTest_Container_HasOneObject_Field1^1.5',
+					'SearchUpdaterTest_Container_HasManyObjects_Field1^1.5',
+				))
+			),
+			anything()
+		);
+	}
+
+	function testBoostWithFullyQualifiedField() {
+		$serviceSpy = $this->getServiceSpy();
+		$index = new SolrIndexTest_FakeIndex();
+		$index->setService($serviceSpy);
+
+		$query = new SearchQuery();
+		$query->search(
+			'term', 
+			null, 
+			array('SearchUpdaterTest_Container_Field1' => 1.5)
+		);
+		$index->search($query);
+
+		// Test that all fields are included
+		Phockito::verify($serviceSpy)->search(
+			'+term', 
+			anything(), 
+			anything(), 
+			array(
+				'fq' => '+(_versionedstage:"" (*:* -_versionedstage:[* TO *]))',
+				'qf' => implode(' ', array(
+					'SearchUpdaterTest_Container_Field1^1.5',
+				))
+			),
+			anything()
 		);
 	}
 
