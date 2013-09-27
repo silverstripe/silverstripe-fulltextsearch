@@ -8,9 +8,9 @@ class SolrIndexTest extends SapphireTest {
 	}
 	
 	function testBoost() {
-		$serviceMock = $this->getServiceMock();
+		$serviceSpy = $this->getServiceSpy();
 		$index = new SolrIndexTest_FakeIndex();
-		$index->setService($serviceMock);
+		$index->setService($serviceSpy);
 
 		$query = new SearchQuery();
 		$query->search(
@@ -20,16 +20,16 @@ class SolrIndexTest extends SapphireTest {
 		);
 		$index->search($query);
 
-		Phockito::verify($serviceMock)->search(
 			'+(Field1:term^1.5 OR HasOneObject_Field1:term^3)',
 			anything(), anything(), anything(), anything()
+		Phockito::verify($serviceSpy)->search(
 		);
 	}
 
 	function testIndexExcludesNullValues() {
-		$serviceMock = $this->getServiceMock();
+		$serviceSpy = $this->getServiceSpy();
 		$index = new SolrIndexTest_FakeIndex();
-		$index->setService($serviceMock);		
+		$index->setService($serviceSpy);		
 		$obj = new SearchUpdaterTest_Container();
 
 		$obj->Field1 = 'Field1 val';
@@ -86,7 +86,7 @@ class SolrIndexTest extends SapphireTest {
 		$index = new SolrIndexTest_FakeIndex();		
 		$index->addCopyField('sourceField', 'destField');
 		$defs = simplexml_load_string('<fields>' . $index->getCopyFieldDefinitions() . '</fields>');
-		$lastDef = array_pop($defs);
+		$lastDef = $defs->copyField; // assumes just one field
 
 		$this->assertEquals('sourceField', $lastDef['source']);
 		$this->assertEquals('destField', $lastDef['dest']);
@@ -94,13 +94,15 @@ class SolrIndexTest extends SapphireTest {
 
 	protected function getServiceSpy() {
 		$serviceSpy = Phockito::spy('SolrService');
-		$fakeResponse = new Apache_Solr_Response(new Apache_Solr_HttpTransport_Response(null, null, null));
+		$fakeResponse = new Apache_Solr_Response(
+			new Apache_Solr_HttpTransport_Response(null, 'text/json', '{"docs":[], "highlighting":[]}')
+		);
 
-		Phockito::when($serviceMock)
+		Phockito::when($serviceSpy)
 			->_sendRawPost(anything(), anything(), anything(), anything())
 			->return($fakeResponse);
 
-		return $serviceMock;
+		return $serviceSpy;
 	}
 
 }
