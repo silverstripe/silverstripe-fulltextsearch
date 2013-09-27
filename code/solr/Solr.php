@@ -159,17 +159,23 @@ class Solr_Configure extends BuildTask {
 
 		foreach ($indexes as $index => $instance) {
 			$indexName = $instance->getIndexName();
+			$instanceDir = $indexName;
+			if ($remote) $instanceDir = "$remote/$instanceDir";
 
-			if ($service->coreIsActive($indexName)) {
-				echo "Reloading configuration...";
-				$service->coreReload($indexName);
-				echo "done\n";
-			} else {
-				echo "Creating configuration...";
-				$instanceDir = $indexName;
-				if ($remote) {
-					$instanceDir = "$remote/$instanceDir";
+			try {
+				if ($service->coreIsActive($indexName)) {
+					echo "Reloading configuration...";
+					$service->coreReload($indexName);
+					echo "done\n";
+				} else {
+					echo "Creating configuration...";
+					$service->coreCreate($indexName, $instanceDir);
+					echo "done\n";
 				}
+			} catch(Apache_Solr_HttpTransportException $e) {
+				// Can happen when the directory is missing
+				echo "Failed reload, falling back to unloading and creating configuration...";
+				$service->coreUnload($indexName, $instanceDir);
 				$service->coreCreate($indexName, $instanceDir);
 				echo "done\n";
 			}
