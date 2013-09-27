@@ -12,5 +12,9 @@
 	"require":
 	{
 		"silverstripe/framework": "3.0.*"
+	},
+	"require-dev": {
+		"silverstripe/cms": "3.0.*",
+		"hafriedlander/silverstripe-phockito": "*"
 	}
 }
