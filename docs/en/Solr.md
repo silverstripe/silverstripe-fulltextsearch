@@ -234,7 +234,51 @@ In this example, we enter "Lorem" as the search term, and boost the `Content` fi
 	// the request to Solr would be:
 	// q=SiteTree_Content:Lorem^2
 
+Note that SilverStripe configures a default boost of `_text^0.5 SiteTree_Title^1`.
+The `_text` field is an aggregate of all the fulltext fields added to the index.
+
 More information on [relevancy on the Solr wiki](http://wiki.apache.org/solr/SolrRelevancyFAQ).
+
+### Boost Specific Records
+
+Sometimes certain documents are more relevant than others, e.g. the headquarters details
+vs. regional office pages. In this case, you might want to ensure they are more likely
+to come up high in the search results. There's several approaches to this,
+but the easiest is to configure a new numeric property on your records indicating a boost.
+The value serves as a multiplier for the record's score, and is passed to Solr via
+the `boost` query parameter ([details](http://wiki.apache.org/solr/SolrRelevancyFAQ))
+
+	```php
+	class Page extends SiteTree {
+		private static $db = array(
+			'SearchPriority' => 'Int'
+		);
+		public function getCMSFields() {
+			$fields = parent::getCMSFields();
+			$fields->addFieldToTab('Root.Main',
+				DropdownField::create('SearchPriority', 'Search Priority')
+					->setSource(array(0 => 'Default', 1 => 'Higher', 2 => 'Highest'))
+			);
+			return $fields;
+		}
+	}
+	```
+
+	```php
+	class MyIndex extends SolrIndex {
+		function init() {
+			$this->addClass('Page');
+			$this->addAllFulltextFields();
+			$this->addFilterField('SearchPriority');
+		}
+	}
+	```
+
+	```php
+	$query = new SearchQuery();
+	$query->search('Lorem');
+	$result = singleton('SolrSearchIndex')->search($query, -1, -1 array('boost' => 'Page_SearchPriority'));
+	```
 
 ### Custom Types
 
