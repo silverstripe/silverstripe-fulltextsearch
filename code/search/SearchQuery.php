@@ -39,6 +39,7 @@ class SearchQuery extends ViewableData {
 	 */
 	function search($text, $fields = null, $boost = array()) {
 		$this->search[] = array('text' => $text, 'fields' => $fields ? (array)$fields : null, 'boost' => $boost, 'fuzzy' => false);
+		return $this;
 	}
 
 	/**
@@ -52,10 +53,12 @@ class SearchQuery extends ViewableData {
 	 */
 	function fuzzysearch($text, $fields = null, $boost = array()) {
 		$this->search[] = array('text' => $text, 'fields' => $fields ? (array)$fields : null, 'boost' => $boost, 'fuzzy' => true);
+		return $this;
 	}
 
 	function inClass($class, $includeSubclasses = true) {
 		$this->classes[] = array('class' => $class, 'includeSubclasses' => $includeSubclasses);
+		return $this;
 	}
 
 	/**
@@ -69,6 +72,7 @@ class SearchQuery extends ViewableData {
 		$requires = isset($this->require[$field]) ? $this->require[$field] : array();
 		$values = is_array($values) ? $values : array($values);
 		$this->require[$field] = array_merge($requires, $values);
+		return $this;
 	}
 
 	/**
@@ -81,19 +85,23 @@ class SearchQuery extends ViewableData {
 		$excludes = isset($this->exclude[$field]) ? $this->exclude[$field] : array();
 		$values = is_array($values) ? $values : array($values);
 		$this->exclude[$field] = array_merge($excludes, $values);
+		return $this;
 	}
 
 	function start($start) {
 		$this->start = $start;
+		return $this;
 	}
 
 	function limit($limit) {
 		$this->limit = $limit;
+		return $this;
 	}
 
 	function page($page) {
 		$this->start = $page * self::$default_page_size;
 		$this->limit = self::$default_page_size;
+		return $this;
 	}
 
 	function isfiltered() {

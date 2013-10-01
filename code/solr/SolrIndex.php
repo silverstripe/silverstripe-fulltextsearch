@@ -429,8 +429,8 @@ abstract class SolrIndex extends SearchIndex {
 
 		if(!headers_sent()) {
 			if ($q) header('X-Query: '.implode(' ', $q));
-			if ($fq) header('X-Filters: "'.implode('", "', $fq).'"');
-			if ($qf) header('X-Fields: "'.implode('" "', $qf).'"');
+			if ($fq) header('X-Filters: "'.implode(' ', $fq).'"');
+			if ($qf) header('X-Fields: "'.implode(' ', $qf).'"');
 		}
 
 		if ($offset == -1) $offset = $query->start;
