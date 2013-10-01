@@ -43,6 +43,13 @@ class SolrService extends Apache_Solr_Service {
 		return $this->coreCommand('RELOAD', $core);
 	}
 
+	/**
+	 * @return Apache_Solr_Response
+	 */
+	public function coreUnload($core) {
+		return $this->coreCommand('UNLOAD', $core);
+	}
+
 	protected $_serviceCache = array();
 
 	public function serviceForCore($core) {

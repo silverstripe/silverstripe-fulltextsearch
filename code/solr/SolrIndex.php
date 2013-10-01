@@ -151,6 +151,22 @@ abstract class SolrIndex extends SearchIndex {
 	}
 
 	/**
+	 * Disambiguates fields
+	 * @param  String Simplified field name, e.g. "Title"
+	 * @return array One or more full field names, e.g. "SiteTree_Title" and "Group_Title"
+	 */
+	protected function getFullFieldNames($name) {
+		$fullNames = array();
+		foreach(array_merge($this->fulltextFields, $this->filterFields) as $i => $spec) {
+			if($spec['name'] == $name || $spec['field'] == $name) {
+				$fullNames[] = $spec['name'];
+			}
+		} 
+
+		return $fullNames;
+	}
+
+	/**
 	 * Convert definition to XML tag
 	 * 
 	 * @param String $tag
@@ -317,29 +333,37 @@ abstract class SolrIndex extends SearchIndex {
 
 		$q = array();
 		$fq = array();
+		$qf = array();
 
 		// Build the search itself
 
 		foreach ($query->search as $search) {
 			$text = $search['text'];
 			preg_match_all('/"[^"]*"|\S+/', $text, $parts);
-
 			$fuzzy = $search['fuzzy'] ? '~' : '';
 
+			// Add limit fields
+			$limitFields = (isset($search['fields'])) ? $search['fields'] : array();
+			foreach($limitFields as $field) {
+				$names = $this->getFullFieldNames($field);
+				if(!$names) $names = array($field); // fallback for fields defined via XML
+				foreach($names as $name) {
+					$qf[$name] = $name;
+				}
+			}
+
+			// Add boosts
+			foreach($search['boost'] as $field => $boost) {
+				$names = $this->getFullFieldNames($field);
+				if(!$names) $names = array($field); // fallback for fields defined via XML
+				foreach($names as $name) {
+					$qf[$name] = "{$name}^{$boost}";
+				}
+			}
+
+			// Add each search term
 			foreach ($parts[0] as $part) {
-				$fields = (isset($search['fields'])) ? $search['fields'] : array();
-				if(isset($search['boost'])) $fields = array_merge($fields, array_keys($search['boost']));
-				if ($fields) {
-					$searchq = array();
-					foreach ($fields as $field) {
-						$boost = (isset($search['boost'][$field])) ? '^' . $search['boost'][$field] : '';
-						$searchq[] = "{$field}:".$part.$fuzzy.$boost;
-					}
-					$q[] = '+('.implode(' OR ', $searchq).')';
-				}
-				else {
-					$q[] = '+'.$part.$fuzzy;
-				}
+				$q[] = '+'.$part.$fuzzy;
 			}
 		}
 
@@ -405,7 +429,8 @@ abstract class SolrIndex extends SearchIndex {
 
 		if(!headers_sent()) {
 			if ($q) header('X-Query: '.implode(' ', $q));
-			if ($fq) header('X-Filters: "'.implode('", "', $fq).'"');
+			if ($fq) header('X-Filters: "'.implode(' ', $fq).'"');
+			if ($qf) header('X-Fields: "'.implode(' ', $qf).'"');
 		}
 
 		if ($offset == -1) $offset = $query->start;
@@ -413,6 +438,8 @@ abstract class SolrIndex extends SearchIndex {
 		if ($limit == -1) $limit = SearchQuery::$default_page_size;
 
 		$params = array_merge($params, array('fq' => implode(' ', $fq)));
+		if($qf) $params['qf'] = implode(' ', $qf);
+
 
 		$res = $service->search(
 			$q ? implode(' ', $q) : '*:*', 
@@ -458,6 +485,7 @@ abstract class SolrIndex extends SearchIndex {
 		// Results per page
 		$ret['Matches']->setPageLength($limit);
 		// Suggestions (requires custom setup, assumes spellcheck.collate=true)
+
 		if(isset($res->spellcheck->suggestions->collation)) {
 			$ret['Suggestion'] = $res->spellcheck->suggestions->collation;
 		}
@@ -471,7 +499,7 @@ abstract class SolrIndex extends SearchIndex {
 	 * @return SolrService
 	 */
 	public function getService() {
-		if(!$this->service) $this->service = Solr::service(get_class($this));
+		if(!$this->service) $this->service = Solr::service($this->getIndexName());
 		return $this->service;
 	}
 

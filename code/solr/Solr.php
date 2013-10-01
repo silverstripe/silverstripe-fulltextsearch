@@ -101,8 +101,9 @@ class Solr_Configure extends BuildTask {
 				$remote = isset($index['remotepath']) ? $index['remotepath'] : $local;
 				
 				foreach ($indexes as $index => $instance) {
+					$indexName = $instance->getIndexName();
 					$sourceDir = $instance->getExtrasPath();
-					$targetDir = "$local/$index/conf";
+					$targetDir = "$local/$indexName/conf";
 					if (!is_dir($targetDir)) {
 						$worked = @mkdir($targetDir, 0770, true);
 						if(!$worked) {
@@ -133,11 +134,12 @@ class Solr_Configure extends BuildTask {
 				$remote = $index['remotepath'];
 
 				foreach ($indexes as $index => $instance) {
-					$indexdir = "$url/$index";
+					$indexName = $instance->getIndexName();
+					$indexdir = "$url/$indexName";
 					if (!WebDAV::exists($indexdir)) WebDAV::mkdir($indexdir);
 
 					$sourceDir = $instance->getExtrasPath();
-					$targetDir = "$url/$index/conf";
+					$targetDir = "$url/$indexName/conf";
 					if (!WebDAV::exists($targetDir)) WebDAV::mkdir($targetDir);
 
 					WebDAV::upload_from_string($instance->generateSchema(), "$targetDir/schema.xml");
@@ -157,17 +159,23 @@ class Solr_Configure extends BuildTask {
 
 		foreach ($indexes as $index => $instance) {
 			$indexName = $instance->getIndexName();
+			$instanceDir = $indexName;
+			if ($remote) $instanceDir = "$remote/$instanceDir";
 
-			if ($service->coreIsActive($index)) {
-				echo "Reloading configuration...";
-				$service->coreReload($index);
-				echo "done\n";
-			} else {
-				echo "Creating configuration...";
-				$instanceDir = $indexName;
-				if ($remote) {
-					$instanceDir = "$remote/$instanceDir";
+			try {
+				if ($service->coreIsActive($indexName)) {
+					echo "Reloading configuration...";
+					$service->coreReload($indexName);
+					echo "done\n";
+				} else {
+					echo "Creating configuration...";
+					$service->coreCreate($indexName, $instanceDir);
+					echo "done\n";
 				}
+			} catch(Apache_Solr_HttpTransportException $e) {
+				// Can happen when the directory is missing
+				echo "Failed reload, falling back to unloading and creating configuration...";
+				$service->coreUnload($indexName, $instanceDir);
 				$service->coreCreate($indexName, $instanceDir);
 				echo "done\n";
 			}
@@ -198,7 +206,8 @@ class Solr_Reindex extends BuildTask {
 			$class = get_class($this);
 
 			foreach (Solr::get_indexes() as $index => $instance) {
-				echo "Rebuilding {$instance->getIndexName()}\n\n";
+				$indexName = $instance->getIndexName();
+				echo "Rebuilding {$indexName}\n\n";
 
 				$classes = $instance->getClasses();
 				if($request->getVar('class')) {
@@ -206,7 +215,7 @@ class Solr_Reindex extends BuildTask {
 					$classes = array_intersect_key($classes, array_combine($limitClasses, $limitClasses));
 				}
 
-				Solr::service($index)->deleteByQuery('ClassHierarchy:(' . implode(' OR ', array_keys($classes)) . ')');
+				Solr::service($indexName)->deleteByQuery('ClassHierarchy:(' . implode(' OR ', array_keys($classes)) . ')');
 
 				foreach ($classes as $class => $options) {
 					$includeSubclasses = $options['include_children'];
@@ -240,12 +249,12 @@ class Solr_Reindex extends BuildTask {
 							if($verbose) echo "  ".preg_replace('/\r\n|\n/', '$0  ', $res)."\n";
 
 							// If we're in dev mode, commit more often for fun and profit
-							if (Director::isDev()) Solr::service($index)->commit();
+							if (Director::isDev()) Solr::service($indexName)->commit();
 						}
 					}
 				}
 
-				Solr::service($index)->commit();
+				Solr::service($indexName)->commit();
 			}
 		}
 

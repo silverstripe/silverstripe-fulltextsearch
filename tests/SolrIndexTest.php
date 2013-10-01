@@ -6,30 +6,99 @@ class SolrIndexTest extends SapphireTest {
 
 		Phockito::include_hamcrest();
 	}
+
+	function testFilterFields() {
+		$serviceSpy = $this->getServiceSpy();
+		$index = new SolrIndexTest_FakeIndex();
+		$index->setService($serviceSpy);
+
+		$query = new SearchQuery();
+		$query->search(
+			'term', 
+			array('Field1')
+		);
+		$index->search($query);
+
+		Phockito::verify($serviceSpy)->search(
+			'+term', 
+			anything(), 
+			anything(), 
+			array(
+				'fq' => '+(_versionedstage:"" (*:* -_versionedstage:[* TO *]))',
+				'qf' => implode(' ', array(
+					'SearchUpdaterTest_Container_Field1',
+					// 'SearchUpdaterTest_Container_MyDate',
+					'SearchUpdaterTest_Container_HasOneObject_Field1',
+					'SearchUpdaterTest_Container_HasManyObjects_Field1',
+				))
+			),
+			anything()
+		);
+	}
 	
 	function testBoost() {
-		$serviceMock = $this->getServiceMock();
+		$serviceSpy = $this->getServiceSpy();
 		$index = new SolrIndexTest_FakeIndex();
-		$index->setService($serviceMock);
+		$index->setService($serviceSpy);
 
 		$query = new SearchQuery();
 		$query->search(
 			'term', 
 			null, 
-			array('Field1' => 1.5, 'HasOneObject_Field1' => 3)
+			array('Field1' => 1.5)
 		);
 		$index->search($query);
 
-		Phockito::verify($serviceMock)->search(
-			'+(Field1:term^1.5 OR HasOneObject_Field1:term^3)',
-			anything(), anything(), anything(), anything()
+		// Test that all fields are included
+		Phockito::verify($serviceSpy)->search(
+			'+term', 
+			anything(), 
+			anything(), 
+			array(
+				'fq' => '+(_versionedstage:"" (*:* -_versionedstage:[* TO *]))',
+				'qf' => implode(' ', array(
+					'SearchUpdaterTest_Container_Field1^1.5',
+					// 'SearchUpdaterTest_Container_MyDate',
+					'SearchUpdaterTest_Container_HasOneObject_Field1^1.5',
+					'SearchUpdaterTest_Container_HasManyObjects_Field1^1.5',
+				))
+			),
+			anything()
+		);
+	}
+
+	function testBoostWithFullyQualifiedField() {
+		$serviceSpy = $this->getServiceSpy();
+		$index = new SolrIndexTest_FakeIndex();
+		$index->setService($serviceSpy);
+
+		$query = new SearchQuery();
+		$query->search(
+			'term', 
+			null, 
+			array('SearchUpdaterTest_Container_Field1' => 1.5)
+		);
+		$index->search($query);
+
+		// Test that all fields are included
+		Phockito::verify($serviceSpy)->search(
+			'+term', 
+			anything(), 
+			anything(), 
+			array(
+				'fq' => '+(_versionedstage:"" (*:* -_versionedstage:[* TO *]))',
+				'qf' => implode(' ', array(
+					'SearchUpdaterTest_Container_Field1^1.5',
+				))
+			),
+			anything()
 		);
 	}
 
 	function testIndexExcludesNullValues() {
-		$serviceMock = $this->getServiceMock();
+		$serviceSpy = $this->getServiceSpy();
 		$index = new SolrIndexTest_FakeIndex();
-		$index->setService($serviceMock);		
+		$index->setService($serviceSpy);		
 		$obj = new SearchUpdaterTest_Container();
 
 		$obj->Field1 = 'Field1 val';
@@ -86,7 +155,7 @@ class SolrIndexTest extends SapphireTest {
 		$index = new SolrIndexTest_FakeIndex();		
 		$index->addCopyField('sourceField', 'destField');
 		$defs = simplexml_load_string('<fields>' . $index->getCopyFieldDefinitions() . '</fields>');
-		$lastDef = array_pop($defs);
+		$lastDef = $defs->copyField; // assumes just one field
 
 		$this->assertEquals('sourceField', $lastDef['source']);
 		$this->assertEquals('destField', $lastDef['dest']);
@@ -94,13 +163,15 @@ class SolrIndexTest extends SapphireTest {
 
 	protected function getServiceSpy() {
 		$serviceSpy = Phockito::spy('SolrService');
-		$fakeResponse = new Apache_Solr_Response(new Apache_Solr_HttpTransport_Response(null, null, null));
+		$fakeResponse = new Apache_Solr_Response(
+			new Apache_Solr_HttpTransport_Response(null, 'text/json', '{"docs":[], "highlighting":[]}')
+		);
 
-		Phockito::when($serviceMock)
+		Phockito::when($serviceSpy)
 			->_sendRawPost(anything(), anything(), anything(), anything())
 			->return($fakeResponse);
 
-		return $serviceMock;
+		return $serviceSpy;
 	}
 
 }
