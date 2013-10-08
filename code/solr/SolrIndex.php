@@ -439,10 +439,17 @@ abstract class SolrIndex extends SearchIndex {
 						foreach($res->highlighting->$docId as $field => $highlights) {
 							$combinedHighlights = array_merge($combinedHighlights, $highlights);
 						}
-						$result->Excerpt = DBField::create_field('HTMLText', implode(' ... ', $combinedHighlights));
-						// Remove entity-encoded U+FFFD REPLACEMENT CHARACTER. 
-						// It signifies non-displayable characters, and shows up as such itself in browsers (questionmark icon)
-						$result->Excerpt = str_replace('&#65533;', '', $result->Excerpt);
+
+						// Remove entity-encoded U+FFFD replacement character. It signifies non-displayable characters,
+						// and shows up as an encoding error in browsers.
+						$result->Excerpt = DBField::create_field(
+							'HTMLText',
+							str_replace(
+								'&#65533;',
+								'',
+								implode(' ... ', $combinedHighlights)
+							)
+						);
 					}
 				}
 			}
