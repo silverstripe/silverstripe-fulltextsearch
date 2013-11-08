@@ -2,33 +2,46 @@
 
 ## Introduction
 
-This module provides a fulltextsearch module connector to Solr. 
-It works with Solr in multi-core mode. It needs to be able to update Solr configuration files, and has modes for
-doing this by direct file access (when Solr shares a server with SilverStripe) and by WebDAV (when it's on a different server).
+The fulltextsearch module includes support for connecting to Solr.
 
-See the helpful [Solr Tutorial](http://lucene.apache.org/fulltextsearch/api/doc-files/tutorial.html), for more on cores and querying.
+It works with Solr in multi-core mode. It needs to be able to update Solr configuration files, and has modes for
+doing this by direct file access (when Solr shares a server with SilverStripe) and by WebDAV (when it's on a different
+server).
+
+See the helpful [Solr Tutorial](http://lucene.apache.org/fulltextsearch/api/doc-files/tutorial.html), for more on cores
+and querying.
 
 ## Requirements
 
-Since Solr is Java based, it requires Java 1.5 or greater installed. 
-It also requires a servlet container such as Tomcat, Jetty, or Resin.
-Jetty is already packaged with the module.
+Since Solr is Java based, it requires Java 1.5 or greater installed.
 
-See the official [Solr installation docs](http://wiki.apache.org/solr/SolrInstall)
-for more information.
+When you're installing it yourself, it also requires a servlet container such as Tomcat, Jetty, or Resin. For
+development testing there is a standalone version that comes bundled with Jetty (see below).
 
-Note that these requirements are for the Solr server environment,
-which doesn't have to be the same physical machine as the SilverStripe webhost.
+See the official [Solr installation docs](http://wiki.apache.org/solr/SolrInstall) for more information.
 
-## Installation
+Note that these requirements are for the Solr server environment, which doesn't have to be the same physical machine
+as the SilverStripe webhost.
+
+## Installation (Local)
+
+#### Get the Solr server
+
+composer require silverstripe/fulltextsearch-localsolr 4.5.1.x-dev
+
+#### Start the server (via CLI, in a separate terminal window or background process)
+
+	cd fulltextsearch-localsolr/server/
+	java -jar start.jar
+
+#### Configure the fulltextsearch Solr component to use the local server
 
 Configure Solr in file mode. The 'path' directory has to be writeable
 by the user the Solr search server is started with (see below).
 
 	// File: mysite/_config.php:
 	<?php
-	SearchUpdater::bind_manipulation_capture();
-	Solr::configure_server(isset($solr_config) ? $solr_config : array(
+	Solr::configure_server(array(
 		'host' => 'localhost',
 		'indexstore' => array(
 			'mode' => 'file',
@@ -42,7 +55,7 @@ please ensure its contents are not accessible through the webserver.
 This can be achieved by server configuration, or (in most configurations)
 also by marking the folder as hidden via a "dot" prefix.
 
-Create an index
+#### Create an index
 
 	// File: mysite/code/MyIndex.php:
 	<?php
@@ -53,12 +66,7 @@ Create an index
 		}
 	}
 
-Start the search server (via CLI, in a separate terminal window or background process)
-
-	cd fulltextsearch/thirdparty/solr/server/
-	java -jar start.jar
-
-Initialize the configuration (via CLI)
+#### Initialize the configuration (via CLI)
 
 	sake dev/tasks/Solr_Configure
 
