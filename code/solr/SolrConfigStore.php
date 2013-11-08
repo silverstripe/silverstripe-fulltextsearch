@@ -80,10 +80,12 @@ class SolrConfigStore_File implements SolrConfigStore {
  */
 class SolrConfigStore_WebDAV implements SolrConfigStore {
 	function __construct($config) {
+		$options = Solr::solr_options();
+
 		$this->url = implode('', array(
 			'http://',
 			isset($config['auth']) ? $config['auth'].'@' : '',
-			Solr::$solr_options['host'] . ':' . Solr::$solr_options['port'],
+			$options['host'].':'.$options['port'],
 			$config['path']
 		));
 		$this->remote = $config['remotepath'];

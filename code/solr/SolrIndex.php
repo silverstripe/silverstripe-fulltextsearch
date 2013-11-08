@@ -36,7 +36,8 @@ abstract class SolrIndex extends SearchIndex {
 	 * templates which are used for generating the schema and field definitions.
 	 */
 	function getTemplatesPath() {
-		return $this->templatesPath ? $this->templatesPath : Solr::$solr_options['templatespath'];
+		$globalOptions = Solr::solr_options();
+		return $this->templatesPath ? $this->templatesPath : $globalOptions['templatespath'];
 	}
 
 	/**
@@ -44,7 +45,8 @@ abstract class SolrIndex extends SearchIndex {
 	 * e.g. solrconfig.xml.
 	 */
 	function getExtrasPath() {
-		return $this->extrasPath ? $this->extrasPath : Solr::$solr_options['extraspath'];
+		$globalOptions = Solr::solr_options();
+		return $this->extrasPath ? $this->extrasPath : $globalOptions['extraspath'];
 	}
 
 	function generateSchema() {
