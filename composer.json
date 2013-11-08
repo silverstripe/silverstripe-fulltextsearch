@@ -16,5 +16,8 @@
 		"silverstripe/cms": "~3.1",
 		"hafriedlander/silverstripe-phockito": "*"
 	},
+	"suggest": {
+		"silverstripe/fulltextsearch-localsolr": "Adds a ready-to-use local Solr server for initial development"
+	},
 	"minimum-stability": "dev"
 }
