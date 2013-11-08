@@ -2,10 +2,22 @@
 
 Solr::include_client_api();
 
-class SolrService extends Apache_Solr_Service {
+/**
+ * The API for accessing a specific core of a Solr server. Exactly the same as Apache_Solr_Service for now.
+ */
+class SolrService_Core extends Apache_Solr_Service {
+}
+
+/**
+ * The API for accessing the primary Solr installation, which includes both SolrService_Core,
+ * plus extra methods for interrogating, creating, reloading and getting SolrService_Core instances
+ * for Solr cores.
+ */
+class SolrService extends SolrService_Core {
+	private static $core_class = 'SolrService_Core';
 
 	/**
-	 * @return Apache_Solr_Response
+	 * Handle encoding the GET parameters and making the HTTP call to execute a core command
 	 */
 	protected function coreCommand($command, $core, $params=array()) {
 		$command = strtoupper($command);
@@ -17,7 +29,9 @@ class SolrService extends Apache_Solr_Service {
 	}
 
 	/**
-	 * @return boolean
+	 * Is the passed core active?
+	 * @param $core string - The name of the core
+	 * @return boolean - True if that core exists & is active
 	 */
 	public function coreIsActive($core) {
 		$result = $this->coreCommand('STATUS', $core);
@@ -25,6 +39,12 @@ class SolrService extends Apache_Solr_Service {
 	}
 
 	/**
+	 * Create a new core
+	 * @param $core string - The name of the core
+	 * @param $instancedir string - The base path of the core on the server
+	 * @param $config string - The filename of solrconfig.xml on the server. Default is $instancedir/solrconfig.xml
+	 * @param $schema string - The filename of schema.xml on the server. Default is $instancedir/schema.xml
+	 * @param $datadir string - The path to store data for this core on the server. Default depends on solrconfig.xml
 	 * @return Apache_Solr_Response
 	 */
 	public function coreCreate($core, $instancedir, $config=null, $schema=null, $datadir=null) {
@@ -37,19 +57,21 @@ class SolrService extends Apache_Solr_Service {
 	}
 
 	/**
+	 * Reload a core
+	 * @param $core string - The name of the core
 	 * @return Apache_Solr_Response
 	 */
 	public function coreReload($core) {
 		return $this->coreCommand('RELOAD', $core);
 	}
 
-	protected $_serviceCache = array();
-
+	/**
+	 * Create a new Solr3Service_Core instance for the passed core
+	 * @param $core string - The name of the core
+	 * @return Solr3Service_Core
+	 */
 	public function serviceForCore($core) {
-		if (!isset($this->_serviceCache[$core])) {
-			$this->_serviceCache[$core] = new Apache_Solr_Service($this->_host, $this->_port, $this->_path."$core", $this->_httpTransport);
-		}
-
-		return $this->_serviceCache[$core];
+		$klass = Config::inst()->get(get_called_class(), 'core_class');
+		return new $klass($this->_host, $this->_port, $this->_path.$core, $this->_httpTransport);
 	}
 }

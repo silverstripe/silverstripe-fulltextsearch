@@ -103,11 +103,11 @@ class SolrIndexTest extends SapphireTest {
 	}
 
 	protected function getServiceMock() {
-		return Phockito::mock('SolrService');
+		return Phockito::mock('Solr3Service');
 	}
 
 	protected function getServiceSpy() {
-		$serviceSpy = Phockito::spy('SolrService');
+		$serviceSpy = Phockito::spy('Solr3Service');
 		Phockito::when($serviceSpy)->_sendRawPost()->return($this->getFakeRawSolrResponse());
 
 		return $serviceSpy;

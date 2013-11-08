@@ -11,9 +11,13 @@ class Solr  {
 	 * path (default: /solr) - The suburl the solr service is available on
 	 *
 	 * Optional fields:
-	 * extraspath (default: <basefolder>/fulltextsearch/conf/extras/) - Absolute path to 
+	 * version (default: 4) - The Solr server version. Currently supports 3 and 4 (you can add a sub-version like 4.5 if
+	 *   you like, but currently it has no effect)
+	 * service (default: depends on version, Solr3Service for 3, Solr4Service for 4)
+	 *   the class that provides actual communcation to the Solr server
+	 * extraspath (default: <basefolder>/fulltextsearch/conf/solr/{version}/extras/) - Absolute path to
 	 *   the folder containing templates which are used for generating the schema and field definitions.
-	 * templates (default: <basefolder>/fulltextsearch/conf/templates/) - Absolute path to 
+	 * templates (default: <basefolder>/fulltextsearch/conf/solr/{version}/templates/) - Absolute path to
 	 *   the configuration default files, e.g. solrconfig.xml.
 	 *
 	 * indexstore => an array with
@@ -29,36 +33,87 @@ class Solr  {
 	 *      path (default: /solrindex) - The suburl on the solr host that is set up to accept index configurations via webdav
 	 *      remotepath - The path that the Solr server will read the index configurations from
 	 */
-	static $solr_options = array();
+	protected static $solr_options = array();
 
+	/** A cache of solr_options with the defaults all merged in */
+	protected static $merged_solr_options = null;
+
+	/**
+	 * Update the configuration for Solr. See $solr_options for a discussion of the accepted array keys
+	 * @param array $options - The options to update
+	 */
 	static function configure_server($options = array()) {
-		self::$solr_options = array_merge(array(
+		self::$solr_options = array_merge(self::$solr_options, $options);
+		self::$merged_solr_options = null;
+
+		self::$service_singleton = null;
+		self::$service_core_singletons = array();
+	}
+
+	/**
+	 * Get the configured Solr options with the defaults all merged in
+	 * @return array - The merged options
+	 */
+	static function solr_options() {
+		if (self::$merged_solr_options) return self::$merged_solr_options;
+
+		$defaults = array(
 			'host' => 'localhost',
 			'port' => 8983,
 			'path' => '/solr',
-			'extraspath' => Director::baseFolder().'/fulltextsearch/conf/extras/',
-			'templatespath' => Director::baseFolder().'/fulltextsearch/conf/templates/',
-		), self::$solr_options, $options);
-	}
+			'version' => '4'
+		);
 
-	static protected $service_class = 'SolrService';
+		// Build some by-version defaults
+		$version = isset(self::$solr_options['version']) ? self::$solr_options['version'] : $defaults['version'];
 
-	static function set_service_class($class) {
-		self::$service_class = $class;
-		self::$service = null;
-	}
-
-	static protected $service = null;
-
-	static function service($core = null) {
-		if (!self::$service) {
-			if (!self::$solr_options) user_error('No configuration for Solr server provided', E_USER_ERROR);
-
-			$class = self::$service_class;
-			self::$service = new $class(self::$solr_options['host'], self::$solr_options['port'], self::$solr_options['path']);
+		if (version_compare($version, '4', '>=')){
+			$versionDefaults = array(
+				'service' => 'Solr4Service',
+				'extraspath' => Director::baseFolder().'/fulltextsearch/conf/solr/4/extras/',
+				'templatespath' => Director::baseFolder().'/fulltextsearch/conf/solr/4/templates/',
+			);
+		}
+		else {
+			$versionDefaults = array(
+				'service' => 'Solr3Service',
+				'extraspath' => Director::baseFolder().'/fulltextsearch/conf/solr/3/extras/',
+				'templatespath' => Director::baseFolder().'/fulltextsearch/conf/solr/3/templates/',
+			);
 		}
 
-		return $core ? self::$service->serviceForCore($core) : self::$service;
+		return (self::$merged_solr_options = array_merge($defaults, $versionDefaults, self::$solr_options));
+	}
+
+
+	static function set_service_class($class) {
+		user_error('set_service_class is deprecated - pass as part of $options to configure_server', E_USER_WARNING);
+		self::configure_server(array('service' => $class));
+	}
+
+	/** @var SolrService | null - The instance of SolrService for core management */
+	static protected $service_singleton = null;
+	/** @var [SolrService_Core] - The instances of SolrService_Core for each core */
+	static protected $service_core_singletons = array();
+
+	static function service($core = null) {
+		$options = self::solr_options();
+
+		if (!self::$service_singleton) {
+			self::$service_singleton = Object::create(
+				$options['service'], $options['host'], $options['port'], $options['path']
+			);
+		}
+
+		if ($core) {
+			if (!isset(self::$service_core_singletons[$core])) {
+				self::$service_core_singletons[$core] = self::$service_singleton->serviceForCore($core);
+			}
+
+			return self::$service_core_singletons[$core];
+		} else {
+			return self::$service_singleton;
+		}
 	}
 
 	static function get_indexes() {
@@ -66,8 +121,8 @@ class Solr  {
 	}
 
 	/**
-	 * Include the thirdparty Solr client api library. Done this way to avoid issues where code is called in mysite/_config
-	 * before fulltextsearch/_config has a change to update the include path.
+	 * Include the thirdparty Solr client api library. Done this way to avoid issues where code is called in
+	 * mysite/_config before fulltextsearch/_config has a change to update the include path.
 	 */
 	static function include_client_api() {
 		static $included = false;
@@ -88,8 +143,9 @@ class Solr_Configure extends BuildTask {
 	public function run($request) {
 		$service = Solr::service();
 		$indexes = Solr::get_indexes();
+		$options = Solr::solr_options();
 
-		if (!isset(Solr::$solr_options['indexstore']) || !($indexstore = Solr::$solr_options['indexstore'])) {
+		if (!isset($options['indexstore']) || !($indexstore = $options['indexstore'])) {
 			user_error('No index configuration for Solr provided', E_USER_ERROR);
 		}
 
