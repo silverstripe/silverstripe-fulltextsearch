@@ -8,7 +8,7 @@ It works with Solr in multi-core mode. It needs to be able to update Solr config
 doing this by direct file access (when Solr shares a server with SilverStripe) and by WebDAV (when it's on a different
 server).
 
-See the helpful [Solr Tutorial](http://lucene.apache.org/fulltextsearch/api/doc-files/tutorial.html), for more on cores
+See the helpful [Solr Tutorial](http://lucene.apache.org/solr/4_5_1/tutorial.html), for more on cores
 and querying.
 
 ## Requirements
