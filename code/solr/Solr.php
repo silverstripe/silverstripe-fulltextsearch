@@ -164,13 +164,19 @@ class Solr_Configure extends BuildTask {
 			user_error('Unknown Solr index mode '.$indexstore['mode'], E_USER_ERROR);
 		}
 
+		printf("Solr Configuration:\n
+			<pre>%s</pre>"
+			, 
+			print_r($options, true)
+		); 
+
 		foreach ($indexes as $instance) {
 			$index = $instance->getIndexName();
-			echo "Configuring $index. "; flush();
+			echo "Configuring $index. \n"; flush();
 
 			try {
 				// Upload the config files for this index
-				echo "Uploading configuration ... "; flush();
+				echo "Uploading configuration ... \n"; flush();
 
 				$store->uploadString($index, 'schema.xml', (string)$instance->generateSchema());
 
@@ -180,10 +186,10 @@ class Solr_Configure extends BuildTask {
 
 				// Then tell Solr to use those config files
 				if ($service->coreIsActive($index)) {
-					echo "Reloading core ... ";
+					echo "Reloading core ... \n";
 					$service->coreReload($index);
 				} else {
-					echo "Creating core ... ";
+					echo "Creating core ... \n";
 					$service->coreCreate($index, $store->instanceDir($index));
 				}
 
@@ -223,7 +229,7 @@ class Solr_Reindex extends BuildTask {
 
 			foreach (Solr::get_indexes() as $index => $instance) {
 				echo "Rebuilding {$instance->getIndexName()}\n\n";
-
+				
 				$classes = $instance->getClasses();
 				if($request->getVar('class')) {
 					$limitClasses = explode(',', $request->getVar('class'));
@@ -279,14 +285,27 @@ class Solr_Reindex extends BuildTask {
 	protected function runFrom($index, $class, $start, $variantstate) {
 		$classes = $index->getClasses();
 		$options = $classes[$class];
+		$verbose = isset($_GET['verbose']);
 
 		SearchVariant::activate_state($variantstate);
 
 		$includeSubclasses = $options['include_children'];
 		$filter = $includeSubclasses ? "" : '"ClassName" = \''.$class."'";
 
-		$items = DataList::create($class)->where($filter)->limit($this->stat('recordsPerRequest'), $start);
-		foreach ($items as $item) { $index->add($item); $item->destroy(); }
+		$items = DataList::create($class)
+			->where($filter)
+			->limit($this->stat('recordsPerRequest'), $start);
+
+		if($verbose) echo "Adding ";
+		foreach ($items as $item) {
+			if($verbose) echo $index->ID . ' ';
+
+			$index->add($item);
+
+			$item->destroy(); 
+		}
+
+		if($verbose) echo "Done ";
 	}
 
 }
