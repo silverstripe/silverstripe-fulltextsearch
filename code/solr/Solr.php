@@ -107,7 +107,9 @@ class Solr  {
 
 		if ($core) {
 			if (!isset(self::$service_core_singletons[$core])) {
-				self::$service_core_singletons[$core] = self::$service_singleton->serviceForCore($core);
+				self::$service_core_singletons[$core] = self::$service_singleton->serviceForCore(
+					singleton($core)->getIndexName()
+				);
 			}
 
 			return self::$service_core_singletons[$core];
