@@ -163,13 +163,7 @@ class Solr_Configure extends BuildTask {
 		} else {
 			user_error('Unknown Solr index mode '.$indexstore['mode'], E_USER_ERROR);
 		}
-
-		printf("Solr Configuration:\n
-			<pre>%s</pre>"
-			, 
-			print_r($options, true)
-		); 
-
+		
 		foreach ($indexes as $instance) {
 			$index = $instance->getIndexName();
 			echo "Configuring $index. \n"; flush();
