@@ -67,6 +67,8 @@
        the classpath, this is useful for including all jars in a
        directory.
     -->
+  <lib dir="./lib" />
+  
   <lib dir="../../contrib/extraction/lib" />
   <!-- When a regex is specified in addition to a directory, only the
        files in that directory which completely match the regex
