@@ -107,7 +107,13 @@ class SearchUpdaterTest extends SapphireTest {
 
 		// Check the default "writing a document updates the document"
 		SearchUpdater::flush_dirty_indexes();
-		$this->assertEquals(self::$index->getAdded(array('ID')), array(
+
+
+		$added = self::$index->getAdded(array('ID'));
+		// Some databases don't output $added in a consistent order; that's okay
+		usort($added, function($a,$b) {return $a['ID']-$b['ID']; });
+
+		$this->assertEquals($added, array(
 			array('ID' => $container1->ID),
 			array('ID' => $container2->ID),
 			array('ID' => $container3->ID)
@@ -121,7 +127,11 @@ class SearchUpdaterTest extends SapphireTest {
 		$hasOne->write();
 
 		SearchUpdater::flush_dirty_indexes();
-		$this->assertEquals(self::$index->getAdded(array('ID')), array(
+		$added = self::$index->getAdded(array('ID'));
+		// Some databases don't output $added in a consistent order; that's okay
+		usort($added, function($a,$b) {return $a['ID']-$b['ID']; });
+
+		$this->assertEquals($added, array(
 			array('ID' => $container1->ID),
 			array('ID' => $container2->ID)
 		));
