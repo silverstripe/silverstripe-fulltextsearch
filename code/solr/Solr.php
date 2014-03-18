@@ -259,7 +259,12 @@ class Solr_Reindex extends BuildTask {
 							echo "$offset..";
 
 							$cmd = "php $script dev/tasks/$self index=$index class=$class start=$offset variantstate=$statevar";
-							if($verbose) echo "\n  Running '$cmd'\n";
+							
+							if($verbose) {
+								echo "\n  Running '$cmd'\n";
+								$cmd .= " verbose=1";
+							}
+							
 							$res = $verbose ? passthru($cmd) : `$cmd`;
 							if($verbose) echo "  ".preg_replace('/\r\n|\n/', '$0  ', $res)."\n";
 
@@ -290,9 +295,9 @@ class Solr_Reindex extends BuildTask {
 			->where($filter)
 			->limit($this->stat('recordsPerRequest'), $start);
 
-		if($verbose) echo "Adding ";
+		if($verbose) echo "Adding $class";
 		foreach ($items as $item) {
-			if($verbose) echo $index->ID . ' ';
+			if($verbose) echo $item->ID . ' ';
 
 			$index->add($item);
 
