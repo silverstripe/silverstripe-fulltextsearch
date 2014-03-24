@@ -285,10 +285,21 @@ abstract class SolrIndex extends SearchIndex {
 	}
 
 	function delete($base, $id, $state) {
+
+		// HACK: States should be kept as integers throughout,
+		// so that json_enbcode always encodes them the same.
+		if (is_array($state)) {
+			foreach ($state as $key => $val) {
+				$state[$key] = (int)$val;
+			}
+		}
+
 		$documentID = $this->getDocumentIDForState($base, $id, $state);
 
 		try {
-			$this->getService()->deleteById($documentID);
+			$deleteQuery = '_documentid:'.
+				preg_replace('/("|\\\|\{|\}|:)/', '\\\$1', $documentID);
+			$this->getService()->deleteByQuery($deleteQuery);
 		} catch (Exception $e) {
 			SS_Log::log($e, SS_Log::WARN);
 			return false;
