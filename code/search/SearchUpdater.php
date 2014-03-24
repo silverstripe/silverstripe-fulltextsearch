@@ -181,18 +181,18 @@ class SearchUpdater_DeleteHandler extends DataExtension {
 		if (!$this->owner->ID) {
 			return;
 		}
-       // For every index
-        foreach (FullTextSearch::get_indexes() as $index => $instance) {
-            // If that index has a field from this class
-            if (SearchIntrospection::is_subclass_of($this->owner->ClassName, $instance->dependancyList)) {
-                if (!SearchUpdater::$processor) {
-                    SearchUpdater::$processor = Injector::inst()->create('SearchUpdateProcessor');
-                }
-                // Force a write before deleting, to mark this one as dirty
-                $this->owner->LastEdited = date();
-                $this->owner->write();
-            }
-        }
+		// For every index
+		foreach (FullTextSearch::get_indexes() as $index => $instance) {
+			// If that index has a field from this class
+			if (SearchIntrospection::is_subclass_of($this->owner->ClassName, $instance->dependancyList)) {
+				if (!SearchUpdater::$processor) {
+					SearchUpdater::$processor = Injector::inst()->create('SearchUpdateProcessor');
+				}
+				// Force a write before deleting, to mark this one as dirty
+				$this->owner->LastEdited = date();
+				$this->owner->write();
+			}
+		}
 	}
 
 }
