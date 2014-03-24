@@ -287,7 +287,7 @@ abstract class SolrIndex extends SearchIndex {
 	function delete($base, $id, $state) {
 
 		// HACK: States should be kept as integers throughout,
-		// so that json_enbcode always encodes them the same.
+		// so that json_encode always encodes them the same.
 		if (is_array($state)) {
 			foreach ($state as $key => $val) {
 				$state[$key] = (int)$val;
