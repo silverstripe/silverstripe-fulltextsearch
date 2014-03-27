@@ -189,7 +189,7 @@ class SearchUpdater_DeleteHandler extends DataExtension {
 					SearchUpdater::$processor = Injector::inst()->create('SearchUpdateProcessor');
 				}
 				// Force a write before deleting, to mark this one as dirty
-				$this->owner->LastEdited = date();
+				$this->owner->LastEdited = time();
 				$this->owner->write();
 			}
 		}
