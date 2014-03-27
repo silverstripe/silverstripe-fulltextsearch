@@ -165,3 +165,34 @@ class SearchUpdater_BindManipulationCaptureFilter implements RequestFilter {
 		/* NOP */
 	}
 }
+
+/**
+ * Delete operations do not use database manipulations.
+ * 
+ * If a delete has been requested, force a write on objects that should be
+ * indexed.  This causes the object to be marked for deletion from the index.
+ */
+
+class SearchUpdater_DeleteHandler extends DataExtension {
+
+	public function onBeforeDelete() {
+		parent::onBeforeDelete();
+		// Calling delete() on empty objects does nothing
+		if (!$this->owner->ID) {
+			return;
+		}
+		// For every index
+		foreach (FullTextSearch::get_indexes() as $index => $instance) {
+			// If that index has a field from this class
+			if (SearchIntrospection::is_subclass_of($this->owner->ClassName, $instance->dependancyList)) {
+				if (!SearchUpdater::$processor) {
+					SearchUpdater::$processor = Injector::inst()->create('SearchUpdateProcessor');
+				}
+				// Force a write before deleting, to mark this one as dirty
+				$this->owner->LastEdited = time();
+				$this->owner->write();
+			}
+		}
+	}
+
+}
