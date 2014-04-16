@@ -8,6 +8,8 @@ Injector:
 Name: messagequeueprocessor
 Only:
   ModuleExists: messagequeue
+Except:
+  Environment: 'dev'
 ---
 Injector:
   SearchUpdateProcessor:
@@ -16,6 +18,8 @@ Injector:
 Name: queuedjobprocessor
 Only:
   ModuleExists: queuedjobs
+Except:
+  Environment: 'dev'
 ---
 Injector:
   SearchUpdateProcessor:
