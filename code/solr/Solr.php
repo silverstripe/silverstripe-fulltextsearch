@@ -1,6 +1,23 @@
 <?php
 
-class Solr  {
+/**
+ * Interface for a factory for SolrService instances
+ */
+interface SolrService_Factory {
+	
+	/**
+	 * Generates a SolrServiceEngine for a given core
+	 * 
+	 * @param string $core
+	 * @return SolrService_Engine
+	 */
+	public function getService($core = null);
+}
+
+/**
+ * Main Solr controller and SolrService factory
+ */
+class Solr implements SolrService_Factory {
 
 	/**
 	 * Configuration on where to find the solr server and how to get new index configurations into it.
@@ -137,6 +154,35 @@ class Solr  {
 			$included = true;
 		}
 	}
+
+	public function getService($core = null) {
+		return self::service($core);
+	}
+
+}
+
+
+/**
+ * Provides caching of services
+ */
+class Solr_CacheFactory implements SolrService_Factory {
+	
+	/**
+	 * Parent factory to generate cached results for
+	 *
+	 * @var SolrService_Factory
+	 */
+	protected $parent = null;
+	
+	public function __construct(SolrService_Factory $parent) {
+		$this->parent = $parent;
+	}
+
+	public function getService($core = null) {
+		$service = $this->parent->getService($core);
+		return Injector::inst()->createWithArgs('SolrService_Cache', array($service));
+	}
+
 }
 
 

@@ -1,5 +1,7 @@
 <?php
 
+if(!class_exists('MessageQueue')) return;
+
 class SearchUpdateMessageQueueProcessor extends SearchUpdateProcessor {
 	/**
 	 * The MessageQueue to use when processing updates
