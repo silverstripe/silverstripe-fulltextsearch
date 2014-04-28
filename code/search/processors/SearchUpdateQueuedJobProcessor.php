@@ -1,6 +1,7 @@
 <?php
 
-
+if(!interface_exists('QueuedJob')) return;
+	
 class SearchUpdateQueuedJobProcessor extends SearchUpdateProcessor implements QueuedJob {
 
 	/**

@@ -1,0 +1,10 @@
+SearchUpdaterTest_Container:
+  item1:
+    Field1: 'First'
+    Field2: 'Second'
+  item2:
+    Field1: 'Alpha'
+    Field2: 'Bravo'
+  item3:
+    Field1: 'Electrode'
+    Field2: 'Diglett'

@@ -360,6 +360,63 @@ see `thirdparty/fulltextsearch/server/silverstripe-solr-test.xml`.
 
 	java -Durl=http://localhost:8983/solr/MyIndex/update/ -Dtype=text/xml -jar post.jar silverstripe-solr-test.xml
 
+## Optimising Performance
+
+Fulltext search comes with an optional caching and rate limiting mechanism for Solr.
+This allows users to cache the results of queries and apply rate limiting rules.
+
+### Caching
+
+By default queries are cached for 5 minutes. You can customise the caching for any index by applying
+the following config
+
+	:::yaml
+	MyIndex:
+		# Cache queries for 5 minutes
+		cache_lifetime: 300
+
+
+Caching can be disabled as well.
+
+	:::yaml
+	MyIndex:
+		cache_enabled: false
+
+
+### Rate Limiting
+
+This feature allows limits to be applied to uncached queries (queries that hit the solr search store). There is
+a separate limit for queries in progress, as well as a 'cooldown' feature which blocks subsequent queries for
+a period of time.
+
+Users who receive a rate limit notification will be presented with a 429 (Too Many Requests) HTTP error.
+This may be customised with a 429 `ErrorPage`.
+
+Rate limiting for indexes can be configured as below:
+
+	:::yaml
+	MyIndex:
+		# The maximum number of seconds to allow for queries to execute. If a query exceeds this number of seconds
+		# to execute, then the rate limit will be reset, allowing requests again. If a query is in progress
+		# prior to this timeout being reached, requests will be met with a rate limit 429 error.
+		rate_timeout: 10
+		# If a query has finished then continue to block requests for this number of seconds afterwards
+		rate_cooldown: 2
+		# Force rate limiting across all queries. 'true' would mean only rate limit for other attempts
+		# to execute the same query.
+		rate_byquery: false
+		# Force rate limiting across all users. 'true' would mean only rate limit for attempts by the same
+		# person, identified by IP address.
+		rate_byuserip: false
+
+
+Rate limiting can be disabled as well.
+
+	:::yaml
+	MyIndex:
+		rate_enabled: false
+
+
 ## FAQ
 
 ### How do I use date ranges where dates might not be defined?
