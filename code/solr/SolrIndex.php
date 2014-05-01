@@ -416,29 +416,44 @@ abstract class SolrIndex extends SearchIndex {
 
 		$params = array_merge($params, array('fq' => implode(' ', $fq)));
 
-		$res = $service->search(
-			$q ? implode(' ', $q) : '*:*', 
-			$offset, 
-			$limit, 
-			$params, 
+		// Allow extensions to pre-empt SolrService::query
+		$queryString = $q ? implode(' ', $q) : '*:*';
+		$queryArguments = array(
+			$queryString,
+			$offset,
+			$limit,
+			$params,
 			Apache_Solr_Service::METHOD_POST
 		);
+		$extendedResult = $this->extend('onBeforeSearch', $service, $queryArguments);
+		if($extendedResult) {
+			$serviceResult = reset($extendedResult);
+		} else {
+			$serviceResult = $service->search(
+				$queryString, 
+				$offset, 
+				$limit, 
+				$params, 
+				Apache_Solr_Service::METHOD_POST
+			);
+		}
+		$this->extend("onAfterSearch", $service, $queryArguments, $serviceResult, $extendedResult);
 
 		$results = new ArrayList();
-		if($res->getHttpStatus() >= 200 && $res->getHttpStatus() < 300) {
-			foreach ($res->response->docs as $doc) {
+		if($serviceResult->getHttpStatus() >= 200 && $serviceResult->getHttpStatus() < 300) {
+			foreach ($serviceResult->response->docs as $doc) {
 				$result = DataObject::get_by_id($doc->ClassName, $doc->ID);
 				if($result) {
 					$results->push($result);
 
 					// Add highlighting (optional)
 					$docId = $doc->_documentid;
-					if($res->highlighting && $res->highlighting->$docId) {
+					if($serviceResult->highlighting && $serviceResult->highlighting->$docId) {
 						// TODO Create decorator class for search results rather than adding arbitrary object properties
 						// TODO Allow specifying highlighted field, and lazy loading
 						// in case the search API needs another query (similar to SphinxSearchable->buildExcerpt()).
 						$combinedHighlights = array();
-						foreach($res->highlighting->$docId as $field => $highlights) {
+						foreach($serviceResult->highlighting->$docId as $field => $highlights) {
 							$combinedHighlights = array_merge($combinedHighlights, $highlights);
 						}
 
@@ -455,7 +470,7 @@ abstract class SolrIndex extends SearchIndex {
 					}
 				}
 			}
-			$numFound = $res->response->numFound;
+			$numFound = $serviceResult->response->numFound;
 		} else {
 			$numFound = 0;
 		}
@@ -470,10 +485,10 @@ abstract class SolrIndex extends SearchIndex {
 		// Results per page
 		$ret['Matches']->setPageLength($limit);
 		// Suggestions (requires custom setup, assumes spellcheck.collate=true)
-		if(isset($res->spellcheck->suggestions->collation)) {
-			$ret['Suggestion'] = $res->spellcheck->suggestions->collation;
+		if(isset($serviceResult->spellcheck->suggestions->collation)) {
+			$ret['Suggestion'] = $serviceResult->spellcheck->suggestions->collation;
 		}
-
+		
 		return new ArrayData($ret);
 	}
 

@@ -74,6 +74,3 @@ abstract class SearchUpdateProcessor {
 
 	abstract public function triggerProcessing();
 }
-
-
-

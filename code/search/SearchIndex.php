@@ -30,6 +30,7 @@
 abstract class SearchIndex extends ViewableData {
 
 	function __construct() {
+		parent::__construct();
 		$this->init();
 
 		foreach ($this->getClasses() as $class => $options) {
