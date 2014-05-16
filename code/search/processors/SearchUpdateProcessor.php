@@ -1,9 +1,33 @@
 <?php
 
 abstract class SearchUpdateProcessor {
-	function __construct() {
+	
+	/**
+	 * List of dirty records to process in format
+	 * 
+	 * array(
+	 *   '$BaseClass' => array(
+	 *     '$State Key' => array(
+	 *       'state' => array(
+	 *         'key1' => 'value',
+	 *         'key2' => 'value'
+	 *       ),
+	 *       'ids' => array(
+	 *         '*id*' => array(
+	 *           '*Index Name 1*',
+	 *           '*Index Name 2*'
+	 *         )
+	 *       )
+	 *     )
+	 *   )
+	 * )
+	 *
+	 * @var array
+	 */
+	protected $dirty;
+	
+	public function __construct() {
 		$this->dirty = array();
-		$this->dirtyindexes = array();
 	}
 
 	public function addDirtyIDs($class, $statefulids, $index) {
@@ -28,12 +52,18 @@ abstract class SearchUpdateProcessor {
 
 		$this->dirty[$base] = $forclass;
 	}
-
-	public function process() {
-		$indexes = FullTextSearch::get_indexes();
+	
+	/**
+	 * Generates the list of indexes to process for the dirty items
+	 * 
+	 * @return array
+	 */
+	protected function prepareIndexes() {
 		$originalState = SearchVariant::current_state();
-
-		foreach ($this->dirty as $base => $statefulids) {
+		$dirtyIndexes = array();
+		$dirty = $this->getSource();
+		$indexes = FullTextSearch::get_indexes();
+		foreach ($dirty as $base => $statefulids) {
 			if (!$statefulids) continue;
 
 			foreach ($statefulids as $statefulid) {
@@ -42,38 +72,66 @@ abstract class SearchUpdateProcessor {
 
 				SearchVariant::activate_state($state);
 
-				$objs = DataObject::get($base, '"'.$base.'"."ID" IN ('.implode(',', array_keys($ids)).')');
-				if ($objs) foreach ($objs as $obj) {
+				// Ensure that indexes for all new / updated objects are included
+				$objs = DataObject::get($base)->byIDs(array_keys($ids));
+				foreach ($objs as $obj) {
 					foreach ($ids[$obj->ID] as $index) {
 						if (!$indexes[$index]->variantStateExcluded($state)) {
 							$indexes[$index]->add($obj);
-							$this->dirtyindexes[$index] = $index;
+							$dirtyIndexes[$index] = $indexes[$index];
 						}
 					}
 					unset($ids[$obj->ID]);
 				}
 
+				// Generate list of records that do not exist and should be removed
 				foreach ($ids as $id => $fromindexes) {
 					foreach ($fromindexes as $index) {
 						if (!$indexes[$index]->variantStateExcluded($state)) {
 							$indexes[$index]->delete($base, $id, $state);
-							$this->dirtyindexes[$index] = $index;
+							$dirtyIndexes[$index] = $indexes[$index];
 						}
 					}
 				}
 			}
 		}
-
+		
 		SearchVariant::activate_state($originalState);
+		return $dirtyIndexes;
+	}
+	
+	/**
+	 * Commits the specified index to the Solr service
+	 * 
+	 * @param SolrIndex $index Index object
+	 * @return bool Flag indicating success
+	 */
+	protected function commitIndex($index) {
+		return $index->commit() !== false;
+	}
+	
+	/**
+	 * Gets the record data source to process
+	 * 
+	 * @return array
+	 */
+	protected function getSource() {
+		return $this->dirty;
+	}
 
-		// Then commit all indexes
-		foreach ($this->dirtyindexes as $index) {
-			if ($indexes[$index]->commit() === false) return false;
+	/**
+	 * Process all indexes, returning true if successful
+	 * 
+	 * @return bool Flag indicating success
+	 */
+	public function process() {
+		// Generate and commit all instances
+		$indexes = $this->prepareIndexes();
+		foreach ($indexes as $index) {
+			if(!$this->commitIndex($index)) return false;
 		}
+		return true;
 	}
 
 	abstract public function triggerProcessing();
 }
-
-
-

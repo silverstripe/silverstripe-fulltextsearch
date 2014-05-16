@@ -14,13 +14,16 @@ matrix:
       env: DB=PGSQL CORE_RELEASE=3.1
     - php: 5.3
       env: DB=MYSQL CORE_RELEASE=3.1 SUBSITES=1
+    - php: 5.3
+      env: DB=MYSQL CORE_RELEASE=3.1 QUEUEDJOBS=1 
 
 before_script:
  - composer self-update
  - phpenv rehash
  - git clone git://github.com/silverstripe-labs/silverstripe-travis-support.git ~/travis-support
- - "if [ \"$SUBSITES\" = \"\" ]; then php ~/travis-support/travis_setup.php --source `pwd` --target ~/builds/ss; fi"
+ - "if [ \"$SUBSITES\" = \"\" -a \"$QUEUEDJOBS\" = \"\" ]; then php ~/travis-support/travis_setup.php --source `pwd` --target ~/builds/ss; fi"
  - "if [ \"$SUBSITES\" = \"1\" ]; then php ~/travis-support/travis_setup.php --source `pwd` --target ~/builds/ss --require silverstripe/subsites; fi"
+ - "if [ \"$QUEUEDJOBS\" = \"1\" ]; then php ~/travis-support/travis_setup.php --source `pwd` --target ~/builds/ss --require silverstripe/queuedjobs; fi"
  - cd ~/builds/ss
 
 script: 
