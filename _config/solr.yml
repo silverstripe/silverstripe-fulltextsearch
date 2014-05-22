@@ -1,0 +1,12 @@
+---
+Name: solrconfig
+---
+Injector:
+  SolrService_Factory:
+    class: Solr_CacheFactory
+    constructor:
+      - '%$Solr'
+SolrIndex:
+  dependencies:
+    ServiceFactory: %$SolrService_Factory
+

@@ -31,6 +31,32 @@ abstract class SolrIndex extends SearchIndex {
 	protected $extrasPath = null;
 
 	protected $templatesPath = null;
+	
+	/**
+	 * Factory for generating services
+	 *
+	 * @var SolrService_Factory
+	 */
+	protected $serviceFactory = null;
+	
+	/*
+	 * Assign an active factory
+	 * 
+	 * @param SolrService_Factory $factory
+	 */
+	public function setServiceFactory(SolrService_Factory $factory) {
+		$this->serviceFactory = $factory;
+	}
+	
+	/**
+	 * Retrieves the current factory
+	 * 
+	 * @return SolrService_Factory
+	 */
+	public function getServiceFactory() {
+		return $this->serviceFactory;
+	}
+	
 	/**
 	 * @return String Absolute path to the folder containing
 	 * templates which are used for generating the schema and field definitions.
@@ -478,13 +504,20 @@ abstract class SolrIndex extends SearchIndex {
 		return new ArrayData($ret);
 	}
 
+	/**
+	 * Currently active service
+	 *
+	 * @var SolrService_Engine
+	 */
 	protected $service;
 
 	/**
-	 * @return SolrService
+	 * @return SolrService_Engine
 	 */
 	public function getService() {
-		if(!$this->service) $this->service = Solr::service(get_class($this));
+		if(!$this->service) {
+			$this->service = $this->serviceFactory->getService(get_class($this));
+		}
 		return $this->service;
 	}
 
