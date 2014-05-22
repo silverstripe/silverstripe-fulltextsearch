@@ -269,7 +269,8 @@ abstract class SolrIndex extends SearchIndex {
 
 		foreach ($this->getClasses() as $searchclass => $options) {
 			if ($searchclass == $class || ($options['include_children'] && is_subclass_of($class, $searchclass))) {
-				$docs[] = $this->_addAs($object, $searchclass, $options);
+				$base = ClassInfo::baseDataClass($searchclass);
+				$docs[] = $this->_addAs($object, $base, $options);
 			}
 		}
 

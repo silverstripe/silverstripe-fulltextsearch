@@ -38,8 +38,20 @@ class SearchVariantVersionedTest extends SapphireTest {
 
 		SearchUpdater::bind_manipulation_capture();
 
+		Config::nest();
+
+		Config::inst()->update('Injector', 'SearchUpdateProcessor', array(
+			'class' => 'SearchUpdateImmediateProcessor'
+		));
+
 		FullTextSearch::force_index_list(self::$index);
 		SearchUpdater::clear_dirty_indexes();
+	}
+
+	function tearDown() {
+		Config::unnest();
+
+		parent::tearDown();
 	}
 
 	function testPublishing() {

@@ -52,7 +52,7 @@ abstract class SearchIndex extends ViewableData {
 		$sources = $this->getClasses();
 
 		foreach ($sources as $source => $options) {
-			$sources[$source]['base'] = $source;
+			$sources[$source]['base'] = ClassInfo::baseDataClass($source);
 			$sources[$source]['lookup_chain'] = array();
 		}
 
@@ -440,10 +440,11 @@ abstract class SearchIndex extends ViewableData {
 		foreach ($this->classes as $searchclass => $options) {
 			if ($searchclass == $class || ($options['include_children'] && is_subclass_of($class, $searchclass))) {
 
-				$dirty[$searchclass] = array();
+				$base = ClassInfo::baseDataClass($searchclass);
+				$dirty[$base] = array();
 				foreach ($statefulids as $statefulid) {
 					$key = serialize($statefulid);
-					$dirty[$searchclass][$key] = $statefulid;
+					$dirty[$base][$key] = $statefulid;
 				}
 			}
 		}

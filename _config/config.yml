@@ -1,0 +1,3 @@
+DataObject:
+  extensions:
+    - 'SearchUpdater_DeleteHandler'
