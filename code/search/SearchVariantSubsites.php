@@ -16,15 +16,15 @@ class SearchVariantSubsites extends SearchVariant {
 	}
 
 	function currentState() {
-		 return Subsite::currentSubsiteID();
+		 return (string)Subsite::currentSubsiteID();
 	}
 
 	function reindexStates() {
 		static $ids = null;
 
 		if ($ids === null) {
-			$ids = array(0);
-			foreach (DataObject::get('Subsite') as $subsite) $ids[] = $subsite->ID;
+			$ids = array('0');
+			foreach (DataObject::get('Subsite') as $subsite) $ids[] = (string)$subsite->ID;
 		}
 
 		return $ids;
@@ -77,7 +77,7 @@ class SearchVariantSubsites extends SearchVariant {
 
 			foreach ($write['statefulids'] as $i => $statefulid) {
 				foreach (self::$subsites as $subsiteID) {
-					$next[] = array('id' => $statefulid['id'], 'state' => array_merge($statefulid['state'], array($self => $subsiteID)));
+					$next[] = array('id' => $statefulid['id'], 'state' => array_merge($statefulid['state'], array($self => (string)$subsiteID)));
 				}
 			}
 
