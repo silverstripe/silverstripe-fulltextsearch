@@ -54,6 +54,11 @@ class SolrIndexVersionedTest extends SapphireTest {
 		return Phockito::mock('Solr3Service');
 	}
 	
+	protected function getExpectedDocumentId($id, $stage) {
+		// Prevent subsites from breaking tests
+		$subsites = class_exists('Subsite') ? '"SearchVariantSubsites":"0",' : '';
+		return $id.'-SiteTree-{'.$subsites.'"SearchVariantVersioned":"'.$stage.'"}';
+	}
 	
 	public function testPublishing() {
 		
@@ -68,7 +73,7 @@ class SolrIndexVersionedTest extends SapphireTest {
 		$item->write();
 		SearchUpdater::flush_dirty_indexes();
 		$doc = new SolrDocumentMatcher(array(
-			'_documentid' => $item->ID.'-SiteTree-{"SearchVariantVersioned":"Stage"}',
+			'_documentid' => $this->getExpectedDocumentId($item->ID, 'Stage'),
 			'ClassName' => 'SearchVariantVersionedTest_Item'
 		));
 		Phockito::verify($serviceMock)->addDocument($doc);
@@ -81,7 +86,7 @@ class SolrIndexVersionedTest extends SapphireTest {
 		$item->publish('Stage', 'Live');
 		SearchUpdater::flush_dirty_indexes();
 		$doc = new SolrDocumentMatcher(array(
-			'_documentid' => $item->ID.'-SiteTree-{"SearchVariantVersioned":"Live"}',
+			'_documentid' => $this->getExpectedDocumentId($item->ID, 'Live'),
 			'ClassName' => 'SearchVariantVersionedTest_Item'
 		));
 		Phockito::verify($serviceMock)->addDocument($doc);
@@ -104,9 +109,9 @@ class SolrIndexVersionedTest extends SapphireTest {
 		$item->delete();
 		SearchUpdater::flush_dirty_indexes();
 		Phockito::verify($serviceMock, 1)
-			->deleteById($id.'-SiteTree-{"SearchVariantVersioned":"Live"}');
+			->deleteById($this->getExpectedDocumentId($id, 'Live'));
 		Phockito::verify($serviceMock, 0)
-			->deleteById($id.'-SiteTree-{"SearchVariantVersioned":"Stage"}');
+			->deleteById($this->getExpectedDocumentId($id, 'Stage'));
 		
 		// Delete the stage record
 		Versioned::reading_stage('Stage');
@@ -118,9 +123,9 @@ class SolrIndexVersionedTest extends SapphireTest {
 		$item->delete();
 		SearchUpdater::flush_dirty_indexes();
 		Phockito::verify($serviceMock, 1)
-			->deleteById($id.'-SiteTree-{"SearchVariantVersioned":"Stage"}');
+			->deleteById($this->getExpectedDocumentId($id, 'Stage'));
 		Phockito::verify($serviceMock, 0)
-			->deleteById($id.'-SiteTree-{"SearchVariantVersioned":"Live"}');
+			->deleteById($this->getExpectedDocumentId($id, 'Live'));
 	}
 }
 
