@@ -196,8 +196,26 @@ class SolrService_Cache implements SolrService_Engine_Reportable {
 	protected $cacheHit = false;
 	
 	public function __construct(SolrService_Engine $parent) {
-		$this->parent = $parent;
+		$this->setParent($parent);
 		$this->cacheHit = false;
+	}
+	
+	/**
+	 * Gets the parent service from this caching service
+	 * 
+	 * @return SolrService_Engine
+	 */
+	public function getParent() {
+		return $this->parent;
+	}
+	
+	/**
+	 * Assign a new parent service
+	 * 
+	 * @param SolrService_Engine $parent
+	 */
+	public function setParent(SolrService_Engine $parent) {
+		$this->parent = $parent;
 	}
 	
 	/**
