@@ -167,18 +167,30 @@ class SearchUpdater_BindManipulationCaptureFilter implements RequestFilter {
 }
 
 /**
- * Delete operations do not use database manipulations.
+ * Certain operations do not use database manipulations.
  * 
- * If a delete has been requested, force a write on objects that should be
- * indexed.  This causes the object to be marked for deletion from the index.
+ * After deleting, publishing, or unpublishing force a write on objects that should be
+ * indexed.  This causes the object to be marked for update.
  */
 
-class SearchUpdater_DeleteHandler extends DataExtension {
+class SearchUpdater_UpdateHandler extends DataExtension {
 
 	public function onAfterDelete() {
 		// Calling delete() on empty objects does nothing
 		if (!$this->owner->ID) return;
-		
+
+		$this->forceSearchUpdate();
+	}
+
+	public function onAfterPublish() {
+		$this->forceSearchUpdate();
+	}
+
+	public function onAfterUnpublish() {
+		$this->forceSearchUpdate();
+	}
+ 
+ 	public function forceSearchUpdate() {
 		// Force SearchUpdater to mark this record as dirty
 		$manipulation = array(
 			$this->owner->ClassName => array(
@@ -189,6 +201,6 @@ class SearchUpdater_DeleteHandler extends DataExtension {
 		);
 		$this->owner->extend('augmentWrite', $manipulation);
 		SearchUpdater::handle_manipulation($manipulation);
-	}
+ 	}
 
 }
