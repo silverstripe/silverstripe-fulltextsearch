@@ -406,7 +406,7 @@ abstract class SolrIndex extends SearchIndex {
 			$fq[] = ($missing ? "+{$field}:[* TO *] " : '') . '-('.implode(' ', $excludeq).')';
 		}
 
-		if(!headers_sent()) {
+		if(!headers_sent() && !Director::isLive()) {
 			if ($q) header('X-Query: '.implode(' ', $q));
 			if ($fq) header('X-Filters: "'.implode('", "', $fq).'"');
 		}
