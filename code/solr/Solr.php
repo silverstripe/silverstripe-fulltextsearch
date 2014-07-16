@@ -206,13 +206,20 @@ class Solr_Reindex extends BuildTask {
 		increase_time_limit_to();
 		$self = get_class($this);
 		$verbose = isset($_GET['verbose']);
+		$hasTranslatable = false;
+
+
+		// if Translatable installed
+		if(class_exists('Translatable') && singleton('SiteTree')->hasExtension('Translatable')) {
+			$hasTranslatable = true;
+		}
 
 		$originalState = SearchVariant::current_state();
 
 		if (isset($_GET['start'])) {
 			$this->runFrom(singleton($_GET['index']), $_GET['class'], $_GET['start'], json_decode($_GET['variantstate'], true));
-		}
-		else {
+		
+		} else {
 			foreach(array('framework','sapphire') as $dirname) {
 				$script = sprintf("%s%s$dirname%scli-script.php", BASE_PATH, DIRECTORY_SEPARATOR, DIRECTORY_SEPARATOR);
 				if(file_exists($script)) {
@@ -222,9 +229,26 @@ class Solr_Reindex extends BuildTask {
 			$class = get_class($this);
 
 			foreach (Solr::get_indexes() as $index => $instance) {
-				echo "Rebuilding {$instance->getIndexName()}\n\n";
-				
+				$locale = false;
+
+				// Limit to a specific index
+				// eg: sake dev/tasks/Solr_Reindex index=ChineseSiteSearchIndex
+				if($request->getVar('index') && $request->getVar('index') != $instance->getIndexName()) {
+					continue;
+				}
+
+				// set the locale if the index requires it
+				if($hasTranslatable) {
+					$limitToLocale = Config::inst()->get($index, 'limitToLocale');
+					if($limitToLocale && i18n::validate_locale($limitToLocale)) {
+						$locale = $limitToLocale;
+					}
+				}
+
+				echo "\r\n\r\nRebuilding {$instance->getIndexName()}\r\n";
+
 				$classes = $instance->getClasses();
+
 				if($request->getVar('class')) {
 					$limitClasses = explode(',', $request->getVar('class'));
 					$classes = array_intersect_key($classes, array_combine($limitClasses, $limitClasses));
@@ -263,6 +287,11 @@ class Solr_Reindex extends BuildTask {
 							if($verbose) {
 								echo "\n  Running '$cmd'\n";
 								$cmd .= " verbose=1";
+							}
+
+							if($locale) {
+								echo "Locale: $locale \n";
+								$cmd .= " locale=$locale";
 							}
 							
 							$res = $verbose ? passthru($cmd) : `$cmd`;
