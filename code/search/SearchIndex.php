@@ -87,7 +87,7 @@ abstract class SearchIndex extends ViewableData {
 							);
 						}
 						else if ($manyMany = $singleton->many_many($lookup)) {
-							$class = $manyMany[0];
+							$class = $manyMany[1];
 							$options['multi_valued'] = true;
 							$options['lookup_chain'][] = array(
 								'call' => 'method', 'method' => $lookup,
