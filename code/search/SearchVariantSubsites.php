@@ -69,7 +69,7 @@ class SearchVariantSubsites extends SearchVariant {
 			if (!$this->appliesTo($write['class'], true)) continue;
 
 			if (self::$subsites === null) {
-				$query = new SQLQuery('ID', 'Subsite');
+				$query = new SQLQuery('"ID"', '"Subsite"');
 				self::$subsites = array_merge(array('0'), $query->execute()->column());
 			}
 
