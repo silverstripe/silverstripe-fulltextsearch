@@ -137,6 +137,7 @@ class SolrVersionedTest_Index extends SolrIndex {
 	}
 }
 
+if (!class_exists('Phockito')) return;
 
 class SolrDocumentMatcher extends Hamcrest_BaseMatcher {
 	
