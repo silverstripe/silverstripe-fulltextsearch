@@ -1,7 +1,8 @@
 <?php
 
+if(!interface_exists('QueuedJob')) return;
 
-class SearchUpdateQueuedJobProcessor extends SearchUpdateProcessor implements QueuedJob {
+class SearchUpdateQueuedJobProcessor extends SearchUpdateBatchedProcessor implements QueuedJob {
 
 	/**
 	 * The QueuedJob queue to use when processing updates
@@ -11,11 +12,9 @@ class SearchUpdateQueuedJobProcessor extends SearchUpdateProcessor implements Qu
 	private static $reindex_queue = 2; // QueuedJob::QUEUED;
 
 	protected $messages = array();
-	protected $totalSteps = 0;
-	protected $currentStep = 0;
-	protected $isComplete = false;
 
 	public function triggerProcessing() {
+		parent::triggerProcessing();
 		singleton('QueuedJobService')->queueJob($this);
 	}
 
@@ -32,11 +31,11 @@ class SearchUpdateQueuedJobProcessor extends SearchUpdateProcessor implements Qu
 	}
 
 	public function jobFinished() {
-		return $this->isComplete;
+		return $this->currentBatch >= count($this->batches);
 	}
 
 	public function setup() {
-		$this->totalSteps = count(array_keys($this->dirty));
+		// NOP
 	}
 
 	public function prepareForRestart() {
@@ -47,39 +46,28 @@ class SearchUpdateQueuedJobProcessor extends SearchUpdateProcessor implements Qu
 		// NOP
 	}
 
-	public function process() {
-		if (parent::process() === false) {
-			$this->currentStep += 1;
-			$this->totalSteps += 1;
-		}
-		else {
-			$this->currentStep = $this->totalSteps;
-			$this->isComplete = true;
-		}
-	}
-
 	public function getJobData() {
 		$data = new stdClass();
-		$data->totalSteps = $this->totalSteps;
-		$data->currentStep = $this->currentStep;
-		$data->isComplete = $this->isComplete;
+		$data->totalSteps = count($this->batches);
+		$data->currentStep = $this->currentBatch;
+		$data->isComplete = $this->jobFinished();
 		$data->messages = $this->messages;
 
 		$data->jobData = new stdClass();
-		$data->jobData->dirty = $this->dirty;
-		$data->jobData->dirtyindexes = $this->dirtyindexes;
+		$data->jobData->batches = $this->batches;
+		$data->jobData->currentBatch = $this->currentBatch;
+		$data->jobData->completedIndexes = $this->completedIndexes;
 
 		return $data;
 	}
 
 	public function setJobData($totalSteps, $currentStep, $isComplete, $jobData, $messages) {
-		$this->totalSteps = $totalSteps;
-		$this->currentStep = $currentStep;
 		$this->isComplete = $isComplete;
 		$this->messages = $messages;
 
-		$this->dirty = $jobData->dirty;
-		$this->dirtyindexes = $jobData->dirtyindexes;
+		$this->batches = $jobData->batches;
+		$this->currentBatch = $jobData->currentBatch;
+		$this->completedIndexes = $jobData->completedIndexes;
 	}
 
 	public function addMessage($message, $severity='INFO') {

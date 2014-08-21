@@ -573,4 +573,8 @@ abstract class SearchIndex_Recording extends SearchIndex {
 
 	function commit() { }
 	
+	function getIndexName() {
+		return get_class($this);
+	}
+	
 }
