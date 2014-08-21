@@ -16,6 +16,36 @@ class SolrIndexTest extends SapphireTest {
 		parent::setUp();
 	}
 
+	function testFieldDataHasOne() {
+		$index = new SolrIndexTest_FakeIndex();
+		$data = $index->fieldData('HasOneObject.Field1');
+		$data = $data['SearchUpdaterTest_Container_HasOneObject_Field1'];
+
+		$this->assertEquals('SearchUpdaterTest_Container', $data['origin']);
+		$this->assertEquals('SearchUpdaterTest_Container', $data['base']);
+		$this->assertEquals('SearchUpdaterTest_HasOne', $data['class']);
+	}
+
+	function testFieldDataHasMany() {
+		$index = new SolrIndexTest_FakeIndex();
+		$data = $index->fieldData('HasManyObjects.Field1');
+		$data = $data['SearchUpdaterTest_Container_HasManyObjects_Field1'];
+
+		$this->assertEquals('SearchUpdaterTest_Container', $data['origin']);
+		$this->assertEquals('SearchUpdaterTest_Container', $data['base']);
+		$this->assertEquals('SearchUpdaterTest_HasMany', $data['class']);
+	}
+
+	function testFieldDataManyMany() {
+		$index = new SolrIndexTest_FakeIndex();
+		$data = $index->fieldData('ManyManyObjects.Field1');
+		$data = $data['SearchUpdaterTest_Container_ManyManyObjects_Field1'];
+
+		$this->assertEquals('SearchUpdaterTest_Container', $data['origin']);
+		$this->assertEquals('SearchUpdaterTest_Container', $data['base']);
+		$this->assertEquals('SearchUpdaterTest_ManyMany', $data['class']);
+	}
+
 	function testBoost() {
 		$serviceMock = $this->getServiceMock();
 		Phockito::when($serviceMock)->search(anything(), anything(), anything(), anything(), anything())->return($this->getFakeRawSolrResponse());
@@ -132,5 +162,6 @@ class SolrIndexTest_FakeIndex extends SolrIndex {
 		$this->addFilterField('MyDate', 'Date');
 		$this->addFilterField('HasOneObject.Field1');
 		$this->addFilterField('HasManyObjects.Field1');
+		$this->addFilterField('ManyManyObjects.Field1');
 	}
 }

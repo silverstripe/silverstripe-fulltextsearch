@@ -14,6 +14,10 @@ class SearchUpdaterTest_Container extends DataObject {
 	private static $has_many = array(
 		'HasManyObjects' => 'SearchUpdaterTest_HasMany'
 	);
+
+	private static $many_many = array(
+		'ManyManyObjects' => 'SearchUpdaterTest_ManyMany'
+	);
 }
 
 class SearchUpdaterTest_HasOne extends DataObject {
@@ -35,6 +39,17 @@ class SearchUpdaterTest_HasMany extends DataObject {
 
 	private static $has_one = array(
 		'HasManyContainer' => 'SearchUpdaterTest_Container'
+	);
+}
+
+class SearchUpdaterTest_ManyMany extends DataObject {
+	private static $db = array(
+		'Field1' => 'Varchar',
+		'Field2' => 'Varchar'
+	);
+
+	private static $belongs_many_many = array(
+		'ManyManyContainer' => 'SearchUpdaterTest_Container'
 	);
 }
 
