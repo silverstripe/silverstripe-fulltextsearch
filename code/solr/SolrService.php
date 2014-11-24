@@ -47,9 +47,19 @@ class SolrService extends Apache_Solr_Service {
 
 	public function serviceForCore($core) {
 		if (!isset($this->_serviceCache[$core])) {
-			$this->_serviceCache[$core] = new Apache_Solr_Service($this->_host, $this->_port, $this->_path."$core", $this->_httpTransport);
+			$this->_serviceCache[$core] = new self($this->_host, $this->_port, $this->_path."$core", $this->_httpTransport);
 		}
 
 		return $this->_serviceCache[$core];
+	}
+
+	/**
+	 * A version of commit() that won't send the waitFlush parameter, which is useless and removed in SOLR 4
+	 */
+	public function commit($expungeDeletes = false, $waitFlush = true, $waitSearcher = true, $timeout = 3600) {
+		$expungeValue = $expungeDeletes ? 'true' : 'false';
+		$searcherValue = $waitSearcher ? 'true' : 'false';
+		$rawPost = '<commit expungeDeletes="' . $expungeValue . '" waitSearcher="' . $searcherValue . '" />';
+		return $this->_sendRawPost($this->_updateUrl, $rawPost, $timeout);
 	}
 }
