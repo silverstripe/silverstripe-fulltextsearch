@@ -117,6 +117,33 @@ abstract class SolrIndex extends SearchIndex {
 	}
 
 	/**
+	 * Extract a human friendly spelling suggestion from a Solr spellcheck collation string.
+	 * @param String $collation
+	 * @return String
+	 */
+	protected function getNiceSuggestion($collation = '') {
+		$collationParts = explode(' ', $collation);
+
+		// Remove advanced query params from the beginning of each collation part.
+		foreach ($collationParts as $key => &$part) {
+			$part = ltrim($part, '+');
+		}
+
+		return implode(' ', $collationParts);
+	}
+
+	/**
+	 * Extract a query string from a Solr spellcheck collation string.
+	 * Useful for constructing 'Did you mean?' links, for example:
+	 * <a href="http://example.com/search?q=$SuggestionQueryString">$SuggestionNice</a>
+	 * @param String $collation
+	 * @return String
+	 */
+	protected function getSuggestionQueryString($collation = '') {
+		return str_replace(' ', '+', $this->getNiceSuggestion($collation));
+	}
+
+	/**
 	 * @param String $name
 	 * @param Array $spec
 	 * @param Array $typeMap
@@ -470,9 +497,24 @@ abstract class SolrIndex extends SearchIndex {
 		$ret['Matches']->setPageStart($offset);
 		// Results per page
 		$ret['Matches']->setPageLength($limit);
-		// Suggestions (requires custom setup, assumes spellcheck.collate=true)
-		if(isset($res->spellcheck->suggestions->collation)) {
-			$ret['Suggestion'] = $res->spellcheck->suggestions->collation;
+		
+		// Include spellcheck and suggestion data. Requires spellcheck=true in $params
+		if(isset($res->spellcheck)) {
+			// Expose all spellcheck data, for custom handling.
+			$ret['Spellcheck'] = $res->spellcheck;
+
+			// Suggestions. Requires spellcheck.collate=true in $params
+			if(isset($res->spellcheck->suggestions->collation)) {
+				// The collation, including advanced query params (e.g. +), suitable for making another query programmatically.
+				$ret['Suggestion'] = $res->spellcheck->suggestions->collation;
+
+				// A human friendly version of the suggestion, suitable for 'Did you mean $SuggestionNice?' display.
+				$ret['SuggestionNice'] = $this->getNiceSuggestion($res->spellcheck->suggestions->collation);
+
+				// A string suitable for appending to an href as a query string.
+				// For example <a href="http://example.com/search?q=$SuggestionQueryString">$SuggestionNice</a>
+				$ret['SuggestionQueryString'] = $this->getSuggestionQueryString($res->spellcheck->suggestions->collation);
+			}
 		}
 
 		return new ArrayData($ret);
