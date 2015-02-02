@@ -212,20 +212,18 @@ class Solr_Reindex extends BuildTask {
 				Solr::service($indexName)->deleteByQuery('ClassHierarchy:(' . implode(' OR ', array_keys($classes)) . ')');
 
 				foreach ($classes as $class => $options) {
-					$includeSubclasses = $options['include_children'];
 					
-					foreach (SearchVariant::reindex_states($class, $includeSubclasses) as $state) {
+					foreach (SearchVariant::reindex_states($class, $options['include_children']) as $state) {
 						if ($instance->variantStateExcluded($state)) continue;
 						
 						SearchVariant::activate_state($state);
 
-						$filter = $includeSubclasses ? "" : '"ClassName" = \''.$class."'";
-						$singleton = singleton($class);
-						$query = $singleton->get($class,$filter,null);
-						$dtaQuery = $query->dataQuery();
+						$list = ($options['list']) ? $options['list'] : DataList::create($class);
+						if (!$options['include_children']) $list = $list->filter('ClassName', $class);
+						$dtaQuery = $list->dataQuery();						
 						$sqlQuery = $dtaQuery->getFinalisedQuery();
-						$singleton->extend('augmentSQL',$sqlQuery,$dtaQuery);
-						$total = $query->count();
+						singleton($class)->extend('augmentSQL',$sqlQuery,$dtaQuery);
+						$total = $list->count();
 
 						$statevar = json_encode($state);
 						echo "Class: $class, total: $total";
@@ -261,11 +259,10 @@ class Solr_Reindex extends BuildTask {
 
 		SearchVariant::activate_state($variantstate);
 
-		$includeSubclasses = $options['include_children'];
-		$filter = $includeSubclasses ? "" : '"ClassName" = \''.$class."'";
-
-		$items = DataList::create($class)->where($filter)->limit($this->stat('recordsPerRequest'), $start);
-		foreach ($items as $item) { $index->add($item); $item->destroy(); }
+		$list = ($options['list']) ? $options['list'] : DataList::create($class);
+		if(!$options['include_children']) $list = $list->filter('ClassName', $class);
+		$list = $list->limit($this->stat('recordsPerRequest'), $start);
+		foreach ($list as $item) { $index->add($item); $item->destroy(); }
 	}
 
 }
