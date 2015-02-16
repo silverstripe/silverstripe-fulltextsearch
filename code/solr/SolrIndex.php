@@ -81,7 +81,7 @@ abstract class SolrIndex extends SearchIndex {
 
 	function getFieldDefinitions() {
 		$xml = array();
-		$stored = Director::isDev() ? "stored='true'" : "stored='false'";
+		$stored = $this->getStoredDefault();
 
 		$xml[] = "";
 
@@ -95,7 +95,7 @@ abstract class SolrIndex extends SearchIndex {
 
 		// Add the fulltext collation field
 
-		$xml[] = "<field name='_text' type='htmltext' indexed='true' $stored multiValued='true' />" ;
+		$xml[] = "<field name='_text' type='htmltext' indexed='true' stored='$stored' multiValued='true' />" ;
 
 		// Add the user-specified fields
 
@@ -144,6 +144,28 @@ abstract class SolrIndex extends SearchIndex {
 	}
 
 	/**
+	 * Add a field that should be stored
+	 *
+	 * @param string $field The field to add
+	 * @param string $forceType The type to force this field as (required in some cases, when not
+	 * detectable from metadata)
+	 * @param array $extraOptions Dependent on search implementation
+	 */
+	public function addStoredField($field, $forceType = null, $extraOptions = array()) {
+		$options = array_merge($extraOptions, array('stored' => 'true'));
+		$this->addFulltextField($field, $forceType, $options);
+	}
+
+	/**
+	 * Gets the default 'stored' value for fields in this index
+	 *
+	 * @return string A default value for the 'stored' field option, either 'true' or 'false'
+	 */
+	protected function getStoredDefault() {
+		return Director::isDev() ? 'true' : 'false';
+	}
+
+	/**
 	 * @param String $name
 	 * @param Array $spec
 	 * @param Array $typeMap
@@ -166,7 +188,7 @@ abstract class SolrIndex extends SearchIndex {
 				'name' => $name, 
 				'type' => $type, 
 				'indexed' => 'true', 
-				'stored' => Director::isDev() ? 'true' : 'false', 
+				'stored' => $this->getStoredDefault(),
 				'multiValued' => $multiValued
 			),
 			isset($spec['extra_options']) ? $spec['extra_options'] : array()
