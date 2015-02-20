@@ -132,6 +132,39 @@ class SolrIndexTest extends SapphireTest {
 		$this->assertEquals('destField', $copyField[0]['dest']);
 	}
 
+	/**
+	 * Tests the setting of the 'stored' flag
+	 */
+	public function testStoredFields() {
+		// Test two fields
+		$index = new SolrIndexTest_FakeIndex2();
+		$index->addStoredField('Field1');
+		$index->addFulltextField('Field2');
+		$schema = $index->getFieldDefinitions();
+		$this->assertContains(
+			"<field name='SearchUpdaterTest_Container_Field1' type='text' indexed='true' stored='true'",
+			$schema
+		);
+		$this->assertContains(
+			"<field name='SearchUpdaterTest_Container_Field2' type='text' indexed='true' stored='false'",
+			$schema
+		);
+
+		// Test with addAllFulltextFields
+		$index2 = new SolrIndexTest_FakeIndex2();
+		$index2->addAllFulltextFields();
+		$index2->addStoredField('Field2');
+		$schema2 = $index2->getFieldDefinitions();
+		$this->assertContains(
+			"<field name='SearchUpdaterTest_Container_Field1' type='text' indexed='true' stored='false'",
+			$schema2
+		);
+		$this->assertContains(
+			"<field name='SearchUpdaterTest_Container_Field2' type='text' indexed='true' stored='true'",
+			$schema2
+		);
+	}
+
 	protected function getServiceMock() {
 		return Phockito::mock('Solr3Service');
 	}
@@ -159,6 +192,23 @@ class SolrIndexTest_FakeIndex extends SolrIndex {
 		$this->addClass('SearchUpdaterTest_Container');
 
 		$this->addFilterField('Field1');
+		$this->addFilterField('MyDate', 'Date');
+		$this->addFilterField('HasOneObject.Field1');
+		$this->addFilterField('HasManyObjects.Field1');
+		$this->addFilterField('ManyManyObjects.Field1');
+	}
+}
+
+
+class SolrIndexTest_FakeIndex2 extends SolrIndex {
+	
+	protected function getStoredDefault() {
+		// Override isDev defaulting to stored
+		return 'false';
+	}
+
+	function init() {
+		$this->addClass('SearchUpdaterTest_Container');
 		$this->addFilterField('MyDate', 'Date');
 		$this->addFilterField('HasOneObject.Field1');
 		$this->addFilterField('HasManyObjects.Field1');
