@@ -2,6 +2,11 @@
 
 class SearchVariantSubsites extends SearchVariant {
 
+	public function __construct() {
+		//Use the session variable for current subsite when building the search index
+		Subsite::$use_session_subsiteid = true;
+	}
+
 	function appliesToEnvironment() {
 		return class_exists('Subsite');
 	}
