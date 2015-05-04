@@ -198,8 +198,23 @@ class Solr_Configure extends BuildTask {
 	}
 }
 
-
+/**
+ * The reindex task breaks up the actual reindex activity into small units of work.
+ * These are "shelled out" to a separate PHP process, which allows the parent task
+ * to run for longer than the maximum allowed execution time. 
+ * 
+ * If the task is run through a web request rather than CLI,
+ * it won't show any progress while its running. A web request will 
+ * also likely time out faster than the full reindex run time,
+ * either because of PHP or web server execution time limits.
+ * Due to the separate PHP sub-processes running the actual reindex,
+ * the web server PHP module might not terminate the request and let it run to completion
+ * (this is the case for Apache with mod_php).
+ *
+ * See http://php.net/manual/en/function.set-time-limit.php
+ */
 class Solr_Reindex extends BuildTask {
+	
 	static $recordsPerRequest = 200;
 
 	public function run($request) {
@@ -210,9 +225,11 @@ class Solr_Reindex extends BuildTask {
 		$originalState = SearchVariant::current_state();
 
 		if (isset($_GET['start'])) {
+			// Run the actual reindex if a 'start' parameter is present
 			$this->runFrom(singleton($_GET['index']), $_GET['class'], $_GET['start'], json_decode($_GET['variantstate'], true));
 		}
 		else {
+			// Prepare and shell out the actual reindex
 			foreach(array('framework','sapphire') as $dirname) {
 				$script = sprintf("%s%s$dirname%scli-script.php", BASE_PATH, DIRECTORY_SEPARATOR, DIRECTORY_SEPARATOR);
 				if(file_exists($script)) {
@@ -265,6 +282,7 @@ class Solr_Reindex extends BuildTask {
 								$cmd .= " verbose=1";
 							}
 							
+							// Does not count towards the execution time of this script
 							$res = $verbose ? passthru($cmd) : `$cmd`;
 							if($verbose) echo "  ".preg_replace('/\r\n|\n/', '$0  ', $res)."\n";
 
