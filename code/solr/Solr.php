@@ -274,6 +274,8 @@ class Solr_Reindex extends BuildTask {
 							// This will slow down things a tiny bit, but it is done so that we don't timeout to the database during a reindex
 							DB::query('SELECT 1');
 						}
+
+						echo "\n";
 					}
 				}
 
