@@ -64,6 +64,48 @@ class SolrIndexTest extends SapphireTest {
 		Phockito::verify($serviceMock)->search('+(Field1:term^1.5 OR HasOneObject_Field1:term^3)', anything(), anything(), anything(), anything());
 	}
 
+	function testHighlightQueryOnBoost() {
+		$serviceMock = $this->getServiceMock();
+		Phockito::when($serviceMock)->search(anything(), anything(), anything(), anything(), anything())->return($this->getFakeRawSolrResponse());
+
+		$index = new SolrIndexTest_FakeIndex();
+		$index->setService($serviceMock);
+
+		// Search without highlighting
+		$query = new SearchQuery();
+		$query->search(
+			'term', 
+			null, 
+			array('Field1' => 1.5, 'HasOneObject_Field1' => 3)
+		);
+		$index->search($query);
+		Phockito::verify(
+			$serviceMock)->search(
+			'+(Field1:term^1.5 OR HasOneObject_Field1:term^3)',
+			anything(),
+			anything(),
+			not(hasKeyInArray('hl.q')),
+			anything()
+		);
+
+		// Search with highlighting
+		$query = new SearchQuery();
+		$query->search(
+			'term', 
+			null, 
+			array('Field1' => 1.5, 'HasOneObject_Field1' => 3)
+		);
+		$index->search($query, -1, -1, array('hl' => true));
+		Phockito::verify(
+			$serviceMock)->search(
+			'+(Field1:term^1.5 OR HasOneObject_Field1:term^3)',
+			anything(),
+			anything(),
+			hasKeyInArray('hl.q'),
+			anything()
+		);
+	}
+
 	function testIndexExcludesNullValues() {
 		$serviceMock = $this->getServiceMock();
 		$index = new SolrIndexTest_FakeIndex();
