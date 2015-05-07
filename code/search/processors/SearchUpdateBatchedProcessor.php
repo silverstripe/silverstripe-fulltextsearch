@@ -52,19 +52,6 @@ abstract class SearchUpdateBatchedProcessor extends SearchUpdateProcessor {
 		$this->setBatch(0);
 	}
 	
-	protected function commitIndex($index) {
-		$name = $index->getIndexName();
-		
-		// If this is a resurrected batch then it's not necessary to commit the index
-		// twice, assuming it has successfully been comitted before
-		if(isset($this->completedIndexes[$name])) return true;
-		
-		// Commit index and mark as completed
-		$result = parent::commitIndex($index);
-		if($result) $this->completedIndexes[$name] = $name;
-		return $result;
-	}
-	
 	/**
 	 * Set the current batch index
 	 * 
@@ -72,7 +59,6 @@ abstract class SearchUpdateBatchedProcessor extends SearchUpdateProcessor {
 	 */
 	protected function setBatch($batch) {
 		$this->currentBatch = $batch;
-		$this->completedIndexes = array();
 	}
 	
 	protected function getSource() {
@@ -93,12 +79,12 @@ abstract class SearchUpdateBatchedProcessor extends SearchUpdateProcessor {
 		// Don't re-process completed queue
 		if($this->currentBatch >= count($this->batches)) return true;
 		
-		// Process batch
-		$result = parent::process();
+		// Send current patch to indexes
+		$this->prepareIndexes();
 		
 		// Advance to next batch if successful
-		if($result) $this->setBatch($this->currentBatch + 1);
-		return $result;
+		$this->setBatch($this->currentBatch + 1);
+		return true;
 	}
 	
 	/**

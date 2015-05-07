@@ -10,6 +10,15 @@ class FullTextSearch {
 	static protected $indexes_by_subclass = array();
 
 	/**
+	 * Optional list of index names to limit to. If left empty, all subclasses of SearchIndex
+	 * will be used
+	 *
+	 * @var array
+	 * @config
+	 */
+	private static $indexes = array();
+
+	/**
 	 * Get all the instantiable search indexes (so all the user created indexes, but not the connector or library level
 	 * abstract indexes). Can optionally be filtered to only return indexes that are subclasses of some class
 	 *
@@ -18,16 +27,43 @@ class FullTextSearch {
 	 * @param bool $rebuild - If true, don't use cached values
 	 */
 	static function get_indexes($class = null, $rebuild = false) {
-		if ($rebuild) { self::$all_indexes = null; self::$indexes_by_subclass = array(); }
+		if ($rebuild) {
+			self::$all_indexes = null;
+			self::$indexes_by_subclass = array();
+		}
 
 		if (!$class) {
 			if (self::$all_indexes === null) {
-				$classes = ClassInfo::subclassesFor('SearchIndex');
+				// Get declared indexes, or otherwise default to all subclasses of SearchIndex
+				$classes = Config::inst()->get(__CLASS__, 'indexes')
+					?: ClassInfo::subclassesFor('SearchIndex');
 
-				$concrete = array();
+				$hidden = array();
+				$candidates = array();
 				foreach ($classes as $class) {
+					// Check if this index is disabled
+					$hides = $class::config()->hide_ancestor;
+					if($hides) {
+						$hidden[] = $hides;
+					}
+
+					// Check if this index is abstract
 					$ref = new ReflectionClass($class);
-					if ($ref->isInstantiable()) $concrete[$class] = singleton($class);
+					if (!$ref->isInstantiable()) {
+						continue;
+					}
+
+					$candidates[] = $class;
+				}
+
+				if($hidden) {
+					$candidates = array_diff($candidates, $hidden);
+				}
+
+				// Create all indexes
+				$concrete = array();
+				foreach($candidates as $class) {
+					$concrete[$class] = singleton($class);
 				}
 
 				self::$all_indexes = $concrete;
@@ -60,6 +96,8 @@ class FullTextSearch {
 	 * From then on, fulltext search system will only see those indexes passed in this most recent call.
 	 *
 	 * Passing in no arguments resets back to automatic index list
+	 *
+	 * Alternatively you can use `FullTextSearch.indexes` to configure a list of indexes via config.
 	 */
 	static function force_index_list() {
 		$indexes = func_get_args();

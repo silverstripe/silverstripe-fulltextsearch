@@ -121,6 +121,32 @@ As you can only search one index at a time, all searchable classes need to be in
 		}
 	}
 
+## Using Multiple Indexes
+
+Multiple indexes can be created and searched independently, but if you wish to override an existing
+index with another, you can use the `$hide_ancestor` config.
+
+	:::php
+	class MyReplacementIndex extends MyIndex {
+		private static $hide_ancestor = 'MyIndex';
+
+		public function init() {
+			parent::init();
+			$this->addClass('File');
+			$this->addFulltextField('Title');
+		}
+	}
+
+You can also filter all indexes globally to a set of pre-defined classes if you wish to 
+prevent any unknown indexes from being automatically included.
+
+	:::yaml
+	FullTextSearch:
+	  indexes:
+	    - MyReplacementIndex
+	    - CoreSearchIndex
+
+
 ## Indexing Relationships
 
 TODO

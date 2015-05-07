@@ -29,7 +29,16 @@
  */
 abstract class SearchIndex extends ViewableData {
 
-	function __construct() {
+	/**
+	 * Allows this index to hide a parent index. Specifies the name of a parent index to disable
+	 *
+	 * @var string
+	 * @config
+	 */
+	private static $hide_ancestor;
+
+	public function __construct() {
+		parent::__construct();
 		$this->init();
 
 		foreach ($this->getClasses() as $class => $options) {
@@ -39,7 +48,7 @@ abstract class SearchIndex extends ViewableData {
 		$this->buildDependancyList();
 	}
 
-	function __toString() {
+	public function __toString() {
 		return 'Search Index ' . get_class($this);
 	}
 
@@ -47,7 +56,7 @@ abstract class SearchIndex extends ViewableData {
 	 * Examines the classes this index is built on to try and find defined fields in the class hierarchy for those classes.
 	 * Looks for db and viewable-data fields, although can't nessecarily find type for viewable-data fields.
 	 */
-	function fieldData($field, $forceType = null, $extraOptions = array()) {
+	public function fieldData($field, $forceType = null, $extraOptions = array()) {
 		$fullfield = str_replace(".", "_", $field);
 		$sources = $this->getClasses();
 
@@ -287,7 +296,7 @@ abstract class SearchIndex extends ViewableData {
 
 	public $dependancyList = array();
 
-	function buildDependancyList() {
+	public function buildDependancyList() {
 		$this->dependancyList = array_keys($this->getClasses());
 
 		foreach ($this->getFieldsIterator() as $name => $field) {
@@ -302,7 +311,7 @@ abstract class SearchIndex extends ViewableData {
 	 * Returns an array where each member is all the fields and the classes that are at the end of some
 	 * specific lookup chain from one of the base classes 
 	 */
-	function getDerivedFields() {
+	public function getDerivedFields() {
 		if ($this->derivedFields === null) {
 			$this->derivedFields = array();
 
@@ -341,7 +350,7 @@ abstract class SearchIndex extends ViewableData {
 	 * @param Array $state - The variant state of the object
 	 * @return string - The document ID as a string
 	 */
-	function getDocumentIDForState($base, $id, $state) {
+	public function getDocumentIDForState($base, $id, $state) {
 		ksort($state);
 		$parts = array('id' => $id, 'base' => $base, 'state' => json_encode($state));
 		return implode('-', array_values($parts));
@@ -355,7 +364,7 @@ abstract class SearchIndex extends ViewableData {
 	 * @param Boolean $includesubs - TODO: Probably going away
 	 * @return string - The document ID as a string
 	 */
-	function getDocumentID($object, $base, $includesubs) {
+	public function getDocumentID($object, $base, $includesubs) {
 		return $this->getDocumentIDForState($base, $object->ID, SearchVariant::current_state($base, $includesubs));
 	}
 
@@ -433,7 +442,7 @@ abstract class SearchIndex extends ViewableData {
 	 * @param  $fields
 	 * @return array
 	 */
-	function getDirtyIDs($class, $id, $statefulids, $fields) {
+	public function getDirtyIDs($class, $id, $statefulids, $fields) {
 		$dirty = array();
 
 		// First, if this object is directly contained in the index, add it
@@ -499,10 +508,10 @@ abstract class SearchIndex extends ViewableData {
 
 	/** !! These should be implemented by the full text search engine */
 
-	abstract function add($object) ;
-	abstract function delete($base, $id, $state) ;
+	abstract public function add($object) ;
+	abstract public function delete($base, $id, $state) ;
 
-	abstract function commit();
+	abstract public function commit();
 
 	/** !! These should be implemented by the specific index */
 
@@ -511,7 +520,7 @@ abstract class SearchIndex extends ViewableData {
 	 * Used instead of overriding __construct as we have specific execution order - code that has
 	 * to be run before _and/or_ after this.
 	 */
-	abstract function init();
+	abstract public function init();
 }
 
 /**
@@ -519,11 +528,11 @@ abstract class SearchIndex extends ViewableData {
  */
 abstract class SearchIndex_Null extends SearchIndex {
 
-	function add($object) { }
+	public function add($object) { }
 
-	function delete($base, $id, $state) { }
+	public function delete($base, $id, $state) { }
 
-	function commit() { }
+	public function commit() { }
 
 }
 
@@ -534,13 +543,15 @@ abstract class SearchIndex_Recording extends SearchIndex {
 
 	public $added = array();
 	public $deleted = array();
+	public $committed = false;
 
-	function reset() {
+	public function reset() {
 		$this->added = array();
 		$this->deleted = array();
+		$this->committed = false;
 	}
 
-	function add($object) {
+	public function add($object) {
 		$res = array();
 
 		$res['ID'] = $object->ID;
@@ -553,7 +564,7 @@ abstract class SearchIndex_Recording extends SearchIndex {
 		$this->added[] = $res;
 	}
 
-	function getAdded($fields = array()) {
+	public function getAdded($fields = array()) {
 		$res = array();
 
 		foreach ($this->added as $added) {
@@ -567,14 +578,25 @@ abstract class SearchIndex_Recording extends SearchIndex {
 		return $res;
 	}
 
-	function delete($base, $id, $state) {
+	public function delete($base, $id, $state) {
 		$this->deleted[] = array('base' => $base, 'id' => $id, 'state' => $state);
 	}
 
-	function commit() { }
+	public function commit() {
+		$this->committed = true;
+	}
 	
-	function getIndexName() {
+	public function getIndexName() {
 		return get_class($this);
+	}
+
+	public function getIsCommitted() {
+		return $this->committed;
+	}
+
+	public function getService() {
+		// Causes commits to the service to be redirected back to the same object
+		return $this;
 	}
 	
 }
