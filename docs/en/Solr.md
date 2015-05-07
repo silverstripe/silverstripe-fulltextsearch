@@ -82,6 +82,8 @@ regenerate the `schema.xml`, and ask Solr to reload the configuration.
 
 ## Usage
 
+### Reindex
+
 After configuring Solr, you have the option to add your existing
 content to its indices. Run the following command:
 
@@ -105,6 +107,19 @@ You can narrow down the operation with the following options:
 Note: The Solr indexes will be stored as binary files inside your SilverStripe project. 
 You can also copy the `thirdparty/` solr directory somewhere else,
 just set the `path` value in `mysite/_config.php` to point to the new location.
+
+Since a reindex usually takes longer than execution time constraints in web requests,
+it is not recommended to run it via the web. If you don't have access to a CLI environment,
+consider using a queue instead (see "Reindex Queues" below).
+
+### Database Modifications
+
+The module adds a low-level listener to database queries to determine
+if any records need to be reindexed. A reindex is triggered "out of process"
+as part of the PHP shutdown for a specific web request, which means
+it does not impact the user experience. For example, a CMS editor
+can save a page modification, have it written to the database,
+see the result in their browser, all before the reindex kicks in.
 
 ### File-based configuration (solrconfig.xml etc)
 
@@ -344,6 +359,13 @@ Now apply the configuration:
 
 Now you can use Solr text extraction either directly through the HTTP API,
 or indirectly through the ["textextraction" module](https://github.com/silverstripe-labs/silverstripe-textextraction).
+
+### Reindex Queues
+
+Since reindex operations can be quite time intensive, large installations
+can benefit from implementing a job queue to perform these operations asynchronously.
+The module provides integration with the [queuedjobs](https://github.com/silverstripe-australia/silverstripe-queuedjobs)
+module. If the module is installed, it's automatically used through the `SearchUpdateQueuedJobProcessor`.
 
 ## Debugging
 
