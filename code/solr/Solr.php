@@ -237,7 +237,9 @@ class Solr_Reindex extends BuildTask {
 					$classes = array_intersect_key($classes, array_combine($limitClasses, $limitClasses));
 				}
 
-				Solr::service($index)->deleteByQuery('ClassHierarchy:(' . implode(' OR ', array_keys($classes)) . ')');
+				if($classes) {
+					Solr::service($index)->deleteByQuery('ClassHierarchy:(' . implode(' OR ', array_keys($classes)) . ')');	
+				}
 
 				foreach ($classes as $class => $options) {
 					$includeSubclasses = $options['include_children'];
