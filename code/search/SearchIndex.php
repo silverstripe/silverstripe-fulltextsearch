@@ -367,7 +367,7 @@ abstract class SearchIndex extends ViewableData {
 	 * @return Mixed - The value of the field, or null if we couldn't look it up for some reason
 	 */
 	protected function _getFieldValue($object, $field) {
-		set_error_handler(create_function('$no, $str', 'throw new Exception("HTML Parse Error: ".$str);'), E_ALL);
+		set_error_handler(array($this, '_handleError'), E_ALL);
 
 		try {
 			foreach ($field['lookup_chain'] as $step) {
@@ -495,6 +495,13 @@ abstract class SearchIndex extends ViewableData {
 		}
 
 		return $dirty;
+	}
+
+	/**
+	 * Handles HTML parsing errors during field value retrieval.
+	 */
+	protected function _handleError($no, $str) {
+		throw new Exception("HTML Parse Error: ".$str);
 	}
 
 	/** !! These should be implemented by the full text search engine */
