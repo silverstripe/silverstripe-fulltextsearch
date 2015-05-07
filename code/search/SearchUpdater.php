@@ -222,7 +222,7 @@ class SearchUpdater_ObjectHandler extends DataExtension {
 
 		$id = $this->owner->ID;
 		$class = $this->owner->ClassName;
-		$state = SearchVariant::current_state();
+		$state = SearchVariant::current_state($class);
 		$base = ClassInfo::baseDataClass($class);
 		$key = "$id:$base:".serialize($state);
 
