@@ -73,7 +73,7 @@ class SearchUpdater extends Object {
 		SearchVariant::call('extractManipulationState', $manipulation);
 
 		// Then combine the manipulation back into object field sets
-		
+
 		$writes = array();
 
 		foreach ($manipulation as $table => $details) {
@@ -88,11 +88,21 @@ class SearchUpdater extends Object {
 			$key = "$id:$base:".serialize($state);
 
 			$statefulids = array(array('id' => $id, 'state' => $state));
-			
+
 			// Is this the first table for this particular object? Then add an item to $writes
-			if (!isset($writes[$key])) $writes[$key] = array('base' => $base, 'class' => $class, 'id' => $id, 'statefulids' => $statefulids, 'fields' => array());
+			if (!isset($writes[$key])) {
+				$writes[$key] = array(
+					'base' => $base,
+					'class' => $class,
+					'id' => $id,
+					'statefulids' => $statefulids,
+					'fields' => array()
+				);
+			}
 			// Otherwise update the class label if it's more specific than the currently recorded one
-			else if (is_subclass_of($class, $writes[$key]['class'])) $writes[$key]['class'] = $class;
+			else if (is_subclass_of($class, $writes[$key]['class'])) {
+				$writes[$key]['class'] = $class;
+			}
 
 			// Update the fields
 			foreach ($fields as $field => $value) {
@@ -104,8 +114,17 @@ class SearchUpdater extends Object {
 
 		SearchVariant::call('extractManipulationWriteState', $writes);
 
-		// Then for each write, figure out what objects need updating
+		// Submit all of these writes to the search processor
 
+		static::process_writes($writes);
+	}
+
+	/**
+	 * Send updates to the current search processor for execution
+	 * 
+	 * @param array $writes
+	 */
+	public static function process_writes($writes) {
 		foreach ($writes as $write) {
 			// For every index
 			foreach (FullTextSearch::get_indexes() as $index => $instance) {
@@ -117,7 +136,9 @@ class SearchUpdater extends Object {
 					// Then add then then to the global list to deal with later
 					foreach ($dirtyids as $dirtyclass => $ids) {
 						if ($ids) {
-							if (!self::$processor) self::$processor = Injector::inst()->create('SearchUpdateProcessor');
+							if (!self::$processor) {
+								self::$processor = Injector::inst()->create('SearchUpdateProcessor');
+							}
 							self::$processor->addDirtyIDs($dirtyclass, $ids, $index);
 						}
 					}
@@ -125,11 +146,11 @@ class SearchUpdater extends Object {
 			}
 		}
 
-		// Finally, if we do have some work to do register the shutdown function to actually do the work
+		// If we do have some work to do register the shutdown function to actually do the work
 
 		// Don't do it if we're testing - there's no database connection outside the test methods, so we'd
 		// just get errors
-		$runningTests = class_exists('SapphireTest',false) && SapphireTest::is_running_test();
+		$runningTests = class_exists('SapphireTest', false) && SapphireTest::is_running_test();
 
 		if (self::$processor && !self::$registered && !$runningTests) {
 			register_shutdown_function(array("SearchUpdater", "flush_dirty_indexes"));
@@ -168,17 +189,17 @@ class SearchUpdater_BindManipulationCaptureFilter implements RequestFilter {
 
 /**
  * Delete operations do not use database manipulations.
- * 
+ *
  * If a delete has been requested, force a write on objects that should be
  * indexed.  This causes the object to be marked for deletion from the index.
  */
 
-class SearchUpdater_DeleteHandler extends DataExtension {
+class SearchUpdater_ObjectHandler extends DataExtension {
 
 	public function onAfterDelete() {
 		// Calling delete() on empty objects does nothing
 		if (!$this->owner->ID) return;
-		
+
 		// Force SearchUpdater to mark this record as dirty
 		$manipulation = array(
 			$this->owner->ClassName => array(
@@ -189,6 +210,38 @@ class SearchUpdater_DeleteHandler extends DataExtension {
 		);
 		$this->owner->extend('augmentWrite', $manipulation);
 		SearchUpdater::handle_manipulation($manipulation);
+	}
+
+	/**
+	 * Forces this object to trigger a re-index in the current state
+	 */
+	public function triggerReindex() {
+		if (!$this->owner->ID) {
+			return;
+		}
+
+		$id = $this->owner->ID;
+		$class = $this->owner->ClassName;
+		$state = SearchVariant::current_state();
+		$base = ClassInfo::baseDataClass($class);
+		$key = "$id:$base:".serialize($state);
+
+		$statefulids = array(array(
+			'id' => $id,
+			'state' => $state
+		));
+
+		$writes = array(
+			$key => array(
+				'base' => $base,
+				'class' => $class,
+				'id' => $id,
+				'statefulids' => $statefulids,
+				'fields' => array()
+			)
+		);
+
+		SearchUpdater::process_writes($writes);
 	}
 
 }
