@@ -7,7 +7,7 @@ class SearchUpdateQueuedJobProcessor extends SearchUpdateBatchedProcessor implem
 	/**
 	 * The QueuedJob queue to use when processing updates
 	 * @config
-	 * @var string
+	 * @var int
 	 */
 	private static $reindex_queue = 2; // QueuedJob::QUEUED;
 
@@ -43,7 +43,9 @@ class SearchUpdateQueuedJobProcessor extends SearchUpdateBatchedProcessor implem
 	}
 
 	public function afterComplete() {
-		// NOP
+		// Once indexing is complete, commit later in order to avoid solr limits
+		// see http://stackoverflow.com/questions/7512945/how-to-fix-exceeded-limit-of-maxwarmingsearchers
+		SearchUpdateCommitJobProcessor::queue();
 	}
 
 	public function getJobData() {
@@ -56,7 +58,6 @@ class SearchUpdateQueuedJobProcessor extends SearchUpdateBatchedProcessor implem
 		$data->jobData = new stdClass();
 		$data->jobData->batches = $this->batches;
 		$data->jobData->currentBatch = $this->currentBatch;
-		$data->jobData->completedIndexes = $this->completedIndexes;
 
 		return $data;
 	}
@@ -67,11 +68,20 @@ class SearchUpdateQueuedJobProcessor extends SearchUpdateBatchedProcessor implem
 
 		$this->batches = $jobData->batches;
 		$this->currentBatch = $jobData->currentBatch;
-		$this->completedIndexes = $jobData->completedIndexes;
 	}
 
 	public function addMessage($message, $severity='INFO') {
 		$severity = strtoupper($severity);
 		$this->messages[] = '[' . date('Y-m-d H:i:s') . "][$severity] $message";
+	}
+
+	public function process() {
+		$result = parent::process();
+
+		if($this->jobFinished()) {
+			$this->addMessage("All batched updates complete. Queuing commit job");
+		}
+
+		return $result;
 	}
 }
