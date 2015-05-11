@@ -378,6 +378,62 @@ Now apply the configuration:
 Now you can use Solr text extraction either directly through the HTTP API,
 or indirectly through the ["textextraction" module](https://github.com/silverstripe-labs/silverstripe-textextraction).
 
+## Adding DataObject classes to Solr search
+
+If you create a class that extends `DataObject` (and not `Page`) then it won't be automatically added to the search
+index. You'll have to make some changes to add it in.
+
+So, let's take an example of `StaffMember`:
+
+	:::php
+	<?php
+	class StaffMember extends DataObject {
+		private static $db = array(
+			'Name' => 'Varchar(255)',
+			'Abstract' => 'Text',
+			'PhoneNumber' => 'Varchar(50)'
+		);
+		
+		public function Link($action = 'show') {
+			return Controller::join_links('my-controller', $action, $this->ID);
+		}
+		
+		public function getShowInSearch() {
+			return 1;
+		}
+	}
+
+This `DataObject` class has the minimum code necessary to allow it to be viewed in the site search.
+
+`Link()` will return a URL for where a user goes to view the data in more detail in the search results.
+`Name` will be used as the result title, and `Abstract` the summary of the staff member which will show under the
+search result title.
+`getShowInSearch` is required to get the record to show in search, since all results are filtered by `ShowInSearch`.
+
+So with that, let's create a new class called `MySolrSearchIndex`:
+
+	:::php
+	<?php
+	class MySolrSearchIndex extends SolrIndex {
+		
+		public function init() {
+			$this->addClass('BasePage');
+			$this->addClass('StaffMember');
+			
+			$this->addAllFulltextFields();
+			$this->addFilterField('ShowInSearch');
+		}
+		
+	}
+
+This is a copy/paste of the existing configuration but with the addition of `StaffMember`.
+
+Once you've created the above classes and run `flush=1`, access `dev/tasks/Solr_configure` and `dev/tasks/Solr_reindex`
+to tell Solr about the new index you've just created. This will add `StaffMember` and the text fields it has to the
+index. Now when you search on the site using `MySolrSearchIndex->search()`, 
+the `StaffMember` results will show alongside normal `Page` results.
+
+
 ## Debugging
 
 ### Using the web admin interface
