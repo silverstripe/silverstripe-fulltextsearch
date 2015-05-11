@@ -74,17 +74,17 @@ class SearchUpdateCommitJobProcessor implements QueuedJob {
 	 * @param boolean $dirty Marks all indexes as dirty by default. Set to false if there are known comitted and
 	 * clean indexes
 	 * @param string $startAfter Start date
-	 * @return static The queued job
+	 * @return int The ID of the next queuedjob to run. This could be a new one or an existing one.
 	 */
 	public static function queue($dirty = true, $startAfter = null) {
 		$commit = Injector::inst()->create(__CLASS__);
-		singleton('QueuedJobService')->queueJob($commit, $startAfter);
+		$id = singleton('QueuedJobService')->queueJob($commit, $startAfter);
 
 		if($dirty) {
 			$indexes = FullTextSearch::get_indexes();
 			static::$dirty_indexes = array_keys($indexes);
 		}
-		return $commit;
+		return $id;
 	}
 
 	public function getJobType() {
@@ -92,7 +92,9 @@ class SearchUpdateCommitJobProcessor implements QueuedJob {
 	}
 
 	public function getSignature() {
-		return md5(get_class($this) . time() . mt_rand(0, 100000));
+		// There is only ever one commit job on the queue so the signature is consistent
+		// See QueuedJobService::queueJob() for the code that prevents duplication
+		return __CLASS__;
 	}
 
 	public function getTitle() {

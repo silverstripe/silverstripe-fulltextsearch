@@ -22,6 +22,7 @@ class BatchedProcessor_QueuedJobService {
 			'job' => $job,
 			'startAfter' => $startAfter
 		);
+		return $job;
 	}
 
 	public function getJobs() {
