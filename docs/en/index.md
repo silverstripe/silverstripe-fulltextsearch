@@ -151,6 +151,36 @@ prevent any unknown indexes from being automatically included.
 
 TODO
 
+## Pre-filtering Indexed Records
+
+Sometimes you only want to filter a subset of all records of a certain type,
+e.g. to avoid unnecessarily large indices, or to simplify queries by excluding
+records that should never match any query variation.
+
+Example: Add `File` records, but filter for documents only (by extension)
+
+	<?php
+	class MyIndex extends SolrIndex {
+		function init() {
+			$extCategories = File::config()->get('app_categories');
+			$filesList = File::get()->where(
+				implode(
+					' OR ', 
+					array_map(
+						function($ext) {return '"Filename" LIKE \'%.' . Convert::raw2sql($ext) . '\'';}, 
+						$extCategories['doc']
+					)
+				)
+			);
+			$this->addClass('File', array('list' => $filesList));
+			// ...
+		}
+	}
+
+Please take care when using this method for records with "variant states" such
+as the `Versioned` extension. These add filters on query creation, based on the current
+context, and need to be unset to avoid unwanted side effects.
+
 ## Weighting/Boosting Fields
 
 Results aren't all created equal. Matches in some fields are more important

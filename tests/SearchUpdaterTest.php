@@ -55,7 +55,8 @@ class SearchUpdaterTest_ManyMany extends DataObject {
 
 class SearchUpdaterTest_Index extends SearchIndex_Recording {
 	function init() {
-		$this->addClass('SearchUpdaterTest_Container');
+		$list = SearchUpdaterTest_Container::get()->where('"Field1" IS NULL OR "Field1" <> \'ExcludedFromIndex\'');
+		$this->addClass('SearchUpdaterTest_Container', array('list' => $list));
 
 		$this->addFilterField('Field1');
 		$this->addFilterField('HasOneObject.Field1');
@@ -99,6 +100,21 @@ class SearchUpdaterTest extends SapphireTest {
 
 		// TODO: Make sure changing field1 updates item.
 		// TODO: Get updating just field2 to not update item (maybe not possible - variants complicate)
+	}
+
+	function testDoesNotIndexItemsExcludedFromIndex() {
+		$included = new SearchUpdaterTest_Container();
+		$included->write();
+
+		$excluded = new SearchUpdaterTest_Container();
+		$excluded->Field1 = 'ExcludedFromIndex';
+		$excluded->write();
+
+		// Check the default "writing a document updates the document"
+		SearchUpdater::flush_dirty_indexes();
+		$this->assertEquals(self::$index->getAdded(array('ID')), array(
+			array('ID' => $included->ID),
+		));
 	}
 
 	function testHasOneHook() {
