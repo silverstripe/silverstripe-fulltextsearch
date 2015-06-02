@@ -369,9 +369,10 @@ abstract class SolrIndex extends SearchIndex {
 
 		$q = array();
 		$fq = array();
+		$hlq = array();
 
 		// Build the search itself
-
+		
 		foreach ($query->search as $search) {
 			$text = $search['text'];
 			preg_match_all('/"[^"]*"|\S+/', $text, $parts);
@@ -380,7 +381,9 @@ abstract class SolrIndex extends SearchIndex {
 
 			foreach ($parts[0] as $part) {
 				$fields = (isset($search['fields'])) ? $search['fields'] : array();
-				if(isset($search['boost'])) $fields = array_merge($fields, array_keys($search['boost']));
+				if(isset($search['boost'])) {
+					$fields = array_merge($fields, array_keys($search['boost']));
+				}
 				if ($fields) {
 					$searchq = array();
 					foreach ($fields as $field) {
@@ -392,7 +395,13 @@ abstract class SolrIndex extends SearchIndex {
 				else {
 					$q[] = '+'.$part.$fuzzy;
 				}
+				$hlq[] = $part;
 			}
+		}
+		// If using boosting, set the clean term separately for highlighting.
+		// See https://issues.apache.org/jira/browse/SOLR-2632
+		if(array_key_exists('hl', $params) && !array_key_exists('hl.q', $params)) {
+			$params['hl.q'] = implode(' ', $hlq);
 		}
 
 		// Filter by class if requested
