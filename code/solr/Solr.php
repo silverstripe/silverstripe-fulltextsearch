@@ -261,21 +261,10 @@ class Solr_Reindex extends BuildTask {
 						echo "Class: $class, total: $total";
 						echo ($statevar) ? " in state $statevar\n" : "\n";
 
-						if (strpos(PHP_OS, "WIN") !== false) $statevar = '"'.str_replace('"', '\\"', $statevar).'"';
-						else $statevar = "'".$statevar."'";
+						for ($start = 0; $start < $total; $start += $this->stat('recordsPerRequest')) {
+							echo "$start..";
 
-						for ($offset = 0; $offset < $total; $offset += $this->stat('recordsPerRequest')) {
-							echo "$offset..";
-
-							$cmd = "php $script dev/tasks/$self index=$index class=$class start=$offset variantstate=$statevar";
-
-							if($verbose) {
-								echo "\n  Running '$cmd'\n";
-								$cmd .= " verbose=1 2>&1";
-							}
-
-							$res = $verbose ? passthru($cmd) : `$cmd`;
-							if($verbose) echo "  ".preg_replace('/\r\n|\n/', '$0  ', $res)."\n";
+							$this->runFrom($instance, $class, $start, $state);
 
 							// If we're in dev mode, commit more often for fun and profit
 							if (Director::isDev()) Solr::service($index)->commit();
@@ -315,11 +304,12 @@ class Solr_Reindex extends BuildTask {
 
 			// See SearchUpdater_ObjectHandler::triggerReindex
 			$item->triggerReindex();
-
 			$item->destroy();
+			unset($item);
 		}
-
-		if($verbose) echo "Done ";
+		unset($items);
+		
+		if($verbose) echo "Done \n";
 	}
 
 }
