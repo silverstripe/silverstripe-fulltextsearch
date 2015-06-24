@@ -67,6 +67,51 @@ Note: There's usually a connector-specific "reindex" task for this.
 
 Note that for most connectors, changes won't be searchable until _after_ the request that triggered the change.
 
+The return value of a `search()` call is an object which contains a few properties:
+
+ * `Matches`: ArrayList of the current "page" of search results.
+ * `Suggestion`: (optional) Any suggested spelling corrections in the original query notation
+ * `SuggestionNice`: (optional) Any suggested spelling corrections for display (without query notation)
+ * `SuggestionQueryString` (optional) Link to repeat the search with suggested spelling corrections
+
+## Controllers and Templates
+
+In order to render search results, you need to return them from a controller.
+You can also drive this through a form response through standard SilverStripe forms.
+In this case we simply assume there's a GET parameter named `q` with a search term present.
+
+	class Page_Controller extends ContentController {
+		private static $allowed_actions = array('search');
+		public function search($request) {
+			$query = new SearchQuery();
+			$query->search($request->getVar('q'));
+			return $this->renderWith('array(
+				'SearchResult' => singleton('MyIndex')->search($query);
+			);
+		}
+	}
+
+In your template (e.g. `Page_results.ss`) you can access the results and loop through them.
+They're stored in the `$Matches` property of the search return object.
+
+	<% if SearchResult.Matches %>
+		<h2>Results for &quot;{$Query}&quot;</h2>
+		<p>Displaying Page $SearchResult.Matches.CurrentPage of $SearchResult.Matches.TotalPages</p>
+		<ol>
+			<% loop SearchResult.Matches %>
+				<li>
+					<h3><a href="$Link">$Title</a></h3>
+					<p><% if Abstract %>$Abstract.XML<% else %>$Content.ContextSummary<% end_if %></p>
+				</li>
+			<% end_loop %>
+		</ol>
+	<% else %>
+		<p>Sorry, your search query did not return any results.</p>
+	<% end_if %>
+	
+Please check the [pagination guide](http://docs.silverstripe.org/en/3.2/developer_guides/templates/how_tos/pagination/)
+in the main SilverStripe documentation to learn how to paginate through search results.
+
 ## Searching Specific Fields
 
 By default, the index searches through all indexed fields.
