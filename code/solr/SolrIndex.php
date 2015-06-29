@@ -31,6 +31,22 @@ abstract class SolrIndex extends SearchIndex {
 	protected $extrasPath = null;
 
 	protected $templatesPath = null;
+	
+	/**
+	 * List of boosted fields
+	 *
+	 * @var array
+	 */
+	protected $boostedFields = array();
+
+	/**
+	 * Name of default field
+	 *
+	 * @var string
+	 * @config
+	 */
+	private static $default_field = '_text';
+	
 	/**
 	 * @return String Absolute path to the folder containing
 	 * templates which are used for generating the schema and field definitions.
@@ -79,7 +95,16 @@ abstract class SolrIndex extends SearchIndex {
 		}
 	}
 
-	function getFieldDefinitions() {
+	/**
+	 * Get the default text field, normally '_text'
+	 *
+	 * @return string
+	 */
+	public function getDefaultField() {
+		return $this->config()->default_field;
+	}
+
+	public function getFieldDefinitions() {
 		$xml = array();
 		$stored = $this->getStoredDefault();
 
@@ -95,7 +120,8 @@ abstract class SolrIndex extends SearchIndex {
 
 		// Add the fulltext collation field
 
-		$xml[] = "<field name='_text' type='htmltext' indexed='true' stored='$stored' multiValued='true' />" ;
+		$df = $this->getDefaultField();
+		$xml[] = "<field name='{$df}' type='htmltext' indexed='true' stored='{$stored}' multiValued='true' />" ;
 
 		// Add the user-specified fields
 
@@ -154,6 +180,93 @@ abstract class SolrIndex extends SearchIndex {
 	public function addStoredField($field, $forceType = null, $extraOptions = array()) {
 		$options = array_merge($extraOptions, array('stored' => 'true'));
 		$this->addFulltextField($field, $forceType, $options);
+	}
+	
+	/**
+	 * Add a fulltext field with a boosted value
+	 * 
+	 * @param string $field The field to add
+	 * @param string $forceType The type to force this field as (required in some cases, when not
+	 * detectable from metadata)
+	 * @param array $extraOptions Dependent on search implementation
+	 * @param float $boost Numeric boosting value (defaults to 2)
+	 */
+	public function addBoostedField($field, $forceType = null, $extraOptions = array(), $boost = 2) {
+		$options = array_merge($extraOptions, array('boost' => $boost));
+		$this->addFulltextField($field, $forceType, $options);
+	}
+	
+
+	public function fieldData($field, $forceType = null, $extraOptions = array()) {
+		// Ensure that 'boost' is recorded here without being captured by solr
+		$boost = null;
+		if(array_key_exists('boost', $extraOptions)) {
+			$boost = $extraOptions['boost'];
+			unset($extraOptions['boost']);
+		}
+		$data = parent::fieldData($field, $forceType, $extraOptions);
+		
+		// Boost all fields with this name
+		if(isset($boost)) {
+			foreach($data as $fieldName => $fieldInfo) {
+				$this->boostedFields[$fieldName] = $boost;
+			}
+		}
+		return $data;
+	}
+	
+	/**
+	 * Set the default boosting level for a specific field.
+	 * Will control the default value for qf param (Query Fields), but will not 
+	 * override a query-specific value.
+	 * 
+	 * Fields must be added before having a field boosting specified
+	 * 
+	 * @param string $field Full field key (Model_Field)
+	 * @param float|null $level Numeric boosting value. Set to null to clear boost
+	 */
+	public function setFieldBoosting($field, $level) {
+		if(!isset($this->fulltextFields[$field])) {
+			throw new InvalidArgumentException("No fulltext field $field exists on ".$this->getIndexName());
+		}
+		if($level === null) {
+			unset($this->boostedFields[$field]);
+		} else {
+			$this->boostedFields[$field] = $level;
+		}
+	}
+	
+	/**
+	 * Get all boosted fields
+	 * 
+	 * @return array
+	 */
+	public function getBoostedFields() {
+		return $this->boostedFields;
+	}
+	
+	/**
+	 * Determine the best default value for the 'qf' parameter
+	 * 
+	 * @return array|null List of query fields, or null if not specified
+	 */
+	public function getQueryFields() {
+		// Not necessary to specify this unless boosting
+		if(empty($this->boostedFields)) {
+			return null;
+		}
+		$queryFields = array();
+		foreach ($this->boostedFields as $fieldName => $boost) {
+			$queryFields[] = $fieldName . '^' . $boost;
+		}
+
+		// If any fields are queried, we must always include the default field, otherwise it will be excluded
+		$df = $this->getDefaultField();
+		if($queryFields && !isset($this->boostedFields[$df])) {
+			$queryFields[] = $df;
+		}
+		
+		return $queryFields;
 	}
 
 	/**
@@ -235,8 +348,9 @@ abstract class SolrIndex extends SearchIndex {
 	function getCopyFieldDefinitions() {
 		$xml = array();
 
+		$df = $this->getDefaultField();
 		foreach ($this->fulltextFields as $name => $field) {
-			$xml[] = "<copyField source='{$name}' dest='_text' />";
+			$xml[] = "<copyField source='{$name}' dest='{$df}' />";
 		}
 
 		foreach ($this->copyFields as $source => $fields) {
@@ -367,9 +481,10 @@ abstract class SolrIndex extends SearchIndex {
 		
 		SearchVariant::with(count($query->classes) == 1 ? $query->classes[0]['class'] : null)->call('alterQuery', $query, $this);
 
-		$q = array();
-		$fq = array();
-		$hlq = array();
+		$q = array(); // Query
+		$fq = array(); // Filter query
+		$qf = array(); // Query fields
+		$hlq = array(); // Highlight query
 
 		// Build the search itself
 		
@@ -463,10 +578,24 @@ abstract class SolrIndex extends SearchIndex {
 
 			$fq[] = ($missing ? "+{$field}:[* TO *] " : '') . '-('.implode(' ', $excludeq).')';
 		}
+		
+		// Prepare query fields unless specified explicitly
+		if(isset($params['qf'])) {
+			$qf = $params['qf'];
+		} else {
+			$qf = $this->getQueryFields();
+		}
+		if(is_array($qf)) {
+			$qf = implode(' ', $qf);
+		}
+		if($qf) {
+			$params['qf'] = $qf;
+		}
 
 		if(!headers_sent() && !Director::isLive()) {
 			if ($q) header('X-Query: '.implode(' ', $q));
 			if ($fq) header('X-Filters: "'.implode('", "', $fq).'"');
+			if ($qf) header('X-QueryFields: '.$qf);
 		}
 
 		if ($offset == -1) $offset = $query->start;
@@ -474,12 +603,12 @@ abstract class SolrIndex extends SearchIndex {
 		if ($limit == -1) $limit = SearchQuery::$default_page_size;
 
 		$params = array_merge($params, array('fq' => implode(' ', $fq)));
-
+		
 		$res = $service->search(
 			$q ? implode(' ', $q) : '*:*', 
 			$offset, 
 			$limit, 
-			$params, 
+			$params,
 			Apache_Solr_Service::METHOD_POST
 		);
 

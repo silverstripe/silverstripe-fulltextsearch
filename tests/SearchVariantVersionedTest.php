@@ -1,30 +1,12 @@
 <?php
 
-class SearchVariantVersionedTest_Item extends SiteTree {
-	// TODO: Currently theres a failure if you addClass a non-table class
-	private static $db = array(
-		'TestText' => 'Varchar'
-	);
-}
-
-class SearchVariantVersionedTest_Index extends SearchIndex_Recording {
-	function init() {
-		$this->addClass('SearchVariantVersionedTest_Item');
-		$this->addFilterField('TestText');
-	}
-}
-
-class SearchVariantVersionedTest_IndexNoStage extends SearchIndex_Recording {
-	function init() {
-		$this->addClass('SearchVariantVersionedTest_Item');
-		$this->addFilterField('TestText');
-		$this->excludeVariantState(array('SearchVariantVersioned' => 'Stage'));
-	}
-}
-
 class SearchVariantVersionedTest extends SapphireTest {
 
 	private static $index = null;
+
+	protected $extraDataObjects = array(
+		'SearchVariantVersionedTest_Item'
+	);
 
 	function setUp() {
 		parent::setUp();
@@ -106,5 +88,27 @@ class SearchVariantVersionedTest extends SapphireTest {
 		$this->assertEquals($index->getAdded(array('ID', '_versionedstage')), array(
 			array('ID' => $item->ID, '_versionedstage' => 'Live')
 		));
+	}
+}
+
+class SearchVariantVersionedTest_Item extends SiteTree implements TestOnly {
+	// TODO: Currently theres a failure if you addClass a non-table class
+	private static $db = array(
+		'TestText' => 'Varchar'
+	);
+}
+
+class SearchVariantVersionedTest_Index extends SearchIndex_Recording {
+	function init() {
+		$this->addClass('SearchVariantVersionedTest_Item');
+		$this->addFilterField('TestText');
+	}
+}
+
+class SearchVariantVersionedTest_IndexNoStage extends SearchIndex_Recording {
+	function init() {
+		$this->addClass('SearchVariantVersionedTest_Item');
+		$this->addFilterField('TestText');
+		$this->excludeVariantState(array('SearchVariantVersioned' => 'Stage'));
 	}
 }

@@ -46,7 +46,10 @@ class SolrIndexTest extends SapphireTest {
 		$this->assertEquals('SearchUpdaterTest_ManyMany', $data['class']);
 	}
 
-	function testBoost() {
+	/**
+	 * Test boosting on SearchQuery
+	 */
+	function testBoostedQuery() {
 		$serviceMock = $this->getServiceMock();
 		Phockito::when($serviceMock)->search(anything(), anything(), anything(), anything(), anything())->return($this->getFakeRawSolrResponse());
 
@@ -62,6 +65,31 @@ class SolrIndexTest extends SapphireTest {
 		$index->search($query);
 
 		Phockito::verify($serviceMock)->search('+(Field1:term^1.5 OR HasOneObject_Field1:term^3)', anything(), anything(), anything(), anything());
+	}
+	
+	/**
+	 * Test boosting on field schema (via queried fields parameter)
+	 */
+	public function testBoostedField() {
+		$serviceMock = $this->getServiceMock();
+		Phockito::when($serviceMock)
+			->search(anything(), anything(), anything(), anything(), anything())
+			->return($this->getFakeRawSolrResponse());
+
+		$index = new SolrIndexTest_BoostedIndex();
+		$index->setService($serviceMock);
+
+		$query = new SearchQuery();
+		$query->search('term');
+		$index->search($query);
+
+		// Ensure matcher contains correct boost in 'qf' parameter
+		$matcher = new Hamcrest_Array_IsArrayContainingKeyValuePair(
+			new Hamcrest_Core_IsEqual('qf'),
+			new Hamcrest_Core_IsEqual('SearchUpdaterTest_Container_Field1^1.5 SearchUpdaterTest_Container_Field2^2.1 _text')
+		);
+		Phockito::verify($serviceMock)
+			->search('+term', anything(), anything(), $matcher, anything());
 	}
 
 	function testHighlightQueryOnBoost() {
@@ -207,6 +235,9 @@ class SolrIndexTest extends SapphireTest {
 		);
 	}
 
+	/**
+	 * @return Solr3Service
+	 */
 	protected function getServiceMock() {
 		return Phockito::mock('Solr3Service');
 	}
@@ -257,3 +288,20 @@ class SolrIndexTest_FakeIndex2 extends SolrIndex {
 		$this->addFilterField('ManyManyObjects.Field1');
 	}
 }
+
+
+class SolrIndexTest_BoostedIndex extends SolrIndex {
+	
+	protected function getStoredDefault() {
+		// Override isDev defaulting to stored
+		return 'false';
+	}
+
+	function init() {
+		$this->addClass('SearchUpdaterTest_Container');
+		$this->addAllFulltextFields();
+		$this->setFieldBoosting('SearchUpdaterTest_Container_Field1', 1.5);
+		$this->addBoostedField('Field2', null, array(), 2.1);
+	}
+}
+
