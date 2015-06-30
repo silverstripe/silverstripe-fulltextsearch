@@ -61,7 +61,7 @@
 
 	<uniqueKey>_documentid</uniqueKey>
 
-	<defaultSearchField>_text</defaultSearchField>
+	<defaultSearchField>$DefaultField</defaultSearchField>
 
 	<solrQueryParser defaultOperator="OR"/>
 

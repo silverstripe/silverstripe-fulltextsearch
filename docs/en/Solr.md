@@ -224,7 +224,11 @@ These fields are defined in the schema.xml file that gets sent to Solr.
 	// the request to Solr would be:
 	// q=(SiteTree_Title:Lorem+OR+SiteTree_Content:Lorem)
 
-### Configuring boosts on fields
+### Configuring boosts
+
+There are several ways in which you can configure boosting on search fields or terms.
+
+#### Boosting on search query
 
 Solr has a way of specifying which fields should be boosted as a parameter to `SearchQuery`.
 
@@ -243,6 +247,35 @@ In this example, we enter "Lorem" as the search term, and boost the `Content` fi
 	// q=SiteTree_Content:Lorem^2
 
 More information on [relevancy on the Solr wiki](http://wiki.apache.org/solr/SolrRelevancyFAQ).
+
+### Boosting on index fields
+
+Boost values for specific can also be specified directly on the `SolrIndex` class directly.
+
+The following methods can be used to set one or more boosted fields:
+
+* `SolrIndex::addBoostedField` Adds a field with a specific boosted value (defaults to 2)
+* `SolrIndex::setFieldBoosting` If a field has already been added to an index, the boosting
+  value can be customised, changed, or reset for a single field.
+* `SolrIndex::addFulltextField` A boost can be set for a field using the `$extraOptions` parameter
+with the key `boost` assigned to the desired value.
+
+For example:
+
+
+	:::php
+	class SolrSearchIndex extends SolrIndex {
+
+		public function init() {
+			$this->addClass('SiteTree');
+			$this->addAllFulltextFields();
+			$this->addFilterField('ShowInSearch');
+			this->addBoostedField('Title', null, array(), 1.5);
+			this->setFieldBoosting('SiteTree_SearchBoost', 2);
+		}
+
+	}
+
 
 ### Custom Types
 
