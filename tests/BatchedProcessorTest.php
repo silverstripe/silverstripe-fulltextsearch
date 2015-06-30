@@ -48,15 +48,27 @@ class BatchedProcessorTest extends SapphireTest {
 		)
 	);
 
+	public function setUpOnce() {
+		// Disable illegal extensions if skipping this test
+		if(class_exists('Subsite') || !interface_exists('QueuedJob')) {
+			$this->illegalExtensions = array();
+		}
+		parent::setUpOnce();
+	}
+
 	public function setUp() {
 		parent::setUp();
 		Config::nest();
 		
 		if (!interface_exists('QueuedJob')) {
-			$this->markTestSkipped("These tests need the QueuedJobs module installed to run");
 			$this->skipTest = true;
+			$this->markTestSkipped("These tests need the QueuedJobs module installed to run");
 		}
 
+		if(class_exists('Subsite')) {
+			$this->skipTest = true;
+			$this->markTestSkipped(get_class() . ' skipped when running with subsites');
+		}
 
 		SS_Datetime::set_mock_now('2015-05-07 06:00:00');
 		
@@ -76,10 +88,11 @@ class BatchedProcessorTest extends SapphireTest {
 		$this->oldProcessor = SearchUpdater::$processor;
 		SearchUpdater::$processor = new SearchUpdateQueuedJobProcessor();
 	}
-	
+
 	public function tearDown() {
-		
-		SearchUpdater::$processor = $this->oldProcessor;
+		if($this->oldProcessor) {
+			SearchUpdater::$processor = $this->oldProcessor;
+		}
 		Config::unnest();
 		Injector::inst()->unregisterNamedObject('QueuedJobService');
 		FullTextSearch::force_index_list();
