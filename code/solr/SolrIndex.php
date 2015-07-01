@@ -141,6 +141,26 @@ abstract class SolrIndex extends SearchIndex {
 		
 		return implode("\n\t\t", $xml);
 	}
+	
+	/**
+	 * Extract first suggestion text from collated values
+	 * 
+	 * @param mixed $collation
+	 * @return string
+	 */
+	protected function getCollatedSuggestion($collation = '') {
+		if(is_string($collation)) {
+			return $collation;
+		}
+		if(is_object($collation)) {
+			if(isset($collation->misspellingsAndCorrections)) {
+				foreach($collation->misspellingsAndCorrections as $key => $value) {
+					return $value;
+				}
+			}
+		}
+		return '';
+	}
 
 	/**
 	 * Extract a human friendly spelling suggestion from a Solr spellcheck collation string.
@@ -472,14 +492,18 @@ abstract class SolrIndex extends SearchIndex {
 	 * @param SearchQuery $query
 	 * @param integer $offset
 	 * @param integer $limit
-	 * @param  Array $params Extra request parameters passed through to Solr
+	 * @param array $params Extra request parameters passed through to Solr
 	 * @return ArrayData Map with the following keys: 
 	 *  - 'Matches': ArrayList of the matched object instances
 	 */
 	public function search(SearchQuery $query, $offset = -1, $limit = -1, $params = array()) {
 		$service = $this->getService();
-		
-		SearchVariant::with(count($query->classes) == 1 ? $query->classes[0]['class'] : null)->call('alterQuery', $query, $this);
+
+		$searchClass = count($query->classes) == 1
+			? $query->classes[0]['class']
+			: null;
+		SearchVariant::with($searchClass)
+			->call('alterQuery', $query, $this);
 
 		$q = array(); // Query
 		$fq = array(); // Filter query
@@ -665,15 +689,18 @@ abstract class SolrIndex extends SearchIndex {
 
 			// Suggestions. Requires spellcheck.collate=true in $params
 			if(isset($res->spellcheck->suggestions->collation)) {
+				// Extract string suggestion
+				$suggestion = $this->getCollatedSuggestion($res->spellcheck->suggestions->collation);
+				
 				// The collation, including advanced query params (e.g. +), suitable for making another query programmatically.
-				$ret['Suggestion'] = $res->spellcheck->suggestions->collation;
+				$ret['Suggestion'] = $suggestion;
 
 				// A human friendly version of the suggestion, suitable for 'Did you mean $SuggestionNice?' display.
-				$ret['SuggestionNice'] = $this->getNiceSuggestion($res->spellcheck->suggestions->collation);
+				$ret['SuggestionNice'] = $this->getNiceSuggestion($suggestion);
 
 				// A string suitable for appending to an href as a query string.
 				// For example <a href="http://example.com/search?q=$SuggestionQueryString">$SuggestionNice</a>
-				$ret['SuggestionQueryString'] = $this->getSuggestionQueryString($res->spellcheck->suggestions->collation);
+				$ret['SuggestionQueryString'] = $this->getSuggestionQueryString($suggestion);
 			}
 		}
 
@@ -693,5 +720,26 @@ abstract class SolrIndex extends SearchIndex {
 	public function setService(SolrService $service) {
 		$this->service = $service;
 		return $this;
+	}
+	
+	/**
+	 * Upload config for this index to the given store
+	 * 
+	 * @param SolrConfigStore $store
+	 */
+	public function uploadConfig($store) {
+		// Upload the config files for this index
+		$store->uploadString(
+			$this->getIndexName(),
+			'schema.xml',
+			(string)$this->generateSchema()
+		);
+
+		// Upload additional files
+		foreach (glob($this->getExtrasPath().'/*') as $file) {
+			if (is_file($file)) {
+				$store->uploadFile($this->getIndexName(), $file);
+			}
+		}
 	}
 }

@@ -96,6 +96,12 @@ class Solr  {
 	/** @var [SolrService_Core] - The instances of SolrService_Core for each core */
 	static protected $service_core_singletons = array();
 
+	/**
+	 * Get a SolrService
+	 * 
+	 * @param string $core Optional core name
+	 * @return SolrService_Core
+	 */
 	static function service($core = null) {
 		$options = self::solr_options();
 
@@ -143,58 +149,82 @@ class Solr  {
 class Solr_Configure extends BuildTask {
 
 	public function run($request) {
-		$service = Solr::service();
+		// Find the IndexStore handler, which will handle uploading config files to Solr
+		$store = $this->getSolrConfigStore();
 		$indexes = Solr::get_indexes();
-		$options = Solr::solr_options();
+		foreach ($indexes as $instance) {
 
+			try {
+				$this->updateIndex($instance, $store);
+			} catch(Exception $e) {
+				// We got an exception. Warn, but continue to next index.
+				$this->log("Failure: " . $e->getMessage());
+			}
+		}
+	}
+	
+	/**
+	 * Update the index on the given store
+	 * 
+	 * @param SolrIndex $instance Instance
+	 * @param SolrConfigStore $store
+	 */
+	protected function updateIndex($instance, $store) {
+		$index = $instance->getIndexName();
+		$this->log("Configuring $index.");
+		$this->log("Uploading configuration ... ");
+		
+		
+		// Upload the config files for this index
+		$instance->uploadConfig($store);
+		
+		// Then tell Solr to use those config files
+		$service = Solr::service();
+		if ($service->coreIsActive($index)) {
+			$this->log("Reloading core ...");
+			$service->coreReload($index);
+		} else {
+			$this->log("Creating core ...");
+			$service->coreCreate($index, $store->instanceDir($index));
+		}
+		
+		$this->log("Done");
+	}
+	
+	/**
+	 * Get config store
+	 * 
+	 * @return SolrConfigStore
+	 */
+	protected function getSolrConfigStore() {
+		$options = Solr::solr_options();
+		
 		if (!isset($options['indexstore']) || !($indexstore = $options['indexstore'])) {
 			user_error('No index configuration for Solr provided', E_USER_ERROR);
 		}
-
+		
 		// Find the IndexStore handler, which will handle uploading config files to Solr
 		$mode = $indexstore['mode'];
 
 		if ($mode == 'file') {
-			$store = new SolrConfigStore_File($indexstore);
+			return new SolrConfigStore_File($indexstore);
 		} elseif ($mode == 'webdav') {
-			$store = new SolrConfigStore_WebDAV($indexstore);
+			return new SolrConfigStore_WebDAV($indexstore);
 		} elseif (ClassInfo::exists($mode) && ClassInfo::classImplements($mode, 'SolrConfigStore')) {
-			$store = new $mode($indexstore);
+			return new $mode($indexstore);
 		} else {
 			user_error('Unknown Solr index mode '.$indexstore['mode'], E_USER_ERROR);
 		}
-
-		foreach ($indexes as $instance) {
-			$index = $instance->getIndexName();
-			echo "Configuring $index. \n"; flush();
-
-			try {
-				// Upload the config files for this index
-				echo "Uploading configuration ... \n"; flush();
-
-				$store->uploadString($index, 'schema.xml', (string)$instance->generateSchema());
-
-				foreach (glob($instance->getExtrasPath().'/*') as $file) {
-					if (is_file($file)) $store->uploadFile($index, $file);
-				}
-
-				// Then tell Solr to use those config files
-				if ($service->coreIsActive($index)) {
-					echo "Reloading core ... \n";
-					$service->coreReload($index);
-				} else {
-					echo "Creating core ... \n";
-					$service->coreCreate($index, $store->instanceDir($index));
-				}
-
-				// And done
-				echo "Done\n";
-
-			} catch(Exception $e) {
-				// We got an exception. Warn, but continue to next index.
-				echo "Failure: " . $e->getMessage() . "\n"; flush();
-			}
+		
+	}
+	
+	protected function log($message) {
+		if(Director::is_cli()) {
+			echo $message . "\n";
+		} else {
+			echo Convert::raw2xml($message) . "<br />";
 		}
+		flush();
 	}
 }
 
