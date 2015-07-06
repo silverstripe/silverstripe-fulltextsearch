@@ -183,7 +183,7 @@ This can be fixed by aggregating spell checking data in a separate
 			$xml = parent::getFieldDefinitions();
 			
 			$xml .= "\n\n\t\t<!-- Additional custom fields for spell checking -->";
-			$xml .= "\n\t\t<field name='spellcheckData' type='textSpell' indexed='true' stored='false' multiValued='true' />";
+			$xml .= "\n\t\t<field name='spellcheckData' type='textSpellHtml' indexed='true' stored='false' multiValued='true' />";
 
 			return $xml;
 		}

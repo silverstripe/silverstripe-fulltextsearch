@@ -46,6 +46,14 @@ abstract class SolrIndex extends SearchIndex {
 	 * @config
 	 */
 	private static $default_field = '_text';
+
+	/**
+	 * List of copy fields all fulltext fields should be copied into.
+	 * This will fallback to default_field if not specified
+	 *
+	 * @var array
+	 */
+	private static $copy_fields = array();
 	
 	/**
 	 * @return String Absolute path to the folder containing
@@ -102,6 +110,22 @@ abstract class SolrIndex extends SearchIndex {
 	 */
 	public function getDefaultField() {
 		return $this->config()->default_field;
+	}
+
+	/**
+	 * Get list of fields each text field should be copied into.
+	 * This will fallback to the default field if omitted.
+	 *
+	 * @return array
+	 */
+	protected function getCopyDestinations() {
+		$copyFields = $this->config()->copy_fields;
+		if($copyFields) {
+			return $copyFields;
+		}
+		// Fallback to default field
+		$df = $this->getDefaultField();
+		return array($df);
 	}
 
 	public function getFieldDefinitions() {
@@ -365,14 +389,22 @@ abstract class SolrIndex extends SearchIndex {
 		);
 	}
 
-	function getCopyFieldDefinitions() {
+	/**
+	 * Generate XML for copy field definitions
+	 *
+	 * @return string
+	 */
+	public function getCopyFieldDefinitions() {
 		$xml = array();
 
-		$df = $this->getDefaultField();
-		foreach ($this->fulltextFields as $name => $field) {
-			$xml[] = "<copyField source='{$name}' dest='{$df}' />";
+		// Default copy fields
+		foreach($this->getCopyDestinations() as $copyTo) {
+			foreach ($this->fulltextFields as $name => $field) {
+				$xml[] = "<copyField source='{$name}' dest='{$copyTo}' />";
+			}
 		}
 
+		// Explicit copy fields
 		foreach ($this->copyFields as $source => $fields) {
 			foreach($fields as $fieldAttrs) {
 				$xml[] = $this->toXmlTag('copyField', $fieldAttrs);
