@@ -1,5 +1,10 @@
 <?php
 
+use Monolog\Formatter\LineFormatter;
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger;
+use Psr\Log\LoggerInterface;
+
 class Solr  {
 
 	/**
@@ -145,10 +150,70 @@ class Solr  {
 	}
 }
 
+/**
+ * Abstract class for build tasks
+ */
+class Solr_BuildTask extends BuildTask {
 
-class Solr_Configure extends BuildTask {
+	protected $enabled = false;
+
+	/**
+	 * Logger
+	 *
+	 * @var LoggerInterface
+	 */
+	protected $logger = null;
+
+	/**
+	 * Get the current logger
+	 * 
+	 * @return LoggerInterface
+	 */
+	public function getLogger() {
+		return $this->logger;
+	}
+
+	/**
+	 * Assign a new logger
+	 *
+	 * @param LoggerInterface $logger
+	 */
+	public function setLogger(LoggerInterface $logger) {
+		$this->logger = $logger;
+	}
+
+	/**
+	 * @return SearchLogFactory
+	 */
+	protected function getLoggerFactory() {
+		return Injector::inst()->get('SearchLogFactory');
+	}
+
+	/**
+	 * Setup task
+	 *
+	 * @param SS_HTTPReqest $request
+	 */
+	public function run($request) {
+		$name = get_class($this);
+		$verbose = $request->getVar('verbose');
+
+		// Set new logger
+		$logger = $this
+			->getLoggerFactory()
+			->getOutputLogger($name, $verbose);
+		$this->setLogger($logger);
+	}
+}
+
+
+class Solr_Configure extends Solr_BuildTask {
+
+	protected $enabled = true;
 
 	public function run($request) {
+		parent::run($request);
+		
 		// Find the IndexStore handler, which will handle uploading config files to Solr
 		$store = $this->getSolrConfigStore();
 		$indexes = Solr::get_indexes();
@@ -158,7 +223,9 @@ class Solr_Configure extends BuildTask {
 				$this->updateIndex($instance, $store);
 			} catch(Exception $e) {
 				// We got an exception. Warn, but continue to next index.
-				$this->log("Failure: " . $e->getMessage());
+				$this
+					->getLogger()
+					->error("Failure: " . $e->getMessage());
 			}
 		}
 	}
@@ -171,26 +238,25 @@ class Solr_Configure extends BuildTask {
 	 */
 	protected function updateIndex($instance, $store) {
 		$index = $instance->getIndexName();
-		$this->log("Configuring $index.");
-		$this->log("Uploading configuration ... ");
-		
+		$this->getLogger()->info("Configuring $index.");
 		
 		// Upload the config files for this index
+		$this->getLogger()->info("Uploading configuration ...");
 		$instance->uploadConfig($store);
 		
 		// Then tell Solr to use those config files
 		$service = Solr::service();
 		if ($service->coreIsActive($index)) {
-			$this->log("Reloading core ...");
+			$this->getLogger()->info("Reloading core ...");
 			$service->coreReload($index);
 		} else {
-			$this->log("Creating core ...");
+			$this->getLogger()->info("Creating core ...");
 			$service->coreCreate($index, $store->instanceDir($index));
 		}
 		
-		$this->log("Done");
+		$this->getLogger()->info("Done");
 	}
-	
+
 	/**
 	 * Get config store
 	 * 
@@ -217,19 +283,26 @@ class Solr_Configure extends BuildTask {
 		}
 		
 	}
-	
-	protected function log($message) {
-		if(Director::is_cli()) {
-			echo $message . "\n";
-		} else {
-			echo Convert::raw2xml($message) . "<br />";
-		}
-		flush();
-	}
 }
 
+/**
+ * Task used for both initiating a new reindex, as well as for processing incremental batches
+ * within a reindex.
+ *
+ * When running a complete reindex you can provide any of the following
+ *  - class (to limit to a single class)
+ *  - verbose (optional)
+ *
+ * When running with a single batch, provide the following querystring arguments:
+ *  - start
+ *  - index
+ *  - class
+ *  - variantstate
+ *  - verbose (optional)
+ */
+class Solr_Reindex extends Solr_BuildTask {
 
-class Solr_Reindex extends BuildTask {
+	protected $enabled = true;
 
 	/**
 	 * Number of records to load and index per request
@@ -239,117 +312,94 @@ class Solr_Reindex extends BuildTask {
 	 */
 	private static $recordsPerRequest = 200;
 
-	public function run($request) {
-		increase_time_limit_to();
-		$self = get_class($this);
-		$verbose = isset($_GET['verbose']);
-
-		$originalState = SearchVariant::current_state();
-
-		if (isset($_GET['start'])) {
-			$this->runFrom(singleton($_GET['index']), $_GET['class'], $_GET['start'], json_decode($_GET['variantstate'], true));
-		}
-		else {
-			foreach(array('framework','sapphire') as $dirname) {
-				$script = sprintf("%s%s$dirname%scli-script.php", BASE_PATH, DIRECTORY_SEPARATOR, DIRECTORY_SEPARATOR);
-				if(file_exists($script)) {
-					break;
-				}
-			}
-			$class = get_class($this);
-
-			foreach (Solr::get_indexes() as $index => $instance) {
-				echo "Rebuilding {$instance->getIndexName()}\n\n";
-
-				$classes = $instance->getClasses();
-				if($request->getVar('class')) {
-					$limitClasses = explode(',', $request->getVar('class'));
-					$classes = array_intersect_key($classes, array_combine($limitClasses, $limitClasses));
-				}
-
-				if($classes) {
-					Solr::service($index)->deleteByQuery('ClassHierarchy:(' . implode(' OR ', array_keys($classes)) . ')');	
-				}
-
-				foreach ($classes as $class => $options) {
-					$includeSubclasses = $options['include_children'];
-
-					foreach (SearchVariant::reindex_states($class, $includeSubclasses) as $state) {
-						if ($instance->variantStateExcluded($state)) continue;
-
-						SearchVariant::activate_state($state);
-
-						$filter = $includeSubclasses ? "" : '"ClassName" = \''.$class."'";
-						$singleton = singleton($class);
-						$query = $singleton->get($class,$filter,null);
-						$dtaQuery = $query->dataQuery();
-						$sqlQuery = $dtaQuery->getFinalisedQuery();
-						$singleton->extend('augmentSQL',$sqlQuery,$dtaQuery);
-						$total = $query->count();
-
-						$statevar = json_encode($state);
-						echo "Class: $class, total: $total";
-						echo ($statevar) ? " in state $statevar\n" : "\n";
-
-						if (strpos(PHP_OS, "WIN") !== false) $statevar = '"'.str_replace('"', '\\"', $statevar).'"';
-						else $statevar = "'".$statevar."'";
-
-						for ($offset = 0; $offset < $total; $offset += $this->stat('recordsPerRequest')) {
-							echo "$offset..";
-
-							$cmd = "php $script dev/tasks/$self index=$index class=$class start=$offset variantstate=$statevar";
-
-							if($verbose) {
-								echo "\n  Running '$cmd'\n";
-								$cmd .= " verbose=1 2>&1";
-							}
-
-							$res = $verbose ? passthru($cmd) : `$cmd`;
-							if($verbose) echo "  ".preg_replace('/\r\n|\n/', '$0  ', $res)."\n";
-
-							// If we're in dev mode, commit more often for fun and profit
-							if (Director::isDev()) Solr::service($index)->commit();
-
-							// This will slow down things a tiny bit, but it is done so that we don't timeout to the database during a reindex
-							DB::query('SELECT 1');
-						}
-
-						echo "\n";
-					}
-				}
-
-				Solr::service($index)->commit();
-			}
-		}
-
-		$originalState = SearchVariant::current_state();
+	/**
+	 * Get the reindex handler
+	 *
+	 * @return SolrReindexHandler
+	 */
+	protected function getHandler() {
+		return Injector::inst()->get('SolrReindexHandler');
 	}
 
-	protected function runFrom($index, $class, $start, $variantstate) {
-		$classes = $index->getClasses();
-		$options = $classes[$class];
-		$verbose = isset($_GET['verbose']);
+	/**
+	 * @param SS_HTTPRequest $request
+	 */
+	public function run($request) {
+		parent::run($request);
+		
+		// Reset state
+		$originalState = SearchVariant::current_state();
+		$this->doReindex($request);
+		SearchVariant::activate_state($originalState);
+	}
 
+	/**
+	 * @param SS_HTTPRequest $request
+	 */
+	protected function doReindex($request) {
+		$class = $request->getVar('class');
+
+		// Deprecated reindex mechanism
+		$start = $request->getVar('start');
+		if ($start !== null) {
+			// Run single batch directly
+			$indexInstance = singleton($request->getVar('index'));
+			$state = json_decode($request->getVar('variantstate'), true);
+			$this->runFrom($indexInstance, $class, $start, $state);
+			return;
+		}
+
+		// Check if we are re-indexing a single group
+		// If not using queuedjobs, we need to invoke Solr_Reindex as a separate process
+		// Otherwise each group is processed via a SolrReindexGroupJob
+		$groups = $request->getVar('groups');
+		$handler = $this->getHandler();
+		if($groups) {
+			// Run grouped batches (id % groups = group)
+			$group = $request->getVar('group');
+			$indexInstance = singleton($request->getVar('index'));
+			$state = json_decode($request->getVar('variantstate'), true);
+
+			$handler->runGroup($this->getLogger(), $indexInstance, $state, $class, $groups, $group);
+			return;
+		}
+
+		// If run at the top level, delegate to appropriate handler
+		$self = get_class($this);
+		$handler->triggerReindex($this->getLogger(), $this->config()->recordsPerRequest, $self, $class);
+	}
+
+	/**
+	 * @deprecated since version 2.0.0
+	 */
+	protected function runFrom($index, $class, $start, $variantstate) {
+		DeprecationTest_Deprecation::notice('2.0.0', 'Solr_Reindex now uses a new grouping mechanism');
+		
+		// Set time limit and state
+		increase_time_limit_to();
 		SearchVariant::activate_state($variantstate);
 
-		$includeSubclasses = $options['include_children'];
-		$filter = $includeSubclasses ? "" : '"ClassName" = \''.$class."'";
-
+		// Generate filtered list
 		$items = DataList::create($class)
-			->where($filter)
-			->limit($this->stat('recordsPerRequest'), $start);
+			->limit($this->config()->recordsPerRequest, $start);
 
-		if($verbose) echo "Adding $class";
-		foreach ($items as $item) {
-			if($verbose) echo $item->ID . ' ';
+		// Add child filter
+		$classes = $index->getClasses();
+		$options = $classes[$class];
+		if(!$options['include_children']) {
+			$items = $items->filter('ClassName', $class);
+		}
+
+		// Process selected records in this class
+		$this->getLogger()->info("Adding $class");
+		foreach ($items->sort("ID") as $item) {
+			$this->getLogger()->debug($item->ID);
 
 			// See SearchUpdater_ObjectHandler::triggerReindex
 			$item->triggerReindex();
-
 			$item->destroy();
 		}
 
-		if($verbose) echo "Done ";
+		$this->getLogger()->info("Done");
 	}
-
 }

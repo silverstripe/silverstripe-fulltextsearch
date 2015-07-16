@@ -4,6 +4,10 @@ Name: defaultprocessor
 Injector:
   SearchUpdateProcessor:
     class: SearchUpdateImmediateProcessor
+  SolrReindexHandler:
+    class: SolrReindexImmediateHandler
+  SearchLogFactory:
+    class: 'MonologFactory'
 ---
 Name: messagequeueprocessor
 Only:
@@ -14,6 +18,8 @@ Except:
 Injector:
   SearchUpdateProcessor:
     class: SearchUpdateMessageQueueProcessor
+  SolrReindexHandler:
+    class: SolrReindexMessageHandler
 ---
 Name: queuedjobprocessor
 Only:
@@ -24,3 +30,5 @@ Except:
 Injector:
   SearchUpdateProcessor:
     class: SearchUpdateQueuedJobProcessor
+  SolrReindexHandler:
+    class: SolrReindexQueuedHandler

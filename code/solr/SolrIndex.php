@@ -511,6 +511,39 @@ abstract class SolrIndex extends SearchIndex {
 		}
 	}
 
+	/**
+	 * Clear all records which do not match the given classname whitelist.
+	 *
+	 * Can also be used to trim an index when reducing to a narrower set of classes.
+	 *
+	 * Ignores current state / variant.
+	 *
+	 * @param array $classes List of non-obsolete classes in the same format as SolrIndex::getClasses()
+	 * @return bool Flag if successful
+	 */
+	public function clearObsoleteClasses($classes) {
+		if(empty($classes)) {
+			return false;
+		}
+
+		// Delete all records which do not match the necessary classname rules
+		$conditions = array();
+		foreach ($classes as $class => $options) {
+			if ($options['include_children']) {
+				$conditions[] = "ClassHierarchy:{$class}";
+			} else {
+				$conditions[] = "ClassName:{$class}";
+			}
+		}
+
+		// Delete records which don't match any of these conditions in this index
+		$deleteQuery = "-(" . implode(' ', $conditions) . ")";
+		$this
+			->getService()
+			->deleteByQuery($deleteQuery);
+		return true;
+	}
+
 	function commit() {
 		try {
 			$this->getService()->commit(false, false, false);
@@ -543,32 +576,8 @@ abstract class SolrIndex extends SearchIndex {
 		$hlq = array(); // Highlight query
 
 		// Build the search itself
+		$q = $this->getQueryComponent($query, $hlq);
 		
-		foreach ($query->search as $search) {
-			$text = $search['text'];
-			preg_match_all('/"[^"]*"|\S+/', $text, $parts);
-
-			$fuzzy = $search['fuzzy'] ? '~' : '';
-
-			foreach ($parts[0] as $part) {
-				$fields = (isset($search['fields'])) ? $search['fields'] : array();
-				if(isset($search['boost'])) {
-					$fields = array_merge($fields, array_keys($search['boost']));
-				}
-				if ($fields) {
-					$searchq = array();
-					foreach ($fields as $field) {
-						$boost = (isset($search['boost'][$field])) ? '^' . $search['boost'][$field] : '';
-						$searchq[] = "{$field}:".$part.$fuzzy.$boost;
-					}
-					$q[] = '+('.implode(' OR ', $searchq).')';
-				}
-				else {
-					$q[] = '+'.$part.$fuzzy;
-				}
-				$hlq[] = $part;
-			}
-		}
 		// If using boosting, set the clean term separately for highlighting.
 		// See https://issues.apache.org/jira/browse/SOLR-2632
 		if(array_key_exists('hl', $params) && !array_key_exists('hl.q', $params)) {
@@ -576,64 +585,17 @@ abstract class SolrIndex extends SearchIndex {
 		}
 
 		// Filter by class if requested
-
 		$classq = array();
-
 		foreach ($query->classes as $class) {
-			if (!empty($class['includeSubclasses'])) $classq[] = 'ClassHierarchy:'.$class['class'];
+			if (!empty($class['includeSubclasses'])) {
+				$classq[] = 'ClassHierarchy:'.$class['class'];
+			}
 			else $classq[] = 'ClassName:'.$class['class'];
 		}
-
 		if ($classq) $fq[] = '+('.implode(' ', $classq).')';
-
+		
 		// Filter by filters
-
-		foreach ($query->require as $field => $values) {
-			$requireq = array();
-
-			foreach ($values as $value) {
-				if ($value === SearchQuery::$missing) {
-					$requireq[] = "(*:* -{$field}:[* TO *])";
-				}
-				else if ($value === SearchQuery::$present) {
-					$requireq[] = "{$field}:[* TO *]";
-				}
-				else if ($value instanceof SearchQuery_Range) {
-					$start = $value->start; if ($start === null) $start = '*';
-					$end = $value->end; if ($end === null) $end = '*';
-					$requireq[] = "$field:[$start TO $end]";
-				}
-				else {
-					$requireq[] = $field.':"'.$value.'"';
-				}
-			}
-
-			$fq[] = '+('.implode(' ', $requireq).')';
-		}
-
-		foreach ($query->exclude as $field => $values) {
-			$excludeq = array();
-			$missing = false;
-
-			foreach ($values as $value) {
-				if ($value === SearchQuery::$missing) {
-					$missing = true;
-				}
-				else if ($value === SearchQuery::$present) {
-					$excludeq[] = "{$field}:[* TO *]";
-				}
-				else if ($value instanceof SearchQuery_Range) {
-					$start = $value->start; if ($start === null) $start = '*';
-					$end = $value->end; if ($end === null) $end = '*';
-					$excludeq[] = "$field:[$start TO $end]";
-				}
-				else {
-					$excludeq[] = $field.':"'.$value.'"';
-				}
-			}
-
-			$fq[] = ($missing ? "+{$field}:[* TO *] " : '') . '-('.implode(' ', $excludeq).')';
-		}
+		$fq = array_merge($fq, $this->getFiltersComponent($query));
 		
 		// Prepare query fields unless specified explicitly
 		if(isset($params['qf'])) {
@@ -737,6 +699,136 @@ abstract class SolrIndex extends SearchIndex {
 		}
 
 		return new ArrayData($ret);
+	}
+
+
+	/**
+	 * Get the query (q) component for this search
+	 *
+	 * @param SearchQuery $searchQuery
+	 * @param array &$hlq Highlight query returned by reference
+	 * @return array
+	 */
+	protected function getQueryComponent(SearchQuery $searchQuery, &$hlq = array()) {
+		$q = array();
+		foreach ($searchQuery->search as $search) {
+			$text = $search['text'];
+			preg_match_all('/"[^"]*"|\S+/', $text, $parts);
+
+			$fuzzy = $search['fuzzy'] ? '~' : '';
+
+			foreach ($parts[0] as $part) {
+				$fields = (isset($search['fields'])) ? $search['fields'] : array();
+				if(isset($search['boost'])) {
+					$fields = array_merge($fields, array_keys($search['boost']));
+				}
+				if ($fields) {
+					$searchq = array();
+					foreach ($fields as $field) {
+						$boost = (isset($search['boost'][$field])) ? '^' . $search['boost'][$field] : '';
+						$searchq[] = "{$field}:".$part.$fuzzy.$boost;
+					}
+					$q[] = '+('.implode(' OR ', $searchq).')';
+				}
+				else {
+					$q[] = '+'.$part.$fuzzy;
+				}
+				$hlq[] = $part;
+			}
+		}
+		return $q;
+	}
+
+	/**
+	 * Parse all require constraints for inclusion in a filter query
+	 *
+	 * @param SearchQuery $searchQuery
+	 * @return array List of parsed string values for each require
+	 */
+	protected function getRequireFiltersComponent(SearchQuery $searchQuery) {
+		$fq = array();
+		foreach ($searchQuery->require as $field => $values) {
+			$requireq = array();
+
+			foreach ($values as $value) {
+				if ($value === SearchQuery::$missing) {
+					$requireq[] = "(*:* -{$field}:[* TO *])";
+				}
+				else if ($value === SearchQuery::$present) {
+					$requireq[] = "{$field}:[* TO *]";
+				}
+				else if ($value instanceof SearchQuery_Range) {
+					$start = $value->start;
+					if ($start === null) {
+						$start = '*';
+					}
+					$end = $value->end;
+					if ($end === null) {
+						$end = '*';
+					}
+					$requireq[] = "$field:[$start TO $end]";
+				}
+				else {
+					$requireq[] = $field.':"'.$value.'"';
+				}
+			}
+
+			$fq[] = '+('.implode(' ', $requireq).')';
+		}
+		return $fq;
+	}
+
+	/**
+	 * Parse all exclude constraints for inclusion in a filter query
+	 *
+	 * @param SearchQuery $searchQuery
+	 * @return array List of parsed string values for each exclusion
+	 */
+	protected function getExcludeFiltersComponent(SearchQuery $searchQuery) {
+		$fq = array();
+		foreach ($searchQuery->exclude as $field => $values) {
+			$excludeq = array();
+			$missing = false;
+
+			foreach ($values as $value) {
+				if ($value === SearchQuery::$missing) {
+					$missing = true;
+				}
+				else if ($value === SearchQuery::$present) {
+					$excludeq[] = "{$field}:[* TO *]";
+				}
+				else if ($value instanceof SearchQuery_Range) {
+					$start = $value->start;
+					if ($start === null) {
+						$start = '*';
+					}
+					$end = $value->end;
+					if ($end === null) {
+						$end = '*';
+					}
+					$excludeq[] = "$field:[$start TO $end]";
+				}
+				else {
+					$excludeq[] = $field.':"'.$value.'"';
+				}
+			}
+
+			$fq[] = ($missing ? "+{$field}:[* TO *] " : '') . '-('.implode(' ', $excludeq).')';
+		}
+		return $fq;
+	}
+
+	/**
+	 * Get all filter conditions for this search
+	 *
+	 * @param SearchQuery $searchQuery
+	 * @return array
+	 */
+	public function getFiltersComponent(SearchQuery $searchQuery) {
+		return array_merge(
+			$this->getRequireFiltersComponent($searchQuery),
+			$this->getExcludeFiltersComponent($searchQuery)
+		);
 	}
 
 	protected $service;

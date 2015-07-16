@@ -94,13 +94,22 @@ based on ORM manipulations of the underlying data.
 For example, calling `$myPage->write()` will automatically
 update the index entry for this record (and all its variants).
 
-You can narrow down the operation with the following options:
+This task has the following options:
 
- - `index`: PHP class name of an index
- - `class`: PHP model class to reindex
- - `start`: Offset (applies to matched records)
- - `variantstate`: JSON encoded string with state, e.g. '{"SearchVariantVersioned":"Stage"}'
- - `verbose`: Debug information
+- `verbose`: Debug information
+
+Internally, depending on what job processing backend you have configured (such as queuedjobs)
+individual tasks for re-indexing groups of records may either be performed behind the scenes
+as crontasks, or via separate processes initiated by the current request.
+
+Internally groups of records are grouped into sizes of 200. You can configure this
+group sizing by using the `Solr_Reindex.recordsPerRequest` config.
+
+
+	:::yaml
+	Solr_Reindex:
+	  recordsPerRequest: 150
+
 
 Note: The Solr indexes will be stored as binary files inside your SilverStripe project. 
 You can also copy the `thirdparty/` solr directory somewhere else,
