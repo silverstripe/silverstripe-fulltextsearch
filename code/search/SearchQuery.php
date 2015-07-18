@@ -8,6 +8,7 @@
 class SearchQuery extends ViewableData {
 
 	static $missing = null;
+	
 	static $present = null;
 
 	static $default_page_size = 10;
@@ -19,12 +20,12 @@ class SearchQuery extends ViewableData {
 	public $classes = array();
 
 	public $require = array();
+
 	public $exclude = array();
 
 	protected $start = 0;
-	protected $limit = -1;
 
-	/** These are the API functions */
+	protected $limit = -1;
 
 	function __construct() {
 		if (self::$missing === null) self::$missing = new stdClass();
@@ -37,38 +38,60 @@ class SearchQuery extends ViewableData {
 	 * @param  array  $boost  Map of composite field names to float values. The higher the value,
 	 * the more important the field gets for relevancy.
 	 */
-	function search($text, $fields = null, $boost = array()) {
+	function addSearchTerm($text, $fields = null, $boost = array()) {
 		$this->search[] = array('text' => $text, 'fields' => $fields ? (array)$fields : null, 'boost' => $boost, 'fuzzy' => false);
+		return $this;
 	}
 
 	/**
-	 * Similar to {@link search()}, but uses stemming and other similarity algorithms
+	 * Similar to {@link addSearchTerm()}, but uses stemming and other similarity algorithms
 	 * to find the searched terms. For example, a term "fishing" would also likely find results
 	 * containing "fish" or "fisher". Depends on search implementation.
 	 * 
-	 * @param  String $text See {@link search()}
-	 * @param  array $fields See {@link search()}
-	 * @param  array $boost See {@link search()}
+	 * @param  String $text See {@link addSearchTerm()}
+	 * @param  array $fields See {@link addSearchTerm()}
+	 * @param  array $boost See {@link addSearchTerm()}
 	 */
-	function fuzzysearch($text, $fields = null, $boost = array()) {
+	function addFuzzySearchTerm($text, $fields = null, $boost = array()) {
 		$this->search[] = array('text' => $text, 'fields' => $fields ? (array)$fields : null, 'boost' => $boost, 'fuzzy' => true);
+		return $this;
 	}
 
-	function inClass($class, $includeSubclasses = true) {
-		$this->classes[] = array('class' => $class, 'includeSubclasses' => $includeSubclasses);
+	function getSearchTerms() {
+		return $this->search;
 	}
 
 	/**
-	 * Similar to {@link search()}, but typically used to further narrow down
+	 * Limit search to a specific class. Includes subclasses by default.
+	 * 
+	 * @param String  $class
+	 * @param boolean $includeSubclasses
+	 */
+	function addClassFilter($class, $includeSubclasses = true) {
+		$this->classes[] = array('class' => $class, 'includeSubclasses' => $includeSubclasses);
+		return $this;
+	}
+
+	function getClassFilters() {
+		return $this->classes;
+	}
+
+	/**
+	 * Similar to {@link addSearchTerm()}, but typically used to further narrow down
 	 * based on other facets which don't influence the field relevancy.
 	 * 
 	 * @param  String $field Composite name of the field
 	 * @param  Mixed $values Scalar value, array of values, or an instance of SearchQuery_Range
 	 */
-	function filter($field, $values) {
+	function addFilter($field, $values) {
 		$requires = isset($this->require[$field]) ? $this->require[$field] : array();
 		$values = is_array($values) ? $values : array($values);
 		$this->require[$field] = array_merge($requires, $values);
+		return $this;
+	}
+
+	function getFilters() {
+		return $this->require;
 	}
 
 	/**
@@ -77,31 +100,115 @@ class SearchQuery extends ViewableData {
 	 * @param  String $field
 	 * @param  mixed $values
 	 */
-	function exclude($field, $values) {
+	function addExclude($field, $values) {
 		$excludes = isset($this->exclude[$field]) ? $this->exclude[$field] : array();
 		$values = is_array($values) ? $values : array($values);
 		$this->exclude[$field] = array_merge($excludes, $values);
+		return $this;
 	}
 
-	function start($start) {
+	function getExcludes() {
+		return $this->exclude;
+	}
+
+	function setStart($start) {
 		$this->start = $start;
+		return $this;
 	}
 
-	function limit($limit) {
+	function getStart() {
+		return $this->start;
+	}
+
+	function setLimit($limit) {
 		$this->limit = $limit;
+		return $this;
 	}
 
-	function page($page) {
+	function getLimit() {
+		return $this->limit;
+	}
+
+	function setPageSize($page) {
 		$this->start = $page * self::$default_page_size;
 		$this->limit = self::$default_page_size;
+		return $this;
 	}
 
-	function isfiltered() {
+	public function getPageSize() {
+		return $this->limit;
+	}
+
+	function isFiltered() {
 		return $this->search || $this->classes || $this->require || $this->exclude;
 	}
 
 	function __toString() {
 		return "Search Query\n";
+	}
+
+	/**
+	 * @deprecated
+	 */
+	function search($text, $fields = null, $boost = array()) {
+		Deprecation::notice('2.0', 'Use addSearchTerm()');
+		return $this->addSearchTerm($text, $fields, $boost);
+	}
+
+	/**
+	 * @deprecated
+	 */
+	function fuzzysearch($text, $fields = null, $boost = array()) {
+		Deprecation::notice('2.0', 'Use addFuzzySearchTerm()');
+		return $this->addFuzzySearchTerm($text, $fields, $boost);
+	}
+
+	/**
+	 * @deprecated
+	 */
+	function filter($field, $values) {
+		Deprecation::notice('2.0', 'Use addFilter()');
+		return $this->addFilter($field, $values);
+	}
+
+	/**
+	 * @deprecated
+	 */
+	function inClass($class, $includeSubclasses = true) {
+		Deprecation::notice('2.0', 'Use addClassFilter()');
+		return $this->addClassFilter($class, $includeSubclasses);
+	}
+
+	/**
+	 * @deprecated
+	 */
+	function exclude($field, $values) {
+		Deprecation::notice('2.0', 'Use addExclude()');
+		return $this->addExclude($field, $values);
+	}
+
+	/**
+	 * @deprecated
+	 */
+	function start($start) {
+		Deprecation::notice('2.0', 'Use setStart()');
+		return $this->setStart($start);
+	}
+
+	/**
+	 * @deprecated
+	 */
+	function limit($limit) {
+		Deprecation::notice('2.0', 'Use setLimit()');
+		return $this->setLimit($limit);
+	}
+
+	/**
+	 * @deprecated
+	 */
+	function page($page) {
+		Deprecation::notice('2.0', 'Use setPageSize()');
+		return $this->setPageSize($page);
 	}
 }
 
@@ -119,15 +226,33 @@ class SearchQuery_Range {
 		$this->end = $end;
 	}
 
-	function start($start) {
+	function setStart($start) {
 		$this->start = $start;
+		return $this;
 	}
 
-	function end($end) {
+	function setEnd($end) {
 		$this->end = $end;
+		return $this;
 	}
 
-	function isfiltered() {
+	function isFiltered() {
 		return $this->start !== null || $this->end !== null;
+	}
+
+	/**
+	 * @deprecated
+	 */
+	function start($start) {
+		Deprecation::notice('2.0', 'Use setStart()');
+		return $this->setStart($start);
+	}
+
+	/**
+	 * @deprecated
+	 */
+	function end($end) {
+		Deprecation::notice('2.0', 'Use setEnd()');
+		return $this->setEnd($end);
 	}
 }

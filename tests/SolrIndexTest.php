@@ -57,7 +57,7 @@ class SolrIndexTest extends SapphireTest {
 		$index->setService($serviceMock);
 
 		$query = new SearchQuery();
-		$query->search(
+		$query->addSearchTerm(
 			'term', 
 			null, 
 			array('Field1' => 1.5, 'HasOneObject_Field1' => 3)
