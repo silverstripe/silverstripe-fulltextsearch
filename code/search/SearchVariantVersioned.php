@@ -28,7 +28,7 @@ class SearchVariantVersioned extends SearchVariant {
 		);
 	}
 
-	function alterQuery($query) {
+	public function alterQuery($query, $index) {
 		$stage = Versioned::current_stage();
 		$query->filter('_versionedstage', array($stage, SearchQuery::$missing));
 	}

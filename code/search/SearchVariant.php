@@ -39,6 +39,14 @@ abstract class SearchVariant {
 	 */
 	abstract function activateState($state);
 
+	/**
+	 * Apply this variant to a search query
+	 *
+	 * @param SearchQuery $query
+	 * @param SearchIndex $index
+	 */
+	abstract public function alterQuery($query, $index);
+
 	/*** OVERRIDES end here*/
 
 	/** Holds a cache of all variants */

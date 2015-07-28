@@ -48,7 +48,7 @@ class SearchVariantSiteTreeSubsitesPolyhome extends SearchVariant {
 		);
 	}
 
-	function alterQuery($query, $index) {
+	public function alterQuery($query, $index) {
 		$subsite = Subsite::currentSubsiteID();
 		$query->filter('_subsite', array($subsite, SearchQuery::$missing));
 	}
