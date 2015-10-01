@@ -195,6 +195,7 @@ class Solr_BuildTask extends BuildTask {
 	 * @param SS_HTTPReqest $request
 	 */
 	public function run($request) {
+		$this->extend('updateRun', $request);
 		$name = get_class($this);
 		$verbose = $request->getVar('verbose');
 
@@ -213,6 +214,7 @@ class Solr_Configure extends Solr_BuildTask {
 
 	public function run($request) {
 		parent::run($request);
+		$this->extend('updateRun', $request);
 		
 		// Find the IndexStore handler, which will handle uploading config files to Solr
 		$store = $this->getSolrConfigStore();
@@ -326,6 +328,7 @@ class Solr_Reindex extends Solr_BuildTask {
 	 */
 	public function run($request) {
 		parent::run($request);
+		$this->extend('updateRun', $request);
 		
 		// Reset state
 		$originalState = SearchVariant::current_state();
