@@ -5,7 +5,7 @@ use Monolog\Handler\HandlerInterface;
 use Monolog\Logger;
 use Psr\Log\LoggerInterface;
 
-if (class_exists('Phockito')) Phockito::include_hamcrest();
+if (class_exists('Phockito')) Phockito::include_hamcrest(false);
 
 class SolrReindexTest extends SapphireTest {
 
@@ -251,7 +251,7 @@ class SolrReindexTest extends SapphireTest {
 
 		// Check ids
 		$this->assertEquals(120, count($ids));
-		Phockito::verify($this->service, 6)->deleteByQuery(anything());
+		Phockito::verify($this->service, 6)->deleteByQuery(\Hamcrest_Matchers::anything());
 		Phockito::verify($this->service, 1)->deleteByQuery(
 			'+(ClassHierarchy:SolrReindexTest_Item) +_query_:"{!frange l=0 u=0}mod(ID, 6)" +(_testvariant:"1")'
 		);
