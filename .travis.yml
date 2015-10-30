@@ -18,6 +18,8 @@ matrix:
       env: DB=MYSQL CORE_RELEASE=3.1 SUBSITES=1
     - php: 5.3
       env: DB=MYSQL CORE_RELEASE=3.1 QUEUEDJOBS=1 
+    - php: 5.6
+      env: DB=MYSQL CORE_RELEASE=3.2
 
 before_script:
  - composer self-update || true
