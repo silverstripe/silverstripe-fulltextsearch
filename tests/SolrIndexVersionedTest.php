@@ -1,7 +1,5 @@
 <?php
 
-if (class_exists('Phockito')) Phockito::include_hamcrest();
-
 class SolrIndexVersionedTest extends SapphireTest {
 	
 	protected $oldMode = null;
@@ -11,6 +9,12 @@ class SolrIndexVersionedTest extends SapphireTest {
 	protected $extraDataObjects = array(
 		'SearchVariantVersionedTest_Item'
 	);
+
+	function setUpOnce() {
+		parent::setUpOnce();
+
+		if (class_exists('Phockito')) Phockito::include_hamcrest();
+	}
 
 	public function setUp() {
 
