@@ -5,8 +5,6 @@ use Monolog\Handler\HandlerInterface;
 use Monolog\Logger;
 use Psr\Log\LoggerInterface;
 
-if (class_exists('Phockito')) Phockito::include_hamcrest();
-
 class SolrReindexTest extends SapphireTest {
 
 	protected $usesDatabase = true;
@@ -28,6 +26,12 @@ class SolrReindexTest extends SapphireTest {
 	 * @var SolrService
 	 */
 	protected $service = null;
+
+	function setUpOnce() {
+		parent::setUpOnce();
+
+		if (class_exists('Phockito')) Phockito::include_hamcrest();
+	}
 
 	public function setUp() {
 		parent::setUp();
