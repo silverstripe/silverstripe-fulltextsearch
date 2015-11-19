@@ -25,5 +25,6 @@
 	"suggest": {
 		"silverstripe/fulltextsearch-localsolr": "Adds a ready-to-use local Solr server for initial development"
 	},
-	"minimum-stability": "dev"
+	"minimum-stability": "dev",
+	"license": "BSD-3-Clause"
 }
