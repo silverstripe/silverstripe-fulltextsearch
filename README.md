@@ -17,6 +17,8 @@ Adds support for fulltext search engines like Sphinx and Solr to SilverStripe CM
 
 See docs/en/index.md
 
+For details of updates, bugfixes, and features, please see the [changelog](CHANGELOG.md).
+
 ## TODO
 
 * Get rid of includeSubclasses - isn't actually used in practice, makes the codebase uglier, and ClassHierarchy can be
