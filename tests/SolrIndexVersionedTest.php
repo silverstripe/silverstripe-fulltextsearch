@@ -1,7 +1,7 @@
 <?php
 
 if (class_exists('Phockito')) {
-    Phockito::include_hamcrest();
+    Phockito::include_hamcrest(false);
 }
 
 class SolrIndexVersionedTest extends SapphireTest

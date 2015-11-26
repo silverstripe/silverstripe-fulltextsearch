@@ -146,7 +146,7 @@ class SolrReindexQueuedTest extends SapphireTest
         // Deletes are performed in the main task prior to individual groups being processed
         // 18 records means 3 groups of 6 in each variant (6 total)
         Phockito::verify($this->service, 2)
-            ->deleteByQuery(anything());
+            ->deleteByQuery(\Hamcrest_Matchers::anything());
         $this->assertEquals(1, $logger->countMessages('Beginning init of reindex'));
         $this->assertEquals(6, $logger->countMessages('Queued Solr Reindex Group '));
         $this->assertEquals(3, $logger->countMessages(' of SolrReindexTest_Item in {"SolrReindexTest_Variant":"0"}'));
