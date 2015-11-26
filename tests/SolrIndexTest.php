@@ -6,7 +6,7 @@ class SolrIndexTest extends SapphireTest
         parent::setUpOnce();
 
         if (class_exists('Phockito')) {
-            Phockito::include_hamcrest();
+            Phockito::include_hamcrest(false);
         }
     }
 
@@ -59,7 +59,14 @@ class SolrIndexTest extends SapphireTest
     public function testBoostedQuery()
     {
         $serviceMock = $this->getServiceMock();
-        Phockito::when($serviceMock)->search(anything(), anything(), anything(), anything(), anything())->return($this->getFakeRawSolrResponse());
+        Phockito::when($serviceMock)
+            ->search(
+                \Hamcrest_Matchers::anything(),
+                \Hamcrest_Matchers::anything(),
+                \Hamcrest_Matchers::anything(),
+                \Hamcrest_Matchers::anything(),
+                \Hamcrest_Matchers::anything()
+            )->return($this->getFakeRawSolrResponse());
 
         $index = new SolrIndexTest_FakeIndex();
         $index->setService($serviceMock);
@@ -72,7 +79,14 @@ class SolrIndexTest extends SapphireTest
         );
         $index->search($query);
 
-        Phockito::verify($serviceMock)->search('+(Field1:term^1.5 OR HasOneObject_Field1:term^3)', anything(), anything(), anything(), anything());
+        Phockito::verify($serviceMock)
+            ->search(
+                '+(Field1:term^1.5 OR HasOneObject_Field1:term^3)',
+                \Hamcrest_Matchers::anything(),
+                \Hamcrest_Matchers::anything(),
+                \Hamcrest_Matchers::anything(),
+                \Hamcrest_Matchers::anything()
+            );
     }
     
     /**
@@ -82,8 +96,13 @@ class SolrIndexTest extends SapphireTest
     {
         $serviceMock = $this->getServiceMock();
         Phockito::when($serviceMock)
-            ->search(anything(), anything(), anything(), anything(), anything())
-            ->return($this->getFakeRawSolrResponse());
+            ->search(
+                \Hamcrest_Matchers::anything(),
+                \Hamcrest_Matchers::anything(),
+                \Hamcrest_Matchers::anything(),
+                \Hamcrest_Matchers::anything(),
+                \Hamcrest_Matchers::anything()
+            )->return($this->getFakeRawSolrResponse());
 
         $index = new SolrIndexTest_BoostedIndex();
         $index->setService($serviceMock);
@@ -98,13 +117,25 @@ class SolrIndexTest extends SapphireTest
             new Hamcrest_Core_IsEqual('SearchUpdaterTest_Container_Field1^1.5 SearchUpdaterTest_Container_Field2^2.1 _text')
         );
         Phockito::verify($serviceMock)
-            ->search('+term', anything(), anything(), $matcher, anything());
+            ->search(
+                '+term',
+                \Hamcrest_Matchers::anything(),
+				\Hamcrest_Matchers::anything(),
+                $matcher,
+				\Hamcrest_Matchers::anything()
+            );
     }
 
     public function testHighlightQueryOnBoost()
     {
         $serviceMock = $this->getServiceMock();
-        Phockito::when($serviceMock)->search(anything(), anything(), anything(), anything(), anything())->return($this->getFakeRawSolrResponse());
+        Phockito::when($serviceMock)->search(
+            \Hamcrest_Matchers::anything(),
+			\Hamcrest_Matchers::anything(),
+			\Hamcrest_Matchers::anything(),
+			\Hamcrest_Matchers::anything(),
+			\Hamcrest_Matchers::anything()
+		)->return($this->getFakeRawSolrResponse());
 
         $index = new SolrIndexTest_FakeIndex();
         $index->setService($serviceMock);
@@ -120,10 +151,10 @@ class SolrIndexTest extends SapphireTest
         Phockito::verify(
             $serviceMock)->search(
             '+(Field1:term^1.5 OR HasOneObject_Field1:term^3)',
-            anything(),
-            anything(),
-            not(hasKeyInArray('hl.q')),
-            anything()
+			\Hamcrest_Matchers::anything(),
+			\Hamcrest_Matchers::anything(),
+			\Hamcrest_Matchers::not(\Hamcrest_Matchers::hasKeyInArray('hl.q')),
+			\Hamcrest_Matchers::anything()
         );
 
         // Search with highlighting
@@ -137,10 +168,10 @@ class SolrIndexTest extends SapphireTest
         Phockito::verify(
             $serviceMock)->search(
             '+(Field1:term^1.5 OR HasOneObject_Field1:term^3)',
-            anything(),
-            anything(),
-            hasKeyInArray('hl.q'),
-            anything()
+			\Hamcrest_Matchers::anything(),
+			\Hamcrest_Matchers::anything(),
+			\Hamcrest_Matchers::hasKeyInArray('hl.q'),
+			\Hamcrest_Matchers::anything()
         );
     }
 
