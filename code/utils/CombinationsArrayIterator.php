@@ -1,66 +1,80 @@
 <?php
 
-class CombinationsArrayIterator implements Iterator {
-	protected $arrays;
-	protected $keys;
-	protected $numArrays;
+class CombinationsArrayIterator implements Iterator
+{
+    protected $arrays;
+    protected $keys;
+    protected $numArrays;
 
-	protected $isValid = false;
-	protected $k = 0;
+    protected $isValid = false;
+    protected $k = 0;
 
-	function __construct($args) {
-		$this->arrays = array();
-		$this->keys = array();
+    public function __construct($args)
+    {
+        $this->arrays = array();
+        $this->keys = array();
 
-		$keys = array_keys($args);
-		$values = array_values($args);
+        $keys = array_keys($args);
+        $values = array_values($args);
 
-		foreach ($values as $i => $arg) {
-			if (is_array($arg) && count($arg)) {
-				$this->arrays[] = $arg;
-				$this->keys[] = $keys[$i];
-			}
-		}
+        foreach ($values as $i => $arg) {
+            if (is_array($arg) && count($arg)) {
+                $this->arrays[] = $arg;
+                $this->keys[] = $keys[$i];
+            }
+        }
 
-		$this->numArrays = count($this->arrays);
-		$this->rewind();
-	}
+        $this->numArrays = count($this->arrays);
+        $this->rewind();
+    }
 
-	function rewind() {
-		if (!$this->numArrays) {
-			$this->isValid = false;
-		}
-		else {
-			$this->isValid = true;
-			$this->k = 0;
-			
-			for ($i = 0; $i < $this->numArrays; $i++) reset($this->arrays[$i]);
-		}
-	}
+    public function rewind()
+    {
+        if (!$this->numArrays) {
+            $this->isValid = false;
+        } else {
+            $this->isValid = true;
+            $this->k = 0;
+            
+            for ($i = 0; $i < $this->numArrays; $i++) {
+                reset($this->arrays[$i]);
+            }
+        }
+    }
 
-	function valid() {
-		return $this->isValid;
-	}
+    public function valid()
+    {
+        return $this->isValid;
+    }
 
-	function next() {
-		$this->k++;
+    public function next()
+    {
+        $this->k++;
 
-		for ($i = 0; $i < $this->numArrays; $i++) {
-			if (next($this->arrays[$i]) === false) {
-				if ($i == $this->numArrays-1) $this->isValid = false;
-				else reset($this->arrays[$i]);
-			}
-			else break;
-		}
-	}
+        for ($i = 0; $i < $this->numArrays; $i++) {
+            if (next($this->arrays[$i]) === false) {
+                if ($i == $this->numArrays-1) {
+                    $this->isValid = false;
+                } else {
+                    reset($this->arrays[$i]);
+                }
+            } else {
+                break;
+            }
+        }
+    }
 
-	function current() {
-		$res = array();
-		for ($i = 0; $i < $this->numArrays; $i++) $res[$this->keys[$i]] = current($this->arrays[$i]);
-		return $res;
-	}
+    public function current()
+    {
+        $res = array();
+        for ($i = 0; $i < $this->numArrays; $i++) {
+            $res[$this->keys[$i]] = current($this->arrays[$i]);
+        }
+        return $res;
+    }
 
-	function key() {
-		return $this->k;
-	}
+    public function key()
+    {
+        return $this->k;
+    }
 }

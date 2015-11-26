@@ -1,85 +1,95 @@
 <?php
 
-class SearchVariantSiteTreeSubsitesPolyhome extends SearchVariant {
+class SearchVariantSiteTreeSubsitesPolyhome extends SearchVariant
+{
+    public function appliesToEnvironment()
+    {
+        return class_exists('Subsite') && class_exists('SubsitePolyhome');
+    }
 
-	function appliesToEnvironment() {
-		return class_exists('Subsite') && class_exists('SubsitePolyhome');
-	}
+    public function appliesTo($class, $includeSubclasses)
+    {
+        return SearchIntrospection::has_extension($class, 'SiteTreeSubsitesPolyhome', $includeSubclasses);
+    }
 
-	function appliesTo($class, $includeSubclasses) {
-		return SearchIntrospection::has_extension($class, 'SiteTreeSubsitesPolyhome', $includeSubclasses);
-	}
+    public function currentState()
+    {
+        return Subsite::currentSubsiteID();
+    }
+    public function reindexStates()
+    {
+        static $ids = null;
 
-	function currentState() {
-		 return Subsite::currentSubsiteID();
-	}
-	function reindexStates() {
-		static $ids = null;
+        if ($ids === null) {
+            $ids = array(0);
+            foreach (DataObject::get('Subsite') as $subsite) {
+                $ids[] = $subsite->ID;
+            }
+        }
 
-		if ($ids === null) {
-			$ids = array(0);
-			foreach (DataObject::get('Subsite') as $subsite) $ids[] = $subsite->ID;
-		}
+        return $ids;
+    }
+    public function activateState($state)
+    {
+        if (Controller::has_curr()) {
+            Subsite::changeSubsite($state);
+        } else {
+            // TODO: This is a nasty hack - calling Subsite::changeSubsite after request ends
+            // throws error because no current controller to access session on
+            $_REQUEST['SubsiteID'] = $state;
+        }
+    }
 
-		return $ids;
-	}
-	function activateState($state) {
-		if (Controller::has_curr()) {
-			Subsite::changeSubsite($state);
-		}
-		else {
-			// TODO: This is a nasty hack - calling Subsite::changeSubsite after request ends
-			// throws error because no current controller to access session on
-			$_REQUEST['SubsiteID'] = $state;
-		}
-	}
+    public function alterDefinition($base, $index)
+    {
+        $self = get_class($this);
+        
+        $index->filterFields['_subsite'] = array(
+            'name' => '_subsite',
+            'field' => '_subsite',
+            'fullfield' => '_subsite',
+            'base' => $base,
+            'origin' => $base,
+            'type' => 'Int',
+            'lookup_chain' => array(array('call' => 'variant', 'variant' => $self, 'method' => 'currentState'))
+        );
+    }
 
-	function alterDefinition($base, $index) {
-		$self = get_class($this);
-		
-		$index->filterFields['_subsite'] = array(
-			'name' => '_subsite',
-			'field' => '_subsite',
-			'fullfield' => '_subsite',
-			'base' => $base,
-			'origin' => $base,
-			'type' => 'Int',
-			'lookup_chain' => array(array('call' => 'variant', 'variant' => $self, 'method' => 'currentState'))
-		);
-	}
+    public function alterQuery($query, $index)
+    {
+        $subsite = Subsite::currentSubsiteID();
+        $query->filter('_subsite', array($subsite, SearchQuery::$missing));
+    }
 
-	public function alterQuery($query, $index) {
-		$subsite = Subsite::currentSubsiteID();
-		$query->filter('_subsite', array($subsite, SearchQuery::$missing));
-	}
+    public static $subsites = null;
 
-	static $subsites = null;
+    /**
+     * We need _really_ complicated logic to find just the changed subsites (because we use versions there's no explicit
+     * deletes, just new versions with different members) so just always use all of them
+     */
+    public function extractManipulationWriteState(&$writes)
+    {
+        $self = get_class($this);
 
-	/**
-	 * We need _really_ complicated logic to find just the changed subsites (because we use versions there's no explicit
-	 * deletes, just new versions with different members) so just always use all of them
-	 */
-	function extractManipulationWriteState(&$writes) {
-		$self = get_class($this);
+        foreach ($writes as $key => $write) {
+            if (!$this->appliesTo($write['class'], true)) {
+                continue;
+            }
 
-		foreach ($writes as $key => $write) {
-			if (!$this->appliesTo($write['class'], true)) continue;
+            if (self::$subsites === null) {
+                $query = new SQLQuery('ID', 'Subsite');
+                self::$subsites = array_merge(array('0'), $query->execute()->column());
+            }
 
-			if (self::$subsites === null) {
-				$query = new SQLQuery('ID', 'Subsite');
-				self::$subsites = array_merge(array('0'), $query->execute()->column());
-			}
+            $next = array();
 
-			$next = array();
+            foreach ($write['statefulids'] as $i => $statefulid) {
+                foreach (self::$subsites as $subsiteID) {
+                    $next[] = array('id' => $statefulid['id'], 'state' => array_merge($statefulid['state'], array($self => $subsiteID)));
+                }
+            }
 
-			foreach ($write['statefulids'] as $i => $statefulid) {
-				foreach (self::$subsites as $subsiteID) {
-					$next[] = array('id' => $statefulid['id'], 'state' => array_merge($statefulid['state'], array($self => $subsiteID)));
-				}
-			}
-
-			$writes[$key]['statefulids'] = $next;
-		}
-	}
-
+            $writes[$key]['statefulids'] = $next;
+        }
+    }
 }
