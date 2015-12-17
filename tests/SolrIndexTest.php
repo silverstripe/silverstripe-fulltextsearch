@@ -120,9 +120,9 @@ class SolrIndexTest extends SapphireTest
             ->search(
                 '+term',
                 \Hamcrest_Matchers::anything(),
-				\Hamcrest_Matchers::anything(),
+                \Hamcrest_Matchers::anything(),
                 $matcher,
-				\Hamcrest_Matchers::anything()
+                \Hamcrest_Matchers::anything()
             );
     }
 
@@ -131,11 +131,11 @@ class SolrIndexTest extends SapphireTest
         $serviceMock = $this->getServiceMock();
         Phockito::when($serviceMock)->search(
             \Hamcrest_Matchers::anything(),
-			\Hamcrest_Matchers::anything(),
-			\Hamcrest_Matchers::anything(),
-			\Hamcrest_Matchers::anything(),
-			\Hamcrest_Matchers::anything()
-		)->return($this->getFakeRawSolrResponse());
+            \Hamcrest_Matchers::anything(),
+            \Hamcrest_Matchers::anything(),
+            \Hamcrest_Matchers::anything(),
+            \Hamcrest_Matchers::anything()
+        )->return($this->getFakeRawSolrResponse());
 
         $index = new SolrIndexTest_FakeIndex();
         $index->setService($serviceMock);
@@ -151,10 +151,10 @@ class SolrIndexTest extends SapphireTest
         Phockito::verify(
             $serviceMock)->search(
             '+(Field1:term^1.5 OR HasOneObject_Field1:term^3)',
-			\Hamcrest_Matchers::anything(),
-			\Hamcrest_Matchers::anything(),
-			\Hamcrest_Matchers::not(\Hamcrest_Matchers::hasKeyInArray('hl.q')),
-			\Hamcrest_Matchers::anything()
+            \Hamcrest_Matchers::anything(),
+            \Hamcrest_Matchers::anything(),
+            \Hamcrest_Matchers::not(\Hamcrest_Matchers::hasKeyInArray('hl.q')),
+            \Hamcrest_Matchers::anything()
         );
 
         // Search with highlighting
@@ -168,10 +168,10 @@ class SolrIndexTest extends SapphireTest
         Phockito::verify(
             $serviceMock)->search(
             '+(Field1:term^1.5 OR HasOneObject_Field1:term^3)',
-			\Hamcrest_Matchers::anything(),
-			\Hamcrest_Matchers::anything(),
-			\Hamcrest_Matchers::hasKeyInArray('hl.q'),
-			\Hamcrest_Matchers::anything()
+            \Hamcrest_Matchers::anything(),
+            \Hamcrest_Matchers::anything(),
+            \Hamcrest_Matchers::hasKeyInArray('hl.q'),
+            \Hamcrest_Matchers::anything()
         );
     }
 
