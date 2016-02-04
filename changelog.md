@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.1.1]
+
+* Converted to PSR-2
+* FIX: remove parameters from function calls
+* Added standard code of conduct
+* Added standard editor config
+* Updated license
+* Added standard gitattributes
+* MINOR: Don't include Hamcrest globally so it doesn't conflict with PHPUnit
+
 ## [2.1.0]
 
 * 3.2 Compatibility
