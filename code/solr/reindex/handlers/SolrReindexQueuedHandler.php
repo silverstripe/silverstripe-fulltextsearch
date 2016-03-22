@@ -75,7 +75,7 @@ class SolrReindexQueuedHandler extends SolrReindexBase
         // Trigger another job for this group
         $job = Injector::inst()->create(
             'SolrReindexGroupQueuedJob',
-            $indexInstance->getIndexName(), $state, $class, $groups, $group
+            get_class($indexInstance), $state, $class, $groups, $group
         );
         $this
             ->getQueuedJobService()

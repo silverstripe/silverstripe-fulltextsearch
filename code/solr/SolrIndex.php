@@ -80,9 +80,25 @@ abstract class SolrIndex extends SearchIndex
         return $this->renderWith($this->getTemplatesPath() . '/schema.ss');
     }
 
+    /**
+     * Helper for returning the correct index name. Supports prefixing and
+     * suffixing
+     *
+     * @return string
+     */
     public function getIndexName()
     {
-        return get_class($this);
+        $name = get_class($this);
+
+        if(defined('SS_SOLR_INDEX_PREFIX')) {
+            $name = SS_SOLR_INDEX_PREFIX . ''. $name;
+        }
+
+        if(defined('SS_SOLR_INDEX_SUFFIX')) {
+            $name = $name . '' . SS_SOLR_INDEX_SUFFIX;
+        }
+
+        return $name;
     }
 
     public function getTypes()
