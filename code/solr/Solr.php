@@ -107,8 +107,8 @@ class Solr
 
     /**
      * Get a SolrService
-     * 
-     * @param string $core Optional core name
+     *
+     * @param string $core Optional name of index class
      * @return SolrService_Core
      */
     public static function service($core = null)
@@ -354,11 +354,32 @@ class Solr_Reindex extends Solr_BuildTask
     {
         $class = $request->getVar('class');
 
+        $index = $request->getVar('index');
+
+        //find the index classname by IndexName
+        // this is for when index names do not match the class name (this can be done by overloading getIndexName() on
+        // indexes
+        if ($index && !ClassInfo::exists($index)) {
+            foreach(ClassInfo::subclassesFor('SolrIndex') as $solrIndexClass) {
+                $reflection = new ReflectionClass($solrIndexClass);
+                //skip over abstract classes
+                if (!$reflection->isInstantiable()) {
+                    continue;
+                }
+                //check the indexname matches the index passed to the request
+                if (!strcasecmp(singleton($solrIndexClass)->getIndexName(), $index)) {
+                    //if we match, set the correct index name and move on
+                    $index = $solrIndexClass;
+                    break;
+                }
+            }
+        }
+
         // Deprecated reindex mechanism
         $start = $request->getVar('start');
         if ($start !== null) {
             // Run single batch directly
-            $indexInstance = singleton($request->getVar('index'));
+            $indexInstance = singleton($index);
             $state = json_decode($request->getVar('variantstate'), true);
             $this->runFrom($indexInstance, $class, $start, $state);
             return;
@@ -372,7 +393,7 @@ class Solr_Reindex extends Solr_BuildTask
         if ($groups) {
             // Run grouped batches (id % groups = group)
             $group = $request->getVar('group');
-            $indexInstance = singleton($request->getVar('index'));
+            $indexInstance = singleton($index);
             $state = json_decode($request->getVar('variantstate'), true);
 
             $handler->runGroup($this->getLogger(), $indexInstance, $state, $class, $groups, $group);

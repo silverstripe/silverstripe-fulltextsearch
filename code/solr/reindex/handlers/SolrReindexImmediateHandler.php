@@ -66,7 +66,7 @@ class SolrReindexImmediateHandler extends SolrReindexBase
 
         // If we're in dev mode, commit more often for fun and profit
         if (Director::isDev()) {
-            Solr::service($indexName)->commit();
+            Solr::service(get_class($indexInstance))->commit();
         }
 
         // This will slow down things a tiny bit, but it is done so that we don't timeout to the database during a reindex
