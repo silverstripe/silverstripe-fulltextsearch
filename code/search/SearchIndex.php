@@ -552,8 +552,8 @@ abstract class SearchIndex extends ViewableData
                         $dirty[$base] = array();
                     }
 
-                    foreach ($ids as $id) {
-                        $statefulid = array('id' => $id, 'state' => $state);
+                    foreach ($ids as $rid) {
+                        $statefulid = array('id' => $rid, 'state' => $state);
                         $key = serialize($statefulid);
                         $dirty[$base][$key] = $statefulid;
                     }
