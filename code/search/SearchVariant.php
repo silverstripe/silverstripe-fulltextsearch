@@ -123,7 +123,7 @@ abstract class SearchVariant
      * @param bool $includeSubclasses - (Optional) If false, only variants that apply strictly to the passed class or its super-classes
      * will be checked. If true (the default), variants that apply to any sub-class of the passed class with also be checked
      *
-     * @return An object with one method, call()
+     * @return SearchVariant_Caller An object with one method, call()
      */
     public static function with($class = null, $includeSubclasses = true)
     {
@@ -196,6 +196,59 @@ abstract class SearchVariant
         }
 
         return $allstates ? new CombinationsArrayIterator($allstates) : array(array());
+    }
+
+
+    /**
+     * Add new filter field to index safely.
+     *
+     * This method will respect existing filters with the same field name that
+     * correspond to multiple classes
+     *
+     * @param SearchIndex $index
+     * @param string $name Field name
+     * @param array $field Field spec
+     */
+    protected function addFilterField($index, $name, $field) {
+        // If field already exists, make sure to merge origin / base fields
+        if(isset($index->filterFields[$name])) {
+            $field['base'] = $this->mergeClasses(
+                $index->filterFields[$name]['base'],
+                $field['base']
+            );
+            $field['origin'] = $this->mergeClasses(
+                $index->filterFields[$name]['origin'],
+                $field['origin']
+            );
+        }
+
+        $index->filterFields[$name] = $field;
+    }
+
+    /**
+     * Merge sets of (or individual) class names together for a search index field.
+     *
+     * If there is only one unique class name, then just return it as a string instead of array.
+     *
+     * @param array|string $left Left class(es)
+     * @param array|string $right Right class(es)
+     * @return array|string List of classes, or single class
+     */
+    protected function mergeClasses($left, $right) {
+        // Merge together and remove dupes
+        if(!is_array($left)) {
+            $left = array($left);
+        }
+        if(!is_array($right)) {
+            $right = array($right);
+        }
+        $merged = array_values(array_unique(array_merge($left, $right)));
+
+        // If there is only one item, return it as a single string
+        if(count($merged) === 1) {
+            return reset($merged);
+        }
+        return $merged;
     }
 }
 

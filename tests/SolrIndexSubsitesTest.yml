@@ -1,0 +1,16 @@
+Subsite:
+  main:
+    Title: Template
+  subsite1:
+    Title: 'Subsite1 Template'
+  subsite2:
+    Title: 'Subsite2 Template'
+SubsiteDomain:
+  subsite1:
+    SubsiteID: =>Subsite.subsite1
+    Domain: www.subsite1.com
+    Protocol: automatic
+  subsite2:
+    SubsiteID: =>Subsite.subsite2
+    Domain: www.subsite2.com
+    Protocol: automatic

@@ -25,7 +25,7 @@
  * - Specifying which classes and fields this index contains
  *
  * - Specifying update rules that are not extractable from metadata (because the values come from functions for instance)
- * 
+ *
  */
 abstract class SearchIndex extends ViewableData
 {
@@ -354,7 +354,7 @@ abstract class SearchIndex extends ViewableData
 
     /**
      * Returns an array where each member is all the fields and the classes that are at the end of some
-     * specific lookup chain from one of the base classes 
+     * specific lookup chain from one of the base classes
      */
     public function getDerivedFields()
     {
@@ -391,7 +391,7 @@ abstract class SearchIndex extends ViewableData
 
     /**
      * Get the "document ID" (a database & variant unique id) given some "Base" class, DataObject ID and state array
-     * 
+     *
      * @param String $base - The base class of the object
      * @param Integer $id - The ID of the object
      * @param Array $state - The variant state of the object
@@ -465,7 +465,7 @@ abstract class SearchIndex extends ViewableData
                         $method = $step['method'];
                         $object = $object->$method();
                     } elseif ($step['call'] == 'variant') {
-                        $variants = SearchVariant::variants($field['base'], true);
+                        $variants = SearchVariant::variants();
                         $variant = $variants[$step['variant']];
                         $method = $step['method'];
                         $object = $variant->$method($object);
@@ -476,11 +476,26 @@ abstract class SearchIndex extends ViewableData
                 }
             }
         } catch (Exception $e) {
+            static::warn($e);
             $object = null;
         }
 
         restore_error_handler();
         return $object;
+    }
+
+    /**
+     * Log non-fatal errors
+     *
+     * @param Exception $e
+     * @throws Exception
+     */
+    public static function warn($e) {
+        // Noisy errors during testing
+        if(class_exists('SapphireTest', false) && SapphireTest::is_running_test()) {
+            throw $e;
+        }
+        SS_Log::log($e, SS_Log::WARN);
     }
 
     /**
@@ -620,7 +635,7 @@ abstract class SearchIndex_Recording extends SearchIndex
         $res = array();
 
         $res['ID'] = $object->ID;
-        
+
         foreach ($this->getFieldsIterator() as $name => $field) {
             $val = $this->_getFieldValue($object, $field);
             $res[$name] = $val;
@@ -655,7 +670,7 @@ abstract class SearchIndex_Recording extends SearchIndex
     {
         $this->committed = true;
     }
-    
+
     public function getIndexName()
     {
         return get_class($this);
