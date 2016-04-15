@@ -173,7 +173,7 @@ class Solr_BuildTask extends BuildTask
 
     /**
      * Get the current logger
-     * 
+     *
      * @return LoggerInterface
      */
     public function getLogger()
@@ -225,7 +225,7 @@ class Solr_Configure extends Solr_BuildTask
     public function run($request)
     {
         parent::run($request);
-        
+
         // Find the IndexStore handler, which will handle uploading config files to Solr
         $store = $this->getSolrConfigStore();
         $indexes = Solr::get_indexes();
@@ -240,10 +240,10 @@ class Solr_Configure extends Solr_BuildTask
             }
         }
     }
-    
+
     /**
      * Update the index on the given store
-     * 
+     *
      * @param SolrIndex $instance Instance
      * @param SolrConfigStore $store
      */
@@ -251,11 +251,11 @@ class Solr_Configure extends Solr_BuildTask
     {
         $index = $instance->getIndexName();
         $this->getLogger()->info("Configuring $index.");
-        
+
         // Upload the config files for this index
         $this->getLogger()->info("Uploading configuration ...");
         $instance->uploadConfig($store);
-        
+
         // Then tell Solr to use those config files
         $service = Solr::service();
         if ($service->coreIsActive($index)) {
@@ -265,23 +265,23 @@ class Solr_Configure extends Solr_BuildTask
             $this->getLogger()->info("Creating core ...");
             $service->coreCreate($index, $store->instanceDir($index));
         }
-        
+
         $this->getLogger()->info("Done");
     }
 
     /**
      * Get config store
-     * 
+     *
      * @return SolrConfigStore
      */
     protected function getSolrConfigStore()
     {
         $options = Solr::solr_options();
-        
+
         if (!isset($options['indexstore']) || !($indexstore = $options['indexstore'])) {
             user_error('No index configuration for Solr provided', E_USER_ERROR);
         }
-        
+
         // Find the IndexStore handler, which will handle uploading config files to Solr
         $mode = $indexstore['mode'];
 
@@ -340,7 +340,7 @@ class Solr_Reindex extends Solr_BuildTask
     public function run($request)
     {
         parent::run($request);
-        
+
         // Reset state
         $originalState = SearchVariant::current_state();
         $this->doReindex($request);
@@ -400,6 +400,16 @@ class Solr_Reindex extends Solr_BuildTask
             return;
         }
 
+        // run a specified index
+        $index = $request->getVar('index');
+        if ($index) {
+
+            $self = get_class($this);
+            $indexInstance = singleton($request->getVar('index'));
+            $handler->processIndex($this->getLogger(), $indexInstance, $this->config()->recordsPerRequest, $self);
+            return;
+        }
+
         // If run at the top level, delegate to appropriate handler
         $self = get_class($this);
         $handler->triggerReindex($this->getLogger(), $this->config()->recordsPerRequest, $self, $class);
@@ -411,7 +421,7 @@ class Solr_Reindex extends Solr_BuildTask
     protected function runFrom($index, $class, $start, $variantstate)
     {
         DeprecationTest_Deprecation::notice('2.0.0', 'Solr_Reindex now uses a new grouping mechanism');
-        
+
         // Set time limit and state
         increase_time_limit_to();
         SearchVariant::activate_state($variantstate);
