@@ -90,14 +90,14 @@ class SearchUpdater extends Object
         $writes = array();
 
         foreach ($manipulation as $table => $details) {
-            if (!isset($details['id']) || !isset($details['fields'])) {
+            if (!isset($details['id'])) {
                 continue;
             }
 
             $id = $details['id'];
             $state = $details['state'];
             $class = $details['class'];
-            $fields = $details['fields'];
+            $fields = isset($details['fields']) ? $details['fields'] : array();
 
             $base = ClassInfo::baseDataClass($class);
             $key = "$id:$base:".serialize($state);
@@ -125,6 +125,13 @@ class SearchUpdater extends Object
             }
         }
 
+        // Trim records without fields
+        foreach(array_keys($writes) as $key) {
+            if(empty($writes[$key]['fields'])) {
+                unset($writes[$key]);
+            }
+        }
+
         // Then extract any state that is needed for the writes
 
         SearchVariant::call('extractManipulationWriteState', $writes);
@@ -136,7 +143,7 @@ class SearchUpdater extends Object
 
     /**
      * Send updates to the current search processor for execution
-     * 
+     *
      * @param array $writes
      */
     public static function process_writes($writes)
