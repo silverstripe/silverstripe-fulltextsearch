@@ -12,12 +12,12 @@ class SolrIndexTest extends SapphireTest
 
     public function setUp()
     {
+        parent::setUp();
+
         if (!class_exists('Phockito')) {
             $this->markTestSkipped("These tests need the Phockito module installed to run");
             $this->skipTest = true;
         }
-
-        parent::setUp();
     }
 
     public function testFieldDataHasOne()
@@ -88,7 +88,7 @@ class SolrIndexTest extends SapphireTest
                 \Hamcrest_Matchers::anything()
             );
     }
-    
+
     /**
      * Test boosting on field schema (via queried fields parameter)
      */

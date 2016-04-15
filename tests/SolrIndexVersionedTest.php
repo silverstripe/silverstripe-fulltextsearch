@@ -7,9 +7,9 @@ if (class_exists('Phockito')) {
 class SolrIndexVersionedTest extends SapphireTest
 {
     protected $oldMode = null;
-    
+
     protected static $index = null;
-    
+
     protected $extraDataObjects = array(
         'SearchVariantVersionedTest_Item'
     );
@@ -17,7 +17,7 @@ class SolrIndexVersionedTest extends SapphireTest
     public function setUp()
     {
         parent::setUp();
-        
+
         if (!class_exists('Phockito')) {
             $this->skipTest = true;
             return $this->markTestSkipped("These tests need the Phockito module installed to run");
@@ -35,23 +35,20 @@ class SolrIndexVersionedTest extends SapphireTest
 
         SearchUpdater::bind_manipulation_capture();
 
-        Config::nest();
-
         Config::inst()->update('Injector', 'SearchUpdateProcessor', array(
             'class' => 'SearchUpdateImmediateProcessor'
         ));
 
         FullTextSearch::force_index_list(self::$index);
         SearchUpdater::clear_dirty_indexes();
-        
+
         $this->oldMode = Versioned::get_reading_mode();
         Versioned::reading_stage('Stage');
     }
-    
+
     public function tearDown()
     {
         Versioned::set_reading_mode($this->oldMode);
-        Config::unnest();
         parent::tearDown();
     }
 
@@ -59,21 +56,21 @@ class SolrIndexVersionedTest extends SapphireTest
     {
         return Phockito::mock('Solr3Service');
     }
-    
+
     protected function getExpectedDocumentId($id, $stage)
     {
         // Prevent subsites from breaking tests
         $subsites = class_exists('Subsite') ? '"SearchVariantSubsites":"0",' : '';
         return $id.'-SiteTree-{'.$subsites.'"SearchVariantVersioned":"'.$stage.'"}';
     }
-    
+
     public function testPublishing()
     {
-        
+
         // Setup mocks
         $serviceMock = $this->getServiceMock();
         self::$index->setService($serviceMock);
-        
+
         // Check that write updates Stage
         Versioned::reading_stage('Stage');
         Phockito::reset($serviceMock);
@@ -85,7 +82,7 @@ class SolrIndexVersionedTest extends SapphireTest
             'ClassName' => 'SearchVariantVersionedTest_Item'
         ));
         Phockito::verify($serviceMock)->addDocument($doc);
-        
+
         // Check that write updates Live
         Versioned::reading_stage('Stage');
         Phockito::reset($serviceMock);
@@ -99,14 +96,14 @@ class SolrIndexVersionedTest extends SapphireTest
         ));
         Phockito::verify($serviceMock)->addDocument($doc);
     }
-    
+
     public function testDelete()
     {
-        
+
         // Setup mocks
         $serviceMock = $this->getServiceMock();
         self::$index->setService($serviceMock);
-        
+
         // Delete the live record (not the stage)
         Versioned::reading_stage('Stage');
         Phockito::reset($serviceMock);
@@ -121,7 +118,7 @@ class SolrIndexVersionedTest extends SapphireTest
             ->deleteById($this->getExpectedDocumentId($id, 'Live'));
         Phockito::verify($serviceMock, 0)
             ->deleteById($this->getExpectedDocumentId($id, 'Stage'));
-        
+
         // Delete the stage record
         Versioned::reading_stage('Stage');
         Phockito::reset($serviceMock);
@@ -155,7 +152,7 @@ if (!class_exists('Phockito')) {
 class SolrDocumentMatcher extends Hamcrest_BaseMatcher
 {
     protected $properties;
-    
+
     public function __construct($properties)
     {
         $this->properties = $properties;
@@ -171,13 +168,13 @@ class SolrDocumentMatcher extends Hamcrest_BaseMatcher
         if (! ($item instanceof Apache_Solr_Document)) {
             return false;
         }
-        
+
         foreach ($this->properties as $key => $value) {
             if ($item->{$key} != $value) {
                 return false;
             }
         }
-        
+
         return true;
     }
 }

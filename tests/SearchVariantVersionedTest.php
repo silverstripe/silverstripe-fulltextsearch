@@ -2,6 +2,9 @@
 
 class SearchVariantVersionedTest extends SapphireTest
 {
+    /**
+     * @var SearchVariantVersionedTest_Index
+     */
     private static $index = null;
 
     protected $extraDataObjects = array(
@@ -23,21 +26,12 @@ class SearchVariantVersionedTest extends SapphireTest
 
         SearchUpdater::bind_manipulation_capture();
 
-        Config::nest();
-
         Config::inst()->update('Injector', 'SearchUpdateProcessor', array(
             'class' => 'SearchUpdateImmediateProcessor'
         ));
 
         FullTextSearch::force_index_list(self::$index);
         SearchUpdater::clear_dirty_indexes();
-    }
-
-    public function tearDown()
-    {
-        Config::unnest();
-
-        parent::tearDown();
     }
 
     public function testPublishing()
@@ -71,9 +65,13 @@ class SearchVariantVersionedTest extends SapphireTest
         $item->write();
 
         SearchUpdater::flush_dirty_indexes();
-        $this->assertEquals(self::$index->getAdded(array('ID', '_versionedstage')), array(
-            array('ID' => $item->ID, '_versionedstage' => 'Stage')
+
+        $expected = array(array(
+            'ID' => $item->ID,
+            '_versionedstage' => 'Stage'
         ));
+        $added = self::$index->getAdded(array('ID', '_versionedstage'));
+        $this->assertEquals($expected, $added);
     }
 
     public function testExcludeVariantState()
