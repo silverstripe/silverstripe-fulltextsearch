@@ -140,6 +140,7 @@
       </analyzer>
       <analyzer type="query">
         <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+        <filter class="solr.KeywordRepeatFilterFactory"/>
         <filter class="solr.SynonymFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
         <filter class="solr.StopFilterFactory"
                 ignoreCase="true"
@@ -150,6 +151,7 @@
         <filter class="solr.LowerCaseFilterFactory"/>
         <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/>
         <filter class="solr.PorterStemFilterFactory"/>
+        <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
       </analyzer>
     </fieldType>
 
@@ -166,12 +168,14 @@
       </analyzer>
       <analyzer type="query">
         <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+        <filter class="solr.KeywordRepeatFilterFactory"/>
         <filter class="solr.SynonymFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
         <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" enablePositionIncrements="true"/>
         <filter class="solr.WordDelimiterFilterFactory" generateWordParts="1" generateNumberParts="1" catenateWords="0" catenateNumbers="0" catenateAll="0" splitOnCaseChange="1"/>
         <filter class="solr.LowerCaseFilterFactory"/>
         <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/>
         <filter class="solr.PorterStemFilterFactory"/>
+        <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
       </analyzer>
     </fieldType>
 
@@ -198,8 +202,8 @@
             <tokenizer class="solr.StandardTokenizerFactory" />
             <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt"/>
             <filter class="solr.LengthFilterFactory" min="4" max="20" />
-            <filter class="solr.LowerCaseFilterFactory" /> 
-            <filter class="solr.RemoveDuplicatesTokenFilterFactory" /> 
+            <filter class="solr.LowerCaseFilterFactory" />
+            <filter class="solr.RemoveDuplicatesTokenFilterFactory" />
         </analyzer>
     </fieldType>
 
