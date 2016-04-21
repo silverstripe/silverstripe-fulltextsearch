@@ -22,7 +22,7 @@ class SearchUpdater extends Object
         global $databaseConfig;
 
         $current = DB::getConn();
-        if (!$current || @$current->isManipulationCapture) {
+        if (!$current || !$current->currentDatabase() || @$current->isManipulationCapture) {
             return;
         } // If not yet set, or its already captured, just return
 
