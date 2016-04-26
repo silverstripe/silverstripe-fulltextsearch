@@ -44,28 +44,28 @@ class SearchVariantSubsites extends SearchVariant
         Permission::flush_permission_cache();
     }
 
-    public function alterDefinition($base, $index)
+    public function alterDefinition($class, $index)
     {
         $self = get_class($this);
-        
-        $index->filterFields['_subsite'] = array(
+
+        // Add field to root
+        $this->addFilterField($index, '_subsite', array(
             'name' => '_subsite',
             'field' => '_subsite',
             'fullfield' => '_subsite',
-            'base' => $base,
-            'origin' => $base,
+            'base' => ClassInfo::baseDataClass($class),
+            'origin' => $class,
             'type' => 'Int',
             'lookup_chain' => array(array('call' => 'variant', 'variant' => $self, 'method' => 'currentState'))
-        );
+        ));
     }
+
 
     public function alterQuery($query, $index)
     {
         $subsite = Subsite::currentSubsiteID();
         $query->filter('_subsite', array($subsite, SearchQuery::$missing));
     }
-
-    public static $subsites = null;
 
     /**
      * We need _really_ complicated logic to find just the changed subsites (because we use versions there's no explicit
@@ -74,25 +74,27 @@ class SearchVariantSubsites extends SearchVariant
     public function extractManipulationWriteState(&$writes)
     {
         $self = get_class($this);
+        $query = new SQLQuery('"ID"', '"Subsite"');
+        $subsites = array_merge(array('0'), $query->execute()->column());
 
         foreach ($writes as $key => $write) {
-            if (!$this->appliesTo($write['class'], true)) {
+            $applies = $this->appliesTo($write['class'], true);
+            if (!$applies) {
                 continue;
             }
 
-            if (self::$subsites === null) {
-                $query = new SQLQuery('"ID"', '"Subsite"');
-                self::$subsites = array_merge(array('0'), $query->execute()->column());
-            }
-
             $next = array();
-
             foreach ($write['statefulids'] as $i => $statefulid) {
-                foreach (self::$subsites as $subsiteID) {
-                    $next[] = array('id' => $statefulid['id'], 'state' => array_merge($statefulid['state'], array($self => (string)$subsiteID)));
+                foreach ($subsites as $subsiteID) {
+                    $next[] = array(
+                        'id' => $statefulid['id'],
+                        'state' => array_merge(
+                            $statefulid['state'],
+                            array($self => (string)$subsiteID)
+                        )
+                    );
                 }
             }
-
             $writes[$key]['statefulids'] = $next;
         }
     }

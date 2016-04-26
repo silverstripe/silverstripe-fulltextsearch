@@ -39,7 +39,7 @@ class SolrReindexTest extends SapphireTest
             $this->skipTest = true;
             return $this->markTestSkipped("These tests need the Phockito module installed to run");
         }
-        
+
         // Set test handler for reindex
         Config::inst()->update('Injector', 'SolrReindexHandler', array(
             'class' => 'SolrReindexTest_TestHandler'
@@ -416,19 +416,19 @@ class SolrReindexTest_Variant extends SearchVariant implements TestOnly
         }
     }
 
-    public function alterDefinition($base, $index)
+    public function alterDefinition($class, $index)
     {
         $self = get_class($this);
 
-        $index->filterFields['_testvariant'] = array(
+        $this->addFilterField($index, '_testvariant', array(
             'name' => '_testvariant',
             'field' => '_testvariant',
             'fullfield' => '_testvariant',
-            'base' => $base,
-            'origin' => $base,
+            'base' => ClassInfo::baseDataClass($class),
+            'origin' => $class,
             'type' => 'Int',
             'lookup_chain' => array(array('call' => 'variant', 'variant' => $self, 'method' => 'currentState'))
-        );
+        ));
     }
 
     public function alterQuery($query, $index)

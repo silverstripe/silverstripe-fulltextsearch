@@ -25,19 +25,19 @@ class SearchVariantVersioned extends SearchVariant
         Versioned::reading_stage($state);
     }
 
-    public function alterDefinition($base, $index)
+    public function alterDefinition($class, $index)
     {
         $self = get_class($this);
 
-        $index->filterFields['_versionedstage'] = array(
+        $this->addFilterField($index, '_versionedstage', array(
             'name' => '_versionedstage',
             'field' => '_versionedstage',
             'fullfield' => '_versionedstage',
-            'base' => $base,
-            'origin' => $base,
+            'base' => ClassInfo::baseDataClass($class),
+            'origin' => $class,
             'type' => 'String',
             'lookup_chain' => array(array('call' => 'variant', 'variant' => $self, 'method' => 'currentState'))
-        );
+        ));
     }
 
     public function alterQuery($query, $index)
@@ -45,11 +45,11 @@ class SearchVariantVersioned extends SearchVariant
         $stage = Versioned::current_stage();
         $query->filter('_versionedstage', array($stage, SearchQuery::$missing));
     }
-    
+
     public function extractManipulationState(&$manipulation)
     {
         $self = get_class($this);
-        
+
         foreach ($manipulation as $table => $details) {
             $class = $details['class'];
             $stage = 'Stage';

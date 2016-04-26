@@ -11,7 +11,8 @@ class SolrIndexVersionedTest extends SapphireTest
     protected static $index = null;
 
     protected $extraDataObjects = array(
-        'SearchVariantVersionedTest_Item'
+        'SearchVariantVersionedTest_Item',
+        'SolrIndexVersionedTest_Object',
     );
 
     public function setUp()
@@ -20,13 +21,15 @@ class SolrIndexVersionedTest extends SapphireTest
 
         if (!class_exists('Phockito')) {
             $this->skipTest = true;
-            return $this->markTestSkipped("These tests need the Phockito module installed to run");
+            $this->markTestSkipped("These tests need the Phockito module installed to run");
+            return;
         }
 
         // Check versioned available
         if (!class_exists('Versioned')) {
             $this->skipTest = true;
-            return $this->markTestSkipped('The versioned decorator is not installed');
+            $this->markTestSkipped('The versioned decorator is not installed');
+            return;
         }
 
         if (self::$index === null) {
@@ -57,11 +60,21 @@ class SolrIndexVersionedTest extends SapphireTest
         return Phockito::mock('Solr3Service');
     }
 
-    protected function getExpectedDocumentId($id, $stage)
+    /**
+     * @param DataObject $object Item being added
+     * @param string $stage
+     * @return string
+     */
+    protected function getExpectedDocumentId($object, $stage)
     {
+        $id = $object->ID;
+        $class = ClassInfo::baseDataClass($object);
         // Prevent subsites from breaking tests
-        $subsites = class_exists('Subsite') ? '"SearchVariantSubsites":"0",' : '';
-        return $id.'-SiteTree-{'.$subsites.'"SearchVariantVersioned":"'.$stage.'"}';
+        $subsites = '';
+        if(class_exists('Subsite') && $object->hasOne('Subsite')) {
+            $subsites = '"SearchVariantSubsites":"0",';
+        }
+        return $id.'-'.$class.'-{'.$subsites.'"SearchVariantVersioned":"'.$stage.'"}';
     }
 
     public function testPublishing()
@@ -74,32 +87,54 @@ class SolrIndexVersionedTest extends SapphireTest
         // Check that write updates Stage
         Versioned::reading_stage('Stage');
         Phockito::reset($serviceMock);
-        $item = new SearchVariantVersionedTest_Item(array('Title' => 'Foo'));
+        $item = new SearchVariantVersionedTest_Item(array('TestText' => 'Foo'));
         $item->write();
+        $object = new SolrIndexVersionedTest_Object(array('TestText' => 'Bar'));
+        $object->write();
         SearchUpdater::flush_dirty_indexes();
-        $doc = new SolrDocumentMatcher(array(
-            '_documentid' => $this->getExpectedDocumentId($item->ID, 'Stage'),
-            'ClassName' => 'SearchVariantVersionedTest_Item'
+        $doc1 = new SolrDocumentMatcher(array(
+            '_documentid' => $this->getExpectedDocumentId($item, 'Stage'),
+            'ClassName' => 'SearchVariantVersionedTest_Item',
+            'SearchVariantVersionedTest_Item_TestText' => 'Foo',
+            '_versionedstage' => 'Stage'
         ));
-        Phockito::verify($serviceMock)->addDocument($doc);
+        $doc2 = new SolrDocumentMatcher(array(
+            '_documentid' => $this->getExpectedDocumentId($object, 'Stage'),
+            'ClassName' => 'SolrIndexVersionedTest_Object',
+            'SolrIndexVersionedTest_Object_TestText' => 'Bar',
+            '_versionedstage' => 'Stage'
+        ));
+        Phockito::verify($serviceMock)->addDocument($doc1);
+        Phockito::verify($serviceMock)->addDocument($doc2);
 
         // Check that write updates Live
         Versioned::reading_stage('Stage');
         Phockito::reset($serviceMock);
-        $item = new SearchVariantVersionedTest_Item(array('Title' => 'Bar'));
+        $item = new SearchVariantVersionedTest_Item(array('TestText' => 'Foo'));
         $item->write();
         $item->publish('Stage', 'Live');
+        $object = new SolrIndexVersionedTest_Object(array('TestText' => 'Bar'));
+        $object->write();
+        $object->publish('Stage', 'Live');
         SearchUpdater::flush_dirty_indexes();
         $doc = new SolrDocumentMatcher(array(
-            '_documentid' => $this->getExpectedDocumentId($item->ID, 'Live'),
-            'ClassName' => 'SearchVariantVersionedTest_Item'
+            '_documentid' => $this->getExpectedDocumentId($item, 'Live'),
+            'ClassName' => 'SearchVariantVersionedTest_Item',
+            'SearchVariantVersionedTest_Item_TestText' => 'Foo',
+            '_versionedstage' => 'Live'
+        ));
+        $doc2 = new SolrDocumentMatcher(array(
+            '_documentid' => $this->getExpectedDocumentId($object, 'Live'),
+            'ClassName' => 'SolrIndexVersionedTest_Object',
+            'SolrIndexVersionedTest_Object_TestText' => 'Bar',
+            '_versionedstage' => 'Live'
         ));
         Phockito::verify($serviceMock)->addDocument($doc);
+        Phockito::verify($serviceMock)->addDocument($doc2);
     }
 
     public function testDelete()
     {
-
         // Setup mocks
         $serviceMock = $this->getServiceMock();
         self::$index->setService($serviceMock);
@@ -107,11 +142,11 @@ class SolrIndexVersionedTest extends SapphireTest
         // Delete the live record (not the stage)
         Versioned::reading_stage('Stage');
         Phockito::reset($serviceMock);
-        $item = new SearchVariantVersionedTest_Item(array('Title' => 'Too'));
+        $item = new SearchVariantVersionedTest_Item(array('TestText' => 'Too'));
         $item->write();
         $item->publish('Stage', 'Live');
         Versioned::reading_stage('Live');
-        $id = $item->ID;
+        $id = clone $item;
         $item->delete();
         SearchUpdater::flush_dirty_indexes();
         Phockito::verify($serviceMock, 1)
@@ -122,10 +157,10 @@ class SolrIndexVersionedTest extends SapphireTest
         // Delete the stage record
         Versioned::reading_stage('Stage');
         Phockito::reset($serviceMock);
-        $item = new SearchVariantVersionedTest_Item(array('Title' => 'Too'));
+        $item = new SearchVariantVersionedTest_Item(array('TestText' => 'Too'));
         $item->write();
         $item->publish('Stage', 'Live');
-        $id = $item->ID;
+        $id = clone $item;
         $item->delete();
         SearchUpdater::flush_dirty_indexes();
         Phockito::verify($serviceMock, 1)
@@ -141,7 +176,9 @@ class SolrVersionedTest_Index extends SolrIndex
     public function init()
     {
         $this->addClass('SearchVariantVersionedTest_Item');
+        $this->addClass('SolrIndexVersionedTest_Object');
         $this->addFilterField('TestText');
+        $this->addFulltextField('Content');
     }
 }
 
@@ -177,4 +214,20 @@ class SolrDocumentMatcher extends Hamcrest_BaseMatcher
 
         return true;
     }
+}
+
+/**
+ * Non-sitetree versioned dataobject
+ */
+class SolrIndexVersionedTest_Object extends DataObject implements TestOnly {
+
+    private static $extensions = array(
+        'Versioned'
+    );
+
+    private static $db = array(
+        'Title' => 'Varchar',
+        'Content' => 'Text',
+        'TestText' => 'Varchar',
+    );
 }

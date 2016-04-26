@@ -40,19 +40,19 @@ class SearchVariantSiteTreeSubsitesPolyhome extends SearchVariant
         }
     }
 
-    public function alterDefinition($base, $index)
+    public function alterDefinition($class, $index)
     {
         $self = get_class($this);
-        
-        $index->filterFields['_subsite'] = array(
+
+        $this->addFilterField($index, '_subsite', array(
             'name' => '_subsite',
             'field' => '_subsite',
             'fullfield' => '_subsite',
-            'base' => $base,
-            'origin' => $base,
+            'base' => ClassInfo::baseDataClass($class),
+            'origin' => $class,
             'type' => 'Int',
             'lookup_chain' => array(array('call' => 'variant', 'variant' => $self, 'method' => 'currentState'))
-        );
+        ));
     }
 
     public function alterQuery($query, $index)
