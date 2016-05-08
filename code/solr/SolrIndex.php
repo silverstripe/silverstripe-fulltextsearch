@@ -795,7 +795,13 @@ abstract class SolrIndex extends SearchIndex
             }
         }
 
-        return new ArrayData($ret);
+        $ret = new ArrayData($ret);
+
+        // Enable extensions to add extra data from the response into
+        // the returned results set.
+        $this->extend('updateSearchResults', $ret, $res);
+
+        return $ret;
     }
 
 
