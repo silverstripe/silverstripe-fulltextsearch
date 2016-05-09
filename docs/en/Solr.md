@@ -363,17 +363,26 @@ to the page.
 		 *        results pages.
 		 * @param $response The solr-php-client response object.
 		 */
-		function updateSearchResults($results, $response) {
-			$facetCounts = array();
-			if (isset($response->facet_counts)) {
-				foreach ($response->facet_counts as $facet => $count) {
-					$facetCounts[] = new ArrayData(array(
-						'Name' => $facet,
-						'Count' => $count,
-					));
-				}
+		public function updateSearchResults($results, $response)
+		{
+			if (!isset($response->facet_counts) || !isset($response->facet_counts->facet_fields)) {
+				return;
 			}
-			$results->setField('FacetCounts', new ArrayList($facetCounts));
+			$facetCounts = ArrayList::create(array());
+			foreach($response->facet_counts->facet_fields as $name => $facets) {
+				$facetDetails = ArrayData::create(array(
+					'Name' => $name,
+					'Facets' => ArrayList::create(array()),
+				));
+				foreach($facets as $facetName => $facetCount) {
+					$facetDetails->Facets->push(ArrayData::create(array(
+						'Name' => $facetName,
+						'Count' => $facetCount,
+					)));
+				}
+				$facetCounts->push($facetDetails);
+			}
+			$results->setField('FacetCounts', $facetCounts);
 		}
 	}
 
