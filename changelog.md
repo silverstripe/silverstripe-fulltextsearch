@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.2.0]
+
+* FIX Indexes with custom index names that don't match the classname were breaking
+* BUG Fix versioned writes where subtables have no fields key
+* BUGFIX: Fixed issue where the $id variable would be overridden in sub sequent iterations of the derived fields loop
+* adding stemming support
+* BUG fix issues with search variants applying to more than one class
+* API adding stemming support
+* FIX: Fix initial dev/build on PDO Database.
+
 ## [2.1.1]
 
 * Converted to PSR-2
