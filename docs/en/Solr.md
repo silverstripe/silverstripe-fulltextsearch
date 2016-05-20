@@ -335,6 +335,59 @@ The searched term is highlighted with an `<em>` tag by default.
 Note: It is recommended to strip out all HTML tags and convert entities on the indexed content,
 to avoid matching HTML attributes, and cluttering highlighted content with unparsed HTML.
 
+### Adding additional information into search results
+
+Inside the SolrIndex::search() function, the third-party library solr-php-client
+is used to send data to Solr and parse the response.  Additional information can
+be pulled from this response and added to your results object for use in templates
+using the `updateSearchResults()` extension hook.
+
+	$index = new MyIndex();
+	$query = new SearchQuery();
+	$query->search('My Term');
+	$results = $index->search($query, -1, -1, array(
+		'facet' => 'true',
+		'facet.field' => 'SiteTree_ClassName',
+	));
+
+By adding facet fields into the query parameters, our response object from Solr
+now contains some additional information that we can add into the results sent
+to the page.
+
+	<?php
+	class MyResultsExtension extends Extension {
+		/**
+		 * Adds extra information from the solr-php-client repsonse
+		 * into our search results.
+		 * @param $results The ArrayData that will be used to generate search
+		 *        results pages.
+		 * @param $response The solr-php-client response object.
+		 */
+		public function updateSearchResults($results, $response)
+		{
+			if (!isset($response->facet_counts) || !isset($response->facet_counts->facet_fields)) {
+				return;
+			}
+			$facetCounts = ArrayList::create(array());
+			foreach($response->facet_counts->facet_fields as $name => $facets) {
+				$facetDetails = ArrayData::create(array(
+					'Name' => $name,
+					'Facets' => ArrayList::create(array()),
+				));
+				foreach($facets as $facetName => $facetCount) {
+					$facetDetails->Facets->push(ArrayData::create(array(
+						'Name' => $facetName,
+						'Count' => $facetCount,
+					)));
+				}
+				$facetCounts->push($facetDetails);
+			}
+			$results->setField('FacetCounts', $facetCounts);
+		}
+	}
+
+We can now access the facet information inside our templates.
+
 ### Adding Analyzers, Tokenizers and Token Filters
 
 When a document is indexed, its individual fields are subject to the analyzing and tokenizing filters that can transform and normalize the data in the fields. For example — removing blank spaces, removing html code, stemming, removing a particular character and replacing it with another 
