@@ -557,6 +557,10 @@ abstract class SearchIndex extends ViewableData
 
                         $ids = $sql->execute()->column();
                     }
+                    
+                    if (empty($ids)) {
+                        break;
+                    }
                 }
 
                 SearchVariant::activate_state($current);
