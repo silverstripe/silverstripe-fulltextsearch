@@ -140,6 +140,38 @@ class Solr
     }
 
     /**
+     * Find an index class from the index name - this is for when index names are not the name of the class
+     *
+     * @param string $indexName The index name to search for
+     * @return string
+     */
+    public static function get_index_from_name($indexName) {
+        $index = $indexName;
+
+        //find the index class by IndexName
+        // this is for when index names do not match the class name
+        // (this can be done by overloading getIndexName() on indexes
+        if ($indexName && !ClassInfo::exists($index)) {
+            foreach(self::get_indexes() as $solrIndexClass) {
+                $reflection = new ReflectionClass($solrIndexClass);
+                //skip over abstract classes
+                if (!$reflection->isInstantiable()) {
+                    continue;
+                }
+                //check the indexname matches the index passed to the request
+                if (!strcasecmp(singleton($solrIndexClass)->getIndexName(), $indexName)) {
+                    //if we match, set the correct index name and move on
+                    $index = $solrIndexClass;
+                    break;
+                }
+            }
+        }
+
+        return $index;
+
+    }
+
+    /**
      * Include the thirdparty Solr client api library. Done this way to avoid issues where code is called in
      * mysite/_config before fulltextsearch/_config has a change to update the include path.
      */
@@ -356,24 +388,7 @@ class Solr_Reindex extends Solr_BuildTask
 
         $index = $request->getVar('index');
 
-        //find the index classname by IndexName
-        // this is for when index names do not match the class name (this can be done by overloading getIndexName() on
-        // indexes
-        if ($index && !ClassInfo::exists($index)) {
-            foreach(ClassInfo::subclassesFor('SolrIndex') as $solrIndexClass) {
-                $reflection = new ReflectionClass($solrIndexClass);
-                //skip over abstract classes
-                if (!$reflection->isInstantiable()) {
-                    continue;
-                }
-                //check the indexname matches the index passed to the request
-                if (!strcasecmp(singleton($solrIndexClass)->getIndexName(), $index)) {
-                    //if we match, set the correct index name and move on
-                    $index = $solrIndexClass;
-                    break;
-                }
-            }
-        }
+        $index = Solr::get_index_from_name($index);
 
         // Deprecated reindex mechanism
         $start = $request->getVar('start');
