@@ -182,6 +182,22 @@ class SolrVersionedTest_Index extends SolrIndex
     }
 }
 
+/**
+ * Non-sitetree versioned dataobject
+ */
+class SolrIndexVersionedTest_Object extends DataObject implements TestOnly {
+
+    private static $extensions = array(
+        'Versioned'
+    );
+
+    private static $db = array(
+        'Title' => 'Varchar',
+        'Content' => 'Text',
+        'TestText' => 'Varchar',
+    );
+}
+
 if (!class_exists('Phockito')) {
     return;
 }
@@ -214,20 +230,4 @@ class SolrDocumentMatcher extends Hamcrest_BaseMatcher
 
         return true;
     }
-}
-
-/**
- * Non-sitetree versioned dataobject
- */
-class SolrIndexVersionedTest_Object extends DataObject implements TestOnly {
-
-    private static $extensions = array(
-        'Versioned'
-    );
-
-    private static $db = array(
-        'Title' => 'Varchar',
-        'Content' => 'Text',
-        'TestText' => 'Varchar',
-    );
 }
