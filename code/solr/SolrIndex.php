@@ -695,7 +695,7 @@ abstract class SolrIndex extends SearchIndex
             $params['qf'] = $qf;
         }
 
-        if (!headers_sent() && !Director::isLive()) {
+        if (!headers_sent() && Director::isDev()) {
             if ($q) {
                 header('X-Query: '.implode(' ', $q));
             }
