@@ -7,6 +7,11 @@
 		{
 			"name": "Hamish Friedlander",
 			"email": "hamish@silverstripe.com"
+		},
+		{
+			"name": "Damian Mooyman",
+			"email": "damian@silverstripe.com",
+            "role": "Developer"
 		}
 	],
 	"require": {
