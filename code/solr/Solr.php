@@ -36,6 +36,7 @@ class Solr
      *   When mode == SolrConfigStore_WebDAV or webdav (indexes should stored on a remote Solr server via webdav)
      *      auth (default: none) - A username:password pair string to use to auth against the webdav server
      *      path (default: /solrindex) - The suburl on the solr host that is set up to accept index configurations via webdav
+     *      port (default: none) - The port for WebDAV if different from the Solr port
      *      remotepath - The path that the Solr server will read the index configurations from
      */
     protected static $solr_options = array();
