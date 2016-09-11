@@ -49,6 +49,28 @@ by the user the Solr search server is started with (see below).
 		)
 	));
 
+All possible parameters incl optional ones with example values:
+
+	// File: mysite/_config.php:
+	<?php
+	Solr::configure_server(array(
+		'host' => 'localhost', // default: localhost | The host or IP Solr is listening on
+		'port' => '8983', // default: 8983 | The port Solr is listening on
+		'path' => '/solr' // default: /solr | The suburl the solr service is available on
+		'version' => '4' // default: 4 | Solr server version - currently only 3 and 4 supported
+		'service' => 'Solr4Service' // default: depends on version, Solr3Service for 3, Solr4Service for 4 | the class that provides actual communcation to the Solr server
+		'extraspath' => BASE_PATH .'/fulltextsearch/conf/solr/4/extras/' // default: <basefolder>/fulltextsearch/conf/solr/{version}/extras/ | Absolute path to the folder containing templates which are used for generating the schema and field definitions.
+		'templates' => BASE_PATH . '/fulltextsearch/conf/solr/4/templates/' // default: <basefolder>/fulltextsearch/conf/solr/{version}/templates/ | Absolute path to the configuration default files, e.g. solrconfig.xml
+		'indexstore' => array(
+			'mode' => 'file', // a classname which implements SolrConfigStore, or 'file' or 'webdav'
+			'path' => BASE_PATH . '/.solr' // The (locally accessible) path to write the index configurations to OR The suburl on the solr host that is set up to accept index configurations via webdav
+			'remotepath' => '/opt/solr/config' // default (file mode only): same as 'path' above | The path that the Solr server will read the index configurations from
+			'auth' => 'solr:solr' // default: none | Webdav only - A username:password pair string to use to auth against the webdav server
+			'port' => '80' // default: same as solr port | The port for WebDAV if different from the Solr port 
+ 		)
+	));
+
+
 Note: We recommend to put the `indexstore.path` directory outside of the webroot.
 If you place it inside of the webroot (as shown in the example),
 please ensure its contents are not accessible through the webserver.
