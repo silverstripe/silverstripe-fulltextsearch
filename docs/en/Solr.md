@@ -25,16 +25,16 @@ as the SilverStripe webhost.
 
 ## Installation (Local)
 
-#### Get the Solr server
+### Get the Solr server
 
 composer require silverstripe/fulltextsearch-localsolr 4.5.1.x-dev
 
-#### Start the server (via CLI, in a separate terminal window or background process)
+### Start the server (via CLI, in a separate terminal window or background process)
 
 	cd fulltextsearch-localsolr/server/
 	java -jar start.jar
 
-#### Configure the fulltextsearch Solr component to use the local server
+### Configure the fulltextsearch Solr component to use the local server
 
 Configure Solr in file mode. The 'path' directory has to be writeable
 by the user the Solr search server is started with (see below).
@@ -77,7 +77,9 @@ please ensure its contents are not accessible through the webserver.
 This can be achieved by server configuration, or (in most configurations)
 also by marking the folder as hidden via a "dot" prefix.
 
-#### Create an index
+## Configuration
+
+### Create an index
 
 	// File: mysite/code/MyIndex.php:
 	<?php
@@ -88,7 +90,10 @@ also by marking the folder as hidden via a "dot" prefix.
 		}
 	}
 
-#### Initialize the configuration (via CLI)
+### Create the index schema
+
+The PHP-based index definition is an abstraction layer for the actual Solr XML configuration.
+In order to create or update it, you need to run the `Solr_Configure` task.
 
 	sake dev/tasks/Solr_Configure
 
@@ -98,11 +103,14 @@ Based on the sample configuration above, this command will do the following:
 - Copy configuration files from `fulltextsearch/conf/extras/` to `<BASE_PATH>/.solr/MyIndex/conf`
 - Generate a `schema.xml`, and place it it in `<BASE_PATH>/.solr/MyIndex/conf`
 
-If you call the `Solr_configure` task with an existing index folder,
+If you call the task with an existing index folder,
 it will overwrite all files from their default locations, 
 regenerate the `schema.xml`, and ask Solr to reload the configuration.
 
-## Usage
+You can use the same command for updating an existing schema,
+which will automatically apply without requiring a Solr server restart.
+
+### Reindex
 
 After configuring Solr, you have the option to add your existing
 content to its indices. Run the following command:
@@ -136,6 +144,13 @@ group sizing by using the `Solr_Reindex.recordsPerRequest` config.
 Note: The Solr indexes will be stored as binary files inside your SilverStripe project. 
 You can also copy the `thirdparty/` solr directory somewhere else,
 just set the `path` value in `mysite/_config.php` to point to the new location.
+
+You can also run the reindex task through a web request.
+By default, the web request won't receive any feedback while its running.
+Depending on your PHP and web server configuration,
+the web request itself might time out, but the reindex continues anyway.
+This is possible because the actual index operations are run as separate
+PHP sub-processes inside the main web request.
 
 ### File-based configuration (solrconfig.xml etc)
 

@@ -112,6 +112,27 @@ They're stored in the `$Matches` property of the search return object.
 Please check the [pagination guide](http://docs.silverstripe.org/en/3.2/developer_guides/templates/how_tos/pagination/)
 in the main SilverStripe documentation to learn how to paginate through search results.
 
+## Automatic Index Updates
+
+Every change, addition or removal of an indexed class instance triggers an index update through a
+"processor" object. The update is transparently handled through inspecting every executed database query
+and checking which database tables are involved in it.
+
+Index updates usually are executed in the same request which caused the index to become "dirty".
+For example, a CMS author might have edited a page, or a user has left a new comment.
+In order to minimise delays to those users, the index update is deferred until after
+the actual request returns to the user, through PHP's `register_shutdown_function()` functionality.
+
+If the [queuedjobs](https://github.com/silverstripe-australia/silverstripe-queuedjobs) module is installed,
+updates are queued up instead of executed in the same request. Queue jobs are usually processed every minute.
+Large index updates will be batched into multiple queue jobs to ensure a job can run to completion within
+common execution constraints (memory and time limits). You can check the status of jobs in
+an administrative interface under `admin/queuedjobs/`.
+
+## Manual Index Updates
+
+Manual updates are connector specific, please check the connector docs for details.
+
 ## Searching Specific Fields
 
 By default, the index searches through all indexed fields.
