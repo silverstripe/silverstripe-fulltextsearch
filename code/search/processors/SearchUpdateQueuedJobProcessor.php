@@ -53,9 +53,7 @@ class SearchUpdateQueuedJobProcessor extends SearchUpdateBatchedProcessor implem
 
     public function afterComplete()
     {
-        // Once indexing is complete, commit later in order to avoid solr limits
-        // see http://stackoverflow.com/questions/7512945/how-to-fix-exceeded-limit-of-maxwarmingsearchers
-        SearchUpdateCommitJobProcessor::queue();
+        // NOP
     }
 
     public function getJobData()
@@ -93,7 +91,7 @@ class SearchUpdateQueuedJobProcessor extends SearchUpdateBatchedProcessor implem
         $result = parent::process();
 
         if ($this->jobFinished()) {
-            $this->addMessage("All batched updates complete. Queuing commit job");
+            $this->addMessage("All batched updates complete.");
         }
 
         return $result;

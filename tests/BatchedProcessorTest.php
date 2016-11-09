@@ -81,16 +81,12 @@ class BatchedProcessorTest extends SapphireTest
 
         Config::inst()->update('SearchUpdateBatchedProcessor', 'batch_size', 5);
         Config::inst()->update('SearchUpdateBatchedProcessor', 'batch_soft_cap', 0);
-        Config::inst()->update('SearchUpdateCommitJobProcessor', 'cooldown', 600);
 
         Versioned::reading_stage("Stage");
 
         Injector::inst()->registerService(new BatchedProcessor_QueuedJobService(), 'QueuedJobService');
 
         FullTextSearch::force_index_list('BatchedProcessorTest_Index');
-
-        SearchUpdateCommitJobProcessor::$dirty_indexes = array();
-        SearchUpdateCommitJobProcessor::$has_run = false;
 
         $this->oldProcessor = SearchUpdater::$processor;
         SearchUpdater::$processor = new SearchUpdateQueuedJobProcessor();
@@ -160,61 +156,7 @@ class BatchedProcessorTest extends SapphireTest
         $this->assertEquals(9, $data->currentStep);
         $this->assertEquals(42, count($index->getAdded()));
         $this->assertTrue($data->isComplete);
-
-        // Check any additional queued jobs
-        $processor->afterComplete();
-        $service = singleton('QueuedJobService');
-        $jobs = $service->getJobs();
-        $this->assertEquals(1, count($jobs));
-        $this->assertInstanceOf('SearchUpdateCommitJobProcessor', $jobs[0]['job']);
     }
-
-    /**
-     * Test creation of multiple commit jobs
-     */
-    public function testMultipleCommits()
-    {
-        $index = singleton('BatchedProcessorTest_Index');
-        $index->reset();
-
-        // Test that running a commit immediately after submitting to the indexes
-        // correctly commits
-        $first = SearchUpdateCommitJobProcessor::queue();
-        $second = SearchUpdateCommitJobProcessor::queue();
-
-        $this->assertFalse($index->getIsCommitted());
-
-        // First process will cause the commit
-        $this->assertFalse($first->jobFinished());
-        $first->process();
-        $allMessages = $first->getMessages();
-        $this->assertTrue($index->getIsCommitted());
-        $this->assertTrue($first->jobFinished());
-        $this->assertStringEndsWith('All indexes committed', $allMessages[2]);
-
-        // Executing the subsequent processor should not re-trigger a commit
-        $index->reset();
-        $this->assertFalse($second->jobFinished());
-        $second->process();
-        $allMessages = $second->getMessages();
-        $this->assertFalse($index->getIsCommitted());
-        $this->assertTrue($second->jobFinished());
-        $this->assertStringEndsWith('Indexing already completed this request: Discarding this job', $allMessages[0]);
-
-        // Given that a third job is created, and the indexes are dirtied, attempting to run this job
-        // should result in a delay
-        $index->reset();
-        $third = SearchUpdateCommitJobProcessor::queue();
-        $this->assertFalse($third->jobFinished());
-        $third->process();
-        $this->assertTrue($third->jobFinished());
-        $allMessages = $third->getMessages();
-        $this->assertStringEndsWith(
-            'Indexing already run this request, but incomplete. Re-scheduling for 2015-05-07 06:10:00',
-            $allMessages[0]
-        );
-    }
-
 
     /**
      * Tests that the batch_soft_cap setting is properly respected

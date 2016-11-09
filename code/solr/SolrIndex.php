@@ -640,16 +640,6 @@ abstract class SolrIndex extends SearchIndex
         return true;
     }
 
-    public function commit()
-    {
-        try {
-            $this->getService()->commit(false, false, false);
-        } catch (Exception $e) {
-            static::warn($e);
-            return false;
-        }
-    }
-
     /**
      * @param SearchQuery $query
      * @param integer $offset

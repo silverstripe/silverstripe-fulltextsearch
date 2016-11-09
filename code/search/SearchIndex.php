@@ -557,7 +557,7 @@ abstract class SearchIndex extends ViewableData
 
                         $ids = $sql->execute()->column();
                     }
-                    
+
                     if (empty($ids)) {
                         break;
                     }
@@ -588,8 +588,6 @@ abstract class SearchIndex extends ViewableData
     abstract public function add($object) ;
     abstract public function delete($base, $id, $state) ;
 
-    abstract public function commit();
-
     /** !! These should be implemented by the specific index */
 
     /**
@@ -612,10 +610,6 @@ abstract class SearchIndex_Null extends SearchIndex
     public function delete($base, $id, $state)
     {
     }
-
-    public function commit()
-    {
-    }
 }
 
 /**
@@ -625,13 +619,11 @@ abstract class SearchIndex_Recording extends SearchIndex
 {
     public $added = array();
     public $deleted = array();
-    public $committed = false;
 
     public function reset()
     {
         $this->added = array();
         $this->deleted = array();
-        $this->committed = false;
     }
 
     public function add($object)
@@ -670,24 +662,14 @@ abstract class SearchIndex_Recording extends SearchIndex
         $this->deleted[] = array('base' => $base, 'id' => $id, 'state' => $state);
     }
 
-    public function commit()
-    {
-        $this->committed = true;
-    }
-
     public function getIndexName()
     {
         return get_class($this);
     }
 
-    public function getIsCommitted()
-    {
-        return $this->committed;
-    }
-
     public function getService()
     {
-        // Causes commits to the service to be redirected back to the same object
+        // Causes calls to the service to be redirected back to the same object, for testing.
         return $this;
     }
 }
