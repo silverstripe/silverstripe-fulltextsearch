@@ -58,7 +58,7 @@ All possible parameters incl optional ones with example values:
 		'port' => '8983', // default: 8983 | The port Solr is listening on
 		'path' => '/solr' // default: /solr | The suburl the solr service is available on
 		'version' => '4' // default: 4 | Solr server version - currently only 3 and 4 supported
-		'service' => 'Solr4Service' // default: depends on version, Solr3Service for 3, Solr4Service for 4 | the class that provides actual communcation to the Solr server
+		'service' => 'Solr4Service' // default: Solr4Service | the class that provides actual communcation to the Solr server
 		'extraspath' => BASE_PATH .'/fulltextsearch/conf/solr/4/extras/' // default: <basefolder>/fulltextsearch/conf/solr/{version}/extras/ | Absolute path to the folder containing templates which are used for generating the schema and field definitions.
 		'templates' => BASE_PATH . '/fulltextsearch/conf/solr/4/templates/' // default: <basefolder>/fulltextsearch/conf/solr/{version}/templates/ | Absolute path to the configuration default files, e.g. solrconfig.xml
 		'indexstore' => array(
@@ -66,7 +66,7 @@ All possible parameters incl optional ones with example values:
 			'path' => BASE_PATH . '/.solr' // The (locally accessible) path to write the index configurations to OR The suburl on the solr host that is set up to accept index configurations via webdav
 			'remotepath' => '/opt/solr/config' // default (file mode only): same as 'path' above | The path that the Solr server will read the index configurations from
 			'auth' => 'solr:solr' // default: none | Webdav only - A username:password pair string to use to auth against the webdav server
-			'port' => '80' // default: same as solr port | The port for WebDAV if different from the Solr port 
+			'port' => '80' // default: same as solr port | The port for WebDAV if different from the Solr port
  		)
 	));
 
@@ -104,7 +104,7 @@ Based on the sample configuration above, this command will do the following:
 - Generate a `schema.xml`, and place it it in `<BASE_PATH>/.solr/MyIndex/conf`
 
 If you call the task with an existing index folder,
-it will overwrite all files from their default locations, 
+it will overwrite all files from their default locations,
 regenerate the `schema.xml`, and ask Solr to reload the configuration.
 
 You can use the same command for updating an existing schema,
@@ -141,7 +141,7 @@ group sizing by using the `Solr_Reindex.recordsPerRequest` config.
 	  recordsPerRequest: 150
 
 
-Note: The Solr indexes will be stored as binary files inside your SilverStripe project. 
+Note: The Solr indexes will be stored as binary files inside your SilverStripe project.
 You can also copy the `thirdparty/` solr directory somewhere else,
 just set the `path` value in `mysite/_config.php` to point to the new location.
 
@@ -163,7 +163,7 @@ By default, these files are copied from the `fulltextsearch/conf/extras/`
 directory over to the new index location. In order to use your own files,
 copy these files into a location of your choosing (for example `mysite/data/solr/`),
 and tell Solr to use this folder with the `extraspath` configuration setting.
-	
+
 	// mysite/_config.php
 	Solr::configure_server(array(
 		// ...
@@ -227,7 +227,7 @@ This can be fixed by aggregating spell checking data in a separate
 
 		function getFieldDefinitions() {
 			$xml = parent::getFieldDefinitions();
-			
+
 			$xml .= "\n\n\t\t<!-- Additional custom fields for spell checking -->";
 			$xml .= "\n\t\t<field name='spellcheckData' type='textSpellHtml' indexed='true' stored='false' multiValued='true' />";
 
@@ -248,7 +248,7 @@ In there, change the following directive:
 	</searchComponent
 
 Don't forget to copy the new configuration via a call to the `Solr_Configure`
-task, and reindex your data before using the spell checker.	
+task, and reindex your data before using the spell checker.
 
 ### Limiting search fields
 
@@ -427,7 +427,7 @@ We can now access the facet information inside our templates.
 
 ### Adding Analyzers, Tokenizers and Token Filters
 
-When a document is indexed, its individual fields are subject to the analyzing and tokenizing filters that can transform and normalize the data in the fields. For example — removing blank spaces, removing html code, stemming, removing a particular character and replacing it with another 
+When a document is indexed, its individual fields are subject to the analyzing and tokenizing filters that can transform and normalize the data in the fields. For example — removing blank spaces, removing html code, stemming, removing a particular character and replacing it with another
 (see [Solr Wiki](http://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters)).
 
 Example: Replace synonyms on indexing (e.g. "i-pad" with "iPad")
@@ -492,11 +492,11 @@ So, let's take an example of `StaffMember`:
 			'Abstract' => 'Text',
 			'PhoneNumber' => 'Varchar(50)'
 		);
-		
+
 		public function Link($action = 'show') {
 			return Controller::join_links('my-controller', $action, $this->ID);
 		}
-		
+
 		public function getShowInSearch() {
 			return 1;
 		}
@@ -514,22 +514,22 @@ So with that, let's create a new class called `MySolrSearchIndex`:
 	:::php
 	<?php
 	class MySolrSearchIndex extends SolrIndex {
-		
+
 		public function init() {
 			$this->addClass('SiteTree');
 			$this->addClass('StaffMember');
-			
+
 			$this->addAllFulltextFields();
 			$this->addFilterField('ShowInSearch');
 		}
-		
+
 	}
 
 This is a copy/paste of the existing configuration but with the addition of `StaffMember`.
 
 Once you've created the above classes and run `flush=1`, access `dev/tasks/Solr_Configure` and `dev/tasks/Solr_Reindex`
 to tell Solr about the new index you've just created. This will add `StaffMember` and the text fields it has to the
-index. Now when you search on the site using `MySolrSearchIndex->search()`, 
+index. Now when you search on the site using `MySolrSearchIndex->search()`,
 the `StaffMember` results will show alongside normal `Page` results.
 
 
@@ -541,9 +541,9 @@ You can visit `http://localhost:8983/solr`, which will show you a list
 to the admin interfaces of all available indices.
 There you can search the contents of the index via the native SOLR web interface.
 
-It is possible to manually replicate the data automatically sent 
-to Solr when saving/publishing in SilverStripe, 
-which is useful when debugging front-end queries, 
+It is possible to manually replicate the data automatically sent
+to Solr when saving/publishing in SilverStripe,
+which is useful when debugging front-end queries,
 see `thirdparty/fulltextsearch/server/silverstripe-solr-test.xml`.
 
 	java -Durl=http://localhost:8983/solr/MyIndex/update/ -Dtype=text/xml -jar post.jar silverstripe-solr-test.xml

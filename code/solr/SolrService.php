@@ -78,9 +78,9 @@ class SolrService extends SolrService_Core
     }
 
     /**
-     * Create a new Solr3Service_Core instance for the passed core
+     * Create a new core class instance for the passed core
      * @param $core string - The name of the core
-     * @return Solr3Service_Core
+     * @return SolrService_Core
      */
     public function serviceForCore($core)
     {
