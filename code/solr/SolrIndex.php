@@ -1,7 +1,5 @@
 <?php
 
-Solr::include_client_api();
-
 abstract class SolrIndex extends SearchIndex
 {
     public static $fulltextTypeMap = array(
