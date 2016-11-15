@@ -8,24 +8,18 @@ It works with Solr in multi-core mode. It needs to be able to update Solr config
 doing this by direct file access (when Solr shares a server with SilverStripe) and by WebDAV (when it's on a different
 server).
 
-See the helpful [Solr Tutorial](http://lucene.apache.org/solr/4_5_1/tutorial.html), for more on cores
+See the [Solr Tutorial](http://lucene.apache.org/solr/4_5_1/tutorial.html), for more on cores
 and querying.
 
-## Requirements
+## Server requirements
 
-Since Solr is Java based, it requires Java 1.5 or greater installed.
+Solr 4 is required. See the official [Solr installation docs](http://wiki.apache.org/solr/SolrInstall) for more information. It can be installed on the same host as the site, or on another machine.
 
-When you're installing it yourself, it also requires a servlet container such as Tomcat, Jetty, or Resin. For
-development testing there is a standalone version that comes bundled with Jetty (see below).
-
-See the official [Solr installation docs](http://wiki.apache.org/solr/SolrInstall) for more information.
-
-Note that these requirements are for the Solr server environment, which doesn't have to be the same physical machine
-as the SilverStripe webhost.
+For development, we have a standalone version available bundled with Jetty to get you started quickly (see below).
 
 ## Installation (Local)
 
-### Get the Solr server
+### Get the Solr development server
 
 composer require silverstripe/fulltextsearch-localsolr 4.5.1.x-dev
 
@@ -58,7 +52,7 @@ All possible parameters incl optional ones with example values:
 		'port' => '8983', // default: 8983 | The port Solr is listening on
 		'path' => '/solr' // default: /solr | The suburl the solr service is available on
 		'version' => '4' // default: 4 | Solr server version - currently only 3 and 4 supported
-		'service' => 'Solr4Service' // default: Solr4Service | the class that provides actual communcation to the Solr server
+		'service' => 'Solr4Service' // default: Solr4Service | the class that provides actual communication to the Solr server
 		'extraspath' => BASE_PATH .'/fulltextsearch/conf/solr/4/extras/' // default: <basefolder>/fulltextsearch/conf/solr/{version}/extras/ | Absolute path to the folder containing templates which are used for generating the schema and field definitions.
 		'templates' => BASE_PATH . '/fulltextsearch/conf/solr/4/templates/' // default: <basefolder>/fulltextsearch/conf/solr/{version}/templates/ | Absolute path to the configuration default files, e.g. solrconfig.xml
 		'indexstore' => array(
@@ -152,6 +146,16 @@ the web request itself might time out, but the reindex continues anyway.
 This is possible because the actual index operations are run as separate
 PHP sub-processes inside the main web request.
 
+### Auto-commits
+
+This connector relies on the Solr server to do auto-commits (it only pushes updates into the indices). This means updates will show in the search results with a pre-determined delay.
+
+The *solrconfig.xml* provided with this module sets the `updateLog`, `autoCommit` and `autoSoftCommit` to conservative defaults. This configuration will be uploaded to the server when *Solr_Configure* task is ran.
+
+You should review these settings before going to production. Read [Hard commits, soft commits and transaction logs](https://lucidworks.com/blog/2013/08/23/understanding-transaction-logs-softcommit-and-commit-in-sorlcloud/) to learn more.
+
+Historical aside: in the past, with Solr 3, we have used explicit client-triggered commits. With large datasets this caused the commits to pile up (run in parallel), which quickly reduced Solr server performance. With Solr 4, auto-commits are the preferred way to perform commits. 
+
 ### File-based configuration (solrconfig.xml etc)
 
 Many aspects of Solr are configured outside of the `schema.xml` file
@@ -237,7 +241,7 @@ This can be fixed by aggregating spell checking data in a separate
 	}
 
 Now you need to tell solr to use our new field for gathering spelling data.
-In order to customize the spell checking configuration,
+In order to customise the spell checking configuration,
 create your own `solrconfig.xml` (see "File-based configuration").
 In there, change the following directive:
 
@@ -394,7 +398,7 @@ to the page.
 	<?php
 	class MyResultsExtension extends Extension {
 		/**
-		 * Adds extra information from the solr-php-client repsonse
+		 * Adds extra information from the solr-php-client response
 		 * into our search results.
 		 * @param $results The ArrayData that will be used to generate search
 		 *        results pages.
@@ -427,7 +431,7 @@ We can now access the facet information inside our templates.
 
 ### Adding Analyzers, Tokenizers and Token Filters
 
-When a document is indexed, its individual fields are subject to the analyzing and tokenizing filters that can transform and normalize the data in the fields. For example — removing blank spaces, removing html code, stemming, removing a particular character and replacing it with another
+When a document is indexed, its individual fields are subject to the analysing and tokenising filters that can transform and normalise the data in the fields. For example — removing blank spaces, removing html code, stemming, removing a particular character and replacing it with another
 (see [Solr Wiki](http://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters)).
 
 Example: Replace synonyms on indexing (e.g. "i-pad" with "iPad")
