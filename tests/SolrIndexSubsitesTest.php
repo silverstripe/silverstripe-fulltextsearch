@@ -132,6 +132,116 @@ class SolrIndexSubsitesTest extends SapphireTest {
         Phockito::verify($serviceMock)->addDocument($doc2);
 
     }
+
+    public function testCorrectSubsiteIDOnPageWrite() {
+        $mockWrites = array(
+            '3367:SiteTree:a:1:{s:22:"SearchVariantVersioned";s:4:"Live";}' => array(
+                'base' => 'SiteTree',
+                'class' => 'Page',
+                'id' => 3367,
+                'statefulids' => array(
+                    array(
+                        'id' => 3367,
+                        'state' => array(
+                            'SearchVariantVersioned' => 'Live',
+                        ),
+                    ),
+                ),
+                'fields' => array(
+                    'SiteTree:ClassName' => 'Page',
+                    'SiteTree:LastEdited' => '2016-12-08 23:55:30',
+                    'SiteTree:Created' => '2016-11-30 05:23:58',
+                    'SiteTree:URLSegment' => 'test',
+                    'SiteTree:Title' => 'Test Title',
+                    'SiteTree:Content' => '<p>test content</p>',
+                    'SiteTree:MetaDescription' => 'a solr test',
+                    'SiteTree:ShowInMenus' => 1,
+                    'SiteTree:ShowInSearch' => 1,
+                    'SiteTree:Sort' => 77,
+                    'SiteTree:HasBrokenFile' => 0,
+                    'SiteTree:HasBrokenLink' => 0,
+                    'SiteTree:CanViewType' => 'Inherit',
+                    'SiteTree:CanEditType' => 'Inherit',
+                    'SiteTree:Locale' => 'en_NZ',
+                    'SiteTree:SubsiteID' => 0,
+                    'Page:ID' => 3367,
+                    'Page:MetaKeywords' => null,
+                ),
+            ),
+        );
+        $variant = new SearchVariantSubsites();
+        $tmpMockWrites = $mockWrites;
+        $variant->extractManipulationWriteState($tmpMockWrites);
+        foreach($tmpMockWrites as $mockWrite) {
+            $this->assertCount(1, $mockWrite['statefulids']);
+            $statefulIDs = array_shift($mockWrite['statefulids']);
+            $this->assertEquals(0, $statefulIDs['state']['SearchVariantSubsites']);
+        }
+
+        $subsite = $this->objFromFixture('Subsite', 'subsite1');
+        $tmpMockWrites = $mockWrites;
+        $tmpMockWrites['3367:SiteTree:a:1:{s:22:"SearchVariantVersioned";s:4:"Live";}']['fields']['SiteTree:SubsiteID'] = $subsite->ID;
+
+        $variant->extractManipulationWriteState($tmpMockWrites);
+        foreach($tmpMockWrites as $mockWrite) {
+            $this->assertCount(1, $mockWrite['statefulids']);
+            $statefulIDs = array_shift($mockWrite['statefulids']);
+            $this->assertEquals($subsite->ID, $statefulIDs['state']['SearchVariantSubsites']);
+        }
+    }
+
+    public function testCorrectSubsiteIDOnFileWrite() {
+        $subsiteIDs = array('0') + $this->allFixtureIDs('Subsite');
+        $mockWrites = array(
+            '35910:File:a:0:{}' => array(
+                'base' => 'File',
+                'class' => 'File',
+                'id' => 35910,
+                'statefulids' => array(
+                    array(
+                        'id' => 35910,
+                        'state' => array(),
+                    ),
+                ),
+                'fields' => array(
+                    'File:ClassName' => 'Image',
+                    'File:ShowInSearch' => 1,
+                    'File:ParentID' => 26470,
+                    'File:Filename' => 'assets/Uploads/pic.jpg',
+                    'File:Name' => 'pic.jpg',
+                    'File:Title' => 'pic',
+                    'File:SubsiteID' => 0,
+                    'File:OwnerID' => 661,
+                    'File:CurrentVersionID' => 22038,
+                    'File:LastEdited' => '2016-12-09 00:35:13',
+                ),
+            ),
+        );
+        $variant = new SearchVariantSubsites();
+        $tmpMockWrites = $mockWrites;
+        $variant->extractManipulationWriteState($tmpMockWrites);
+        foreach($tmpMockWrites as $mockWrite) {
+            $this->assertCount(count($subsiteIDs), $mockWrite['statefulids']);
+            foreach ($mockWrite['statefulids'] as $statefulIDs) {
+                $this->assertTrue(
+                    in_array($statefulIDs['state']['SearchVariantSubsites'], $subsiteIDs),
+                    sprintf('Failed to assert that %s is in list of valid subsites: %s', $statefulIDs['state']['SearchVariantSubsites'], implode(', ', $subsiteIDs))
+                );
+            }
+        }
+
+        $subsite = $this->objFromFixture('Subsite', 'subsite1');
+        $tmpMockWrites = $mockWrites;
+        $tmpMockWrites['35910:File:a:0:{}']['fields']['File:SubsiteID'] = $subsite->ID;
+
+        $variant->extractManipulationWriteState($tmpMockWrites);
+        foreach($tmpMockWrites as $mockWrite) {
+            $this->assertCount(1, $mockWrite['statefulids']);
+            $statefulIDs = array_shift($mockWrite['statefulids']);
+            $this->assertEquals($subsite->ID, $statefulIDs['state']['SearchVariantSubsites']);
+        }
+    }
+
 }
 
 class SolrIndexSubsitesTest_Index extends SolrIndex
