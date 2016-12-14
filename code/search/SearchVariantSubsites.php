@@ -83,9 +83,20 @@ class SearchVariantSubsites extends SearchVariant
                 continue;
             }
 
+            if (isset($write['fields']['SiteTree:SubsiteID'])) {
+                $subsitesForWrite = array($write['fields']['SiteTree:SubsiteID']);
+            }
+            // files in subsite 0 should be in all subsites as they are global
+            elseif (isset($write['fields']['File:SubsiteID']) && intval($write['fields']['File:SubsiteID']) !== 0) {
+                $subsitesForWrite = array($write['fields']['File:SubsiteID']);
+            }
+            else {
+                $subsitesForWrite = $subsites;
+            }
+
             $next = array();
             foreach ($write['statefulids'] as $i => $statefulid) {
-                foreach ($subsites as $subsiteID) {
+                foreach ($subsitesForWrite as $subsiteID) {
                     $next[] = array(
                         'id' => $statefulid['id'],
                         'state' => array_merge(
