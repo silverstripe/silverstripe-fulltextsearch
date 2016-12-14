@@ -13,7 +13,7 @@ abstract class SolrReindexBase implements SolrReindexHandler
             $this->processIndex($logger, $indexInstance, $batchSize, $taskName, $classes);
         }
     }
-    
+
     /**
      * Process index for a single SolrIndex instance
      *
@@ -124,8 +124,6 @@ abstract class SolrReindexBase implements SolrReindexHandler
      * Explicitly invoke the process that performs the group
      * processing. Can be run either by a background task or a queuedjob.
      *
-     * Does not commit changes to the index, so this must be controlled externally.
-     *
      * @param LoggerInterface $logger
      * @param SolrIndex $indexInstance
      * @param array $state
@@ -159,7 +157,7 @@ abstract class SolrReindexBase implements SolrReindexHandler
 
         // This will slow down things a tiny bit, but it is done so that we don't timeout to the database during a reindex
         DB::query('SELECT 1');
-        
+
         $logger->info("Done");
     }
 

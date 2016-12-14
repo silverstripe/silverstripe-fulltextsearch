@@ -16,9 +16,8 @@ class Solr
      * path (default: /solr) - The suburl the solr service is available on
      *
      * Optional fields:
-     * version (default: 4) - The Solr server version. Currently supports 3 and 4 (you can add a sub-version like 4.5 if
-     *   you like, but currently it has no effect)
-     * service (default: depends on version, Solr3Service for 3, Solr4Service for 4)
+     * version (default: 4) - The Solr server version. Currently supports only 4.
+     * service (default: Solr4Service)
      *   the class that provides actual communcation to the Solr server
      * extraspath (default: <basefolder>/fulltextsearch/conf/solr/{version}/extras/) - Absolute path to
      *   the folder containing templates which are used for generating the schema and field definitions.
@@ -77,17 +76,19 @@ class Solr
         // Build some by-version defaults
         $version = isset(self::$solr_options['version']) ? self::$solr_options['version'] : $defaults['version'];
 
-        if (version_compare($version, '4', '>=')) {
+        if ($version=='4') {
             $versionDefaults = array(
                 'service' => 'Solr4Service',
                 'extraspath' => Director::baseFolder().'/fulltextsearch/conf/solr/4/extras/',
                 'templatespath' => Director::baseFolder().'/fulltextsearch/conf/solr/4/templates/',
             );
         } else {
-            $versionDefaults = array(
-                'service' => 'Solr3Service',
-                'extraspath' => Director::baseFolder().'/fulltextsearch/conf/solr/3/extras/',
-                'templatespath' => Director::baseFolder().'/fulltextsearch/conf/solr/3/templates/',
+            user_error(
+                sprintf(
+                    'Solr version "%s" is not supported by this module. The only supported version is "4".',
+                    $version
+                ),
+                E_USER_ERROR
             );
         }
 
@@ -140,22 +141,6 @@ class Solr
         return FullTextSearch::get_indexes('SolrIndex');
     }
 
-    /**
-     * Include the thirdparty Solr client api library. Done this way to avoid issues where code is called in
-     * mysite/_config before fulltextsearch/_config has a change to update the include path.
-     */
-    public static function include_client_api()
-    {
-        static $included = false;
-
-        if (!$included) {
-            set_include_path(get_include_path() . PATH_SEPARATOR . Director::baseFolder() . '/fulltextsearch/thirdparty/solr-php-client');
-            require_once('Apache/Solr/Service.php');
-            require_once('Apache/Solr/Document.php');
-
-            $included = true;
-        }
-    }
 }
 
 /**

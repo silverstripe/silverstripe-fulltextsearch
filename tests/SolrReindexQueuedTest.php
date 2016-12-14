@@ -153,7 +153,7 @@ class SolrReindexQueuedTest extends SapphireTest
         $this->assertEquals(3, $logger->countMessages(' of SolrReindexTest_Item in {"SolrReindexTest_Variant":"1"}'));
         $this->assertEquals(1, $logger->countMessages('Completed init of reindex'));
 
-        
+
         // Test that invalid classes are removed
         $this->assertNotEmpty($logger->getMessages('Clearing obsolete classes from SolrReindexTest_Index'));
         Phockito::verify($this->service, 1)
@@ -197,7 +197,6 @@ class SolrReindexQueuedTest extends SapphireTest
         // Check tasks completed (as per non-queuedjob version)
         $this->assertEquals(1, $logger->countMessages('Beginning reindex group'));
         $this->assertEquals(1, $logger->countMessages('Adding SolrReindexTest_Item'));
-        $this->assertEquals(1, $logger->countMessages('Queuing commit on all changes'));
         $this->assertEquals(1, $logger->countMessages('Completed reindex group'));
 
         // Check IDs

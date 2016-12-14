@@ -14,15 +14,6 @@ class SolrReindexImmediateHandler extends SolrReindexBase
         $this->runReindex($logger, $batchSize, $taskName, $classes);
     }
 
-    protected function processIndex(
-        LoggerInterface $logger, SolrIndex $indexInstance, $batchSize, $taskName, $classes = null
-    ) {
-        parent::processIndex($logger, $indexInstance, $batchSize, $taskName, $classes);
-
-        // Immediate processor needs to immediately commit after each index
-        $indexInstance->getService()->commit();
-    }
-
     /**
      * Process a single group.
      *
@@ -63,11 +54,6 @@ class SolrReindexImmediateHandler extends SolrReindexBase
         $res = $logger ? passthru($cmd) : `$cmd`;
         if ($logger) {
             $logger->info(preg_replace('/\r\n|\n/', '$0  ', $res));
-        }
-
-        // If we're in dev mode, commit more often for fun and profit
-        if (Director::isDev()) {
-            Solr::service($indexClass)->commit();
         }
 
         // This will slow down things a tiny bit, but it is done so that we don't timeout to the database during a reindex

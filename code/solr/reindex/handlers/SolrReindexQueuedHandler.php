@@ -30,7 +30,7 @@ class SolrReindexQueuedHandler extends SolrReindexBase
         $clearable = array(
             // Paused jobs need to be discarded
             QueuedJob::STATUS_PAUSED,
-            
+
             // These types would be automatically started
             QueuedJob::STATUS_NEW,
             QueuedJob::STATUS_WAIT,
@@ -80,19 +80,9 @@ class SolrReindexQueuedHandler extends SolrReindexBase
         $this
             ->getQueuedJobService()
             ->queueJob($job);
-        
+
         $title = $job->getTitle();
         $logger->info("Queued {$title}");
     }
 
-    public function runGroup(
-        LoggerInterface $logger, SolrIndex $indexInstance, $state, $class, $groups, $group
-    ) {
-        parent::runGroup($logger, $indexInstance, $state, $class, $groups, $group);
-
-        // After any changes have been made, mark all indexes as dirty for commit
-        // see http://stackoverflow.com/questions/7512945/how-to-fix-exceeded-limit-of-maxwarmingsearchers
-        $logger->info("Queuing commit on all changes");
-        SearchUpdateCommitJobProcessor::queue();
-    }
 }

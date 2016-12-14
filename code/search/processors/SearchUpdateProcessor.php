@@ -4,7 +4,7 @@ abstract class SearchUpdateProcessor
 {
     /**
      * List of dirty records to process in format
-     * 
+     *
      * array(
      *   '$BaseClass' => array(
      *     '$State Key' => array(
@@ -25,7 +25,7 @@ abstract class SearchUpdateProcessor
      * @var array
      */
     protected $dirty;
-    
+
     public function __construct()
     {
         $this->dirty = array();
@@ -53,10 +53,10 @@ abstract class SearchUpdateProcessor
 
         $this->dirty[$base] = $forclass;
     }
-    
+
     /**
      * Generates the list of indexes to process for the dirty items
-     * 
+     *
      * @return array
      */
     protected function prepareIndexes()
@@ -99,25 +99,14 @@ abstract class SearchUpdateProcessor
                 }
             }
         }
-        
+
         SearchVariant::activate_state($originalState);
         return $dirtyIndexes;
     }
-    
-    /**
-     * Commits the specified index to the Solr service
-     * 
-     * @param SolrIndex $index Index object
-     * @return bool Flag indicating success
-     */
-    protected function commitIndex($index)
-    {
-        return $index->commit() !== false;
-    }
-    
+
     /**
      * Gets the record data source to process
-     * 
+     *
      * @return array
      */
     protected function getSource()
@@ -127,18 +116,12 @@ abstract class SearchUpdateProcessor
 
     /**
      * Process all indexes, returning true if successful
-     * 
+     *
      * @return bool Flag indicating success
      */
     public function process()
     {
-        // Generate and commit all instances
-        $indexes = $this->prepareIndexes();
-        foreach ($indexes as $index) {
-            if (!$this->commitIndex($index)) {
-                return false;
-            }
-        }
+        $this->prepareIndexes();
         return true;
     }
 

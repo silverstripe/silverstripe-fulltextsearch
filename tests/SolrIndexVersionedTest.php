@@ -57,7 +57,7 @@ class SolrIndexVersionedTest extends SapphireTest
 
     protected function getServiceMock()
     {
-        return Phockito::mock('Solr3Service');
+        return Phockito::mock('Solr4Service');
     }
 
     /**

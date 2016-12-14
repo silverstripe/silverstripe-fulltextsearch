@@ -8,24 +8,18 @@ It works with Solr in multi-core mode. It needs to be able to update Solr config
 doing this by direct file access (when Solr shares a server with SilverStripe) and by WebDAV (when it's on a different
 server).
 
-See the helpful [Solr Tutorial](http://lucene.apache.org/solr/4_5_1/tutorial.html), for more on cores
+See the [Solr Tutorial](http://lucene.apache.org/solr/4_5_1/tutorial.html), for more on cores
 and querying.
 
-## Requirements
+## Server requirements
 
-Since Solr is Java based, it requires Java 1.5 or greater installed.
+Solr 4 is required. See the official [Solr installation docs](http://wiki.apache.org/solr/SolrInstall) for more information. It can be installed on the same host as the site, or on another machine.
 
-When you're installing it yourself, it also requires a servlet container such as Tomcat, Jetty, or Resin. For
-development testing there is a standalone version that comes bundled with Jetty (see below).
-
-See the official [Solr installation docs](http://wiki.apache.org/solr/SolrInstall) for more information.
-
-Note that these requirements are for the Solr server environment, which doesn't have to be the same physical machine
-as the SilverStripe webhost.
+For development, we have a standalone version available bundled with Jetty to get you started quickly (see below).
 
 ## Installation (Local)
 
-### Get the Solr server
+### Get the Solr development server
 
 composer require silverstripe/fulltextsearch-localsolr 4.5.1.x-dev
 
@@ -58,7 +52,7 @@ All possible parameters incl optional ones with example values:
 		'port' => '8983', // default: 8983 | The port Solr is listening on
 		'path' => '/solr' // default: /solr | The suburl the solr service is available on
 		'version' => '4' // default: 4 | Solr server version - currently only 3 and 4 supported
-		'service' => 'Solr4Service' // default: depends on version, Solr3Service for 3, Solr4Service for 4 | the class that provides actual communcation to the Solr server
+		'service' => 'Solr4Service' // default: Solr4Service | the class that provides actual communication to the Solr server
 		'extraspath' => BASE_PATH .'/fulltextsearch/conf/solr/4/extras/' // default: <basefolder>/fulltextsearch/conf/solr/{version}/extras/ | Absolute path to the folder containing templates which are used for generating the schema and field definitions.
 		'templates' => BASE_PATH . '/fulltextsearch/conf/solr/4/templates/' // default: <basefolder>/fulltextsearch/conf/solr/{version}/templates/ | Absolute path to the configuration default files, e.g. solrconfig.xml
 		'indexstore' => array(
@@ -66,7 +60,7 @@ All possible parameters incl optional ones with example values:
 			'path' => BASE_PATH . '/.solr' // The (locally accessible) path to write the index configurations to OR The suburl on the solr host that is set up to accept index configurations via webdav
 			'remotepath' => '/opt/solr/config' // default (file mode only): same as 'path' above | The path that the Solr server will read the index configurations from
 			'auth' => 'solr:solr' // default: none | Webdav only - A username:password pair string to use to auth against the webdav server
-			'port' => '80' // default: same as solr port | The port for WebDAV if different from the Solr port 
+			'port' => '80' // default: same as solr port | The port for WebDAV if different from the Solr port
  		)
 	));
 
@@ -104,7 +98,7 @@ Based on the sample configuration above, this command will do the following:
 - Generate a `schema.xml`, and place it it in `<BASE_PATH>/.solr/MyIndex/conf`
 
 If you call the task with an existing index folder,
-it will overwrite all files from their default locations, 
+it will overwrite all files from their default locations,
 regenerate the `schema.xml`, and ask Solr to reload the configuration.
 
 You can use the same command for updating an existing schema,
@@ -141,7 +135,7 @@ group sizing by using the `Solr_Reindex.recordsPerRequest` config.
 	  recordsPerRequest: 150
 
 
-Note: The Solr indexes will be stored as binary files inside your SilverStripe project. 
+Note: The Solr indexes will be stored as binary files inside your SilverStripe project.
 You can also copy the `thirdparty/` solr directory somewhere else,
 just set the `path` value in `mysite/_config.php` to point to the new location.
 
@@ -151,6 +145,16 @@ Depending on your PHP and web server configuration,
 the web request itself might time out, but the reindex continues anyway.
 This is possible because the actual index operations are run as separate
 PHP sub-processes inside the main web request.
+
+### Auto-commits
+
+This connector relies on the Solr server to do auto-commits (it only pushes updates into the indices). This means updates will show in the search results with a pre-determined delay.
+
+The *solrconfig.xml* provided with this module sets the `updateLog`, `autoCommit` and `autoSoftCommit` to conservative defaults. This configuration will be uploaded to the server when *Solr_Configure* task is ran.
+
+You should review these settings before going to production. Read [Hard commits, soft commits and transaction logs](https://lucidworks.com/blog/2013/08/23/understanding-transaction-logs-softcommit-and-commit-in-sorlcloud/) to learn more.
+
+Historical aside: in the past, with Solr 3, we have used explicit client-triggered commits. With large datasets this caused the commits to pile up (run in parallel), which quickly reduced Solr server performance. With Solr 4, auto-commits are the preferred way to perform commits. 
 
 ### File-based configuration (solrconfig.xml etc)
 
@@ -163,7 +167,7 @@ By default, these files are copied from the `fulltextsearch/conf/extras/`
 directory over to the new index location. In order to use your own files,
 copy these files into a location of your choosing (for example `mysite/data/solr/`),
 and tell Solr to use this folder with the `extraspath` configuration setting.
-	
+
 	// mysite/_config.php
 	Solr::configure_server(array(
 		// ...
@@ -227,7 +231,7 @@ This can be fixed by aggregating spell checking data in a separate
 
 		function getFieldDefinitions() {
 			$xml = parent::getFieldDefinitions();
-			
+
 			$xml .= "\n\n\t\t<!-- Additional custom fields for spell checking -->";
 			$xml .= "\n\t\t<field name='spellcheckData' type='textSpellHtml' indexed='true' stored='false' multiValued='true' />";
 
@@ -237,7 +241,7 @@ This can be fixed by aggregating spell checking data in a separate
 	}
 
 Now you need to tell solr to use our new field for gathering spelling data.
-In order to customize the spell checking configuration,
+In order to customise the spell checking configuration,
 create your own `solrconfig.xml` (see "File-based configuration").
 In there, change the following directive:
 
@@ -248,7 +252,7 @@ In there, change the following directive:
 	</searchComponent
 
 Don't forget to copy the new configuration via a call to the `Solr_Configure`
-task, and reindex your data before using the spell checker.	
+task, and reindex your data before using the spell checker.
 
 ### Limiting search fields
 
@@ -394,7 +398,7 @@ to the page.
 	<?php
 	class MyResultsExtension extends Extension {
 		/**
-		 * Adds extra information from the solr-php-client repsonse
+		 * Adds extra information from the solr-php-client response
 		 * into our search results.
 		 * @param $results The ArrayData that will be used to generate search
 		 *        results pages.
@@ -427,7 +431,7 @@ We can now access the facet information inside our templates.
 
 ### Adding Analyzers, Tokenizers and Token Filters
 
-When a document is indexed, its individual fields are subject to the analyzing and tokenizing filters that can transform and normalize the data in the fields. For example — removing blank spaces, removing html code, stemming, removing a particular character and replacing it with another 
+When a document is indexed, its individual fields are subject to the analysing and tokenising filters that can transform and normalise the data in the fields. For example — removing blank spaces, removing html code, stemming, removing a particular character and replacing it with another
 (see [Solr Wiki](http://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters)).
 
 Example: Replace synonyms on indexing (e.g. "i-pad" with "iPad")
@@ -492,11 +496,11 @@ So, let's take an example of `StaffMember`:
 			'Abstract' => 'Text',
 			'PhoneNumber' => 'Varchar(50)'
 		);
-		
+
 		public function Link($action = 'show') {
 			return Controller::join_links('my-controller', $action, $this->ID);
 		}
-		
+
 		public function getShowInSearch() {
 			return 1;
 		}
@@ -514,22 +518,22 @@ So with that, let's create a new class called `MySolrSearchIndex`:
 	:::php
 	<?php
 	class MySolrSearchIndex extends SolrIndex {
-		
+
 		public function init() {
 			$this->addClass('SiteTree');
 			$this->addClass('StaffMember');
-			
+
 			$this->addAllFulltextFields();
 			$this->addFilterField('ShowInSearch');
 		}
-		
+
 	}
 
 This is a copy/paste of the existing configuration but with the addition of `StaffMember`.
 
 Once you've created the above classes and run `flush=1`, access `dev/tasks/Solr_Configure` and `dev/tasks/Solr_Reindex`
 to tell Solr about the new index you've just created. This will add `StaffMember` and the text fields it has to the
-index. Now when you search on the site using `MySolrSearchIndex->search()`, 
+index. Now when you search on the site using `MySolrSearchIndex->search()`,
 the `StaffMember` results will show alongside normal `Page` results.
 
 
@@ -541,9 +545,9 @@ You can visit `http://localhost:8983/solr`, which will show you a list
 to the admin interfaces of all available indices.
 There you can search the contents of the index via the native SOLR web interface.
 
-It is possible to manually replicate the data automatically sent 
-to Solr when saving/publishing in SilverStripe, 
-which is useful when debugging front-end queries, 
+It is possible to manually replicate the data automatically sent
+to Solr when saving/publishing in SilverStripe,
+which is useful when debugging front-end queries,
 see `thirdparty/fulltextsearch/server/silverstripe-solr-test.xml`.
 
 	java -Durl=http://localhost:8983/solr/MyIndex/update/ -Dtype=text/xml -jar post.jar silverstripe-solr-test.xml

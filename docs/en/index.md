@@ -246,13 +246,15 @@ Example:
 
 ### Solr
 
-See Solr.md
-
-### Sphinx
-
-Not written yet
+See [Solr connector documentation](docs/en/Solr.md).
 
 ## FAQ
+
+### How long do I need to wait util changes appear in results?
+
+If *queuedjobs* is installed, check the cron job run times to see how often the worker executes to get a baseline. Otherwise the processing is immediate.
+
+Further delay may be introduced by the connectors - see the connector documentation for details.
 
 ### How do I exclude draft pages from the index?
 

@@ -16,7 +16,8 @@
 	],
 	"require": {
 		"silverstripe/framework": "~3.1",
-		"monolog/monolog": "~1.15"
+		"monolog/monolog": "~1.15",
+		"ptcinc/solr-php-client": "~1.0"
 	},
 	"require-dev": {
 		"silverstripe/cms": "~3.1",

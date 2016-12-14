@@ -1,7 +1,5 @@
 <?php
 
-Solr::include_client_api();
-
 abstract class SolrIndex extends SearchIndex
 {
     public static $fulltextTypeMap = array(
@@ -638,16 +636,6 @@ abstract class SolrIndex extends SearchIndex
             ->getService()
             ->deleteByQuery($deleteQuery);
         return true;
-    }
-
-    public function commit()
-    {
-        try {
-            $this->getService()->commit(false, false, false);
-        } catch (Exception $e) {
-            static::warn($e);
-            return false;
-        }
     }
 
     /**
