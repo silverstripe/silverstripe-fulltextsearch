@@ -1,5 +1,5 @@
 <?php
-
+namespace SilverStripe\FullTextSearch\Utils\Logging;
 use Monolog\Formatter\FormatterInterface;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\HandlerInterface;

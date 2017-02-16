@@ -1,5 +1,10 @@
 <?php
 
+use SilverStripe\Dev\SapphireTest;
+
+use SilverStripe\FullTextSearch\Search\FullTextSearch;
+use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_Variant;
+
 /**
  * Additional tests of solr reindexing processes when run with queuedjobs
  */

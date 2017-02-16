@@ -1,4 +1,11 @@
 <?php
+
+use SilverStripe\Dev\SapphireTest;
+use SilverStripe\FullTextSearch\Tests\SolrIndexTest\SolrIndexTest_FakeIndex;
+use SilverStripe\FullTextSearch\Tests\SolrIndexTest\SolrIndexTest_FakeIndex2;
+use SilverStripe\FullTextSearch\Tests\SolrIndexTest\SolrIndexTest_BoostedIndex;
+
+
 class SolrIndexTest extends SapphireTest
 {
     public function setUpOnce()
@@ -306,56 +313,5 @@ class SolrIndexTest extends SapphireTest
                 '{}'
             )
         );
-    }
-}
-
-class SolrIndexTest_FakeIndex extends SolrIndex
-{
-    public function init()
-    {
-        $this->addClass('SearchUpdaterTest_Container');
-
-        $this->addFilterField('Field1');
-        $this->addFilterField('MyDate', 'Date');
-        $this->addFilterField('HasOneObject.Field1');
-        $this->addFilterField('HasManyObjects.Field1');
-        $this->addFilterField('ManyManyObjects.Field1');
-    }
-}
-
-
-class SolrIndexTest_FakeIndex2 extends SolrIndex
-{
-    protected function getStoredDefault()
-    {
-        // Override isDev defaulting to stored
-        return 'false';
-    }
-
-    public function init()
-    {
-        $this->addClass('SearchUpdaterTest_Container');
-        $this->addFilterField('MyDate', 'Date');
-        $this->addFilterField('HasOneObject.Field1');
-        $this->addFilterField('HasManyObjects.Field1');
-        $this->addFilterField('ManyManyObjects.Field1');
-    }
-}
-
-
-class SolrIndexTest_BoostedIndex extends SolrIndex
-{
-    protected function getStoredDefault()
-    {
-        // Override isDev defaulting to stored
-        return 'false';
-    }
-
-    public function init()
-    {
-        $this->addClass('SearchUpdaterTest_Container');
-        $this->addAllFulltextFields();
-        $this->setFieldBoosting('SearchUpdaterTest_Container_Field1', 1.5);
-        $this->addBoostedField('Field2', null, array(), 2.1);
     }
 }

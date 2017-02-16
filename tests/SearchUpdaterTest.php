@@ -1,5 +1,10 @@
 <?php
 
+use SilverStripe\ORM\DataObject;
+use SilverStripe\FullTextSearch\Search\Indexes\SearchIndex_Recording;
+use SilverStripe\Dev\SapphireTest;
+use SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater;
+
 class SearchUpdaterTest_Container extends DataObject
 {
     private static $db = array(

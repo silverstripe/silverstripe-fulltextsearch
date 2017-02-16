@@ -1,5 +1,5 @@
 <?php
-
+namespace SilverStripe\FullTextSearch\Utils;
 class WebDAV
 {
     public static function curl_init($url, $method)

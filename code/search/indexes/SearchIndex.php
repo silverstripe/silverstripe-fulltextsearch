@@ -1,5 +1,15 @@
 <?php
 
+namespace SilverStripe\FullTextSearch\Search\Indexes;
+
+use SilverStripe\View\ViewableData;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\ORM\DataObjectSchema;
+use SilverStripe\Core\Object;
+use SilverStripe\Core\ClassInfo;
+use SilverStripe\FullTextSearch\Search\SearchIntrospection;
+use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
+use SilverStripe\FullTextSearch\Utils\MultipleArrayIterator;
 /**
  * SearchIndex is the base index class. Each connector will provide a subclass of this that
  * provides search engine specific behavior.
@@ -83,20 +93,20 @@ abstract class SearchIndex extends ViewableData
                     foreach (SearchIntrospection::hierarchy($source, $options['include_children']) as $dataclass) {
                         $singleton = singleton($dataclass);
 
-                        if ($hasOne = $singleton->has_one($lookup)) {
+                        if ($hasOne = $singleton->hasOne($lookup)) {
                             $class = $hasOne;
                             $options['lookup_chain'][] = array(
                                 'call' => 'method', 'method' => $lookup,
                                 'through' => 'has_one', 'class' => $dataclass, 'otherclass' => $class, 'foreignkey' => "{$lookup}ID"
                             );
-                        } elseif ($hasMany = $singleton->has_many($lookup)) {
+                        } elseif ($hasMany = $singleton->hasMany($lookup)) {
                             $class = $hasMany;
                             $options['multi_valued'] = true;
                             $options['lookup_chain'][] = array(
                                 'call' => 'method', 'method' => $lookup,
                                 'through' => 'has_many', 'class' => $dataclass, 'otherclass' => $class, 'foreignkey' => $singleton->getRemoteJoinField($lookup, 'has_many')
                             );
-                        } elseif ($manyMany = $singleton->many_many($lookup)) {
+                        } elseif ($manyMany = $singleton->manyMany($lookup)) {
                             $class = $manyMany[1];
                             $options['multi_valued'] = true;
                             $options['lookup_chain'][] = array(
@@ -105,7 +115,7 @@ abstract class SearchIndex extends ViewableData
                             );
                         }
 
-                        if ($class) {
+                        if (is_string($class) && $class) {
                             if (!isset($options['origin'])) {
                                 $options['origin'] = $dataclass;
                             }
@@ -130,7 +140,7 @@ abstract class SearchIndex extends ViewableData
                 $type = null;
                 $fieldoptions = $options;
 
-                $fields = DataObject::database_fields($dataclass);
+                $fields = DataObject::getSchema()->databaseFields($class);
 
                 if (isset($fields[$field])) {
                     $type = $fields[$field];
@@ -209,7 +219,7 @@ abstract class SearchIndex extends ViewableData
             throw new Exception('Can\'t add class to Index after fields have already been added');
         }
 
-        if (!DataObject::has_own_table($class)) {
+        if (!DataObject::getSchema()->classHasTable($class)) {
             throw new InvalidArgumentException('Can\'t add classes which don\'t have data tables (no $db or $has_one set on the class)');
         }
 
@@ -286,7 +296,7 @@ abstract class SearchIndex extends ViewableData
     {
         foreach ($this->getClasses() as $class => $options) {
             foreach (SearchIntrospection::hierarchy($class, $includeSubclasses, true) as $dataclass) {
-                $fields = DataObject::database_fields($dataclass);
+                $fields = DataObject::getSchema()->databaseFields($class);
 
                 foreach ($fields as $field => $type) {
                     if (preg_match('/^(\w+)\(/', $type, $match)) {
@@ -598,96 +608,4 @@ abstract class SearchIndex extends ViewableData
      * to be run before _and/or_ after this.
      */
     abstract public function init();
-}
-
-/**
- * A search index that does nothing. Useful for testing
- */
-abstract class SearchIndex_Null extends SearchIndex
-{
-    public function add($object)
-    {
-    }
-
-    public function delete($base, $id, $state)
-    {
-    }
-
-    public function commit()
-    {
-    }
-}
-
-/**
- * A search index that just records actions. Useful for testing
- */
-abstract class SearchIndex_Recording extends SearchIndex
-{
-    public $added = array();
-    public $deleted = array();
-    public $committed = false;
-
-    public function reset()
-    {
-        $this->added = array();
-        $this->deleted = array();
-        $this->committed = false;
-    }
-
-    public function add($object)
-    {
-        $res = array();
-
-        $res['ID'] = $object->ID;
-
-        foreach ($this->getFieldsIterator() as $name => $field) {
-            $val = $this->_getFieldValue($object, $field);
-            $res[$name] = $val;
-        }
-
-        $this->added[] = $res;
-    }
-
-    public function getAdded($fields = array())
-    {
-        $res = array();
-
-        foreach ($this->added as $added) {
-            $filtered = array();
-            foreach ($fields as $field) {
-                if (isset($added[$field])) {
-                    $filtered[$field] = $added[$field];
-                }
-            }
-            $res[] = $filtered;
-        }
-
-        return $res;
-    }
-
-    public function delete($base, $id, $state)
-    {
-        $this->deleted[] = array('base' => $base, 'id' => $id, 'state' => $state);
-    }
-
-    public function commit()
-    {
-        $this->committed = true;
-    }
-
-    public function getIndexName()
-    {
-        return get_class($this);
-    }
-
-    public function getIsCommitted()
-    {
-        return $this->committed;
-    }
-
-    public function getService()
-    {
-        // Causes commits to the service to be redirected back to the same object
-        return $this;
-    }
 }

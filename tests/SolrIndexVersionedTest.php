@@ -1,5 +1,11 @@
 <?php
 
+use SilverStripe\Dev\SapphireTest;
+use SilverStripe\FullTextSearch\Tests\SolrVersionedTest\SolrDocumentMatcher;
+use SilverStripe\FullTextSearch\Tests\SolrVersionedTest\SolrIndexVersionedTest_Object;
+use SilverStripe\FullTextSearch\Tests\SolrVersionedTest\SolrVersionedTest_Index;
+use SilverStripe\Versioned\Versioned;
+
 if (class_exists('Phockito')) {
     Phockito::include_hamcrest(false);
 }
@@ -167,67 +173,5 @@ class SolrIndexVersionedTest extends SapphireTest
             ->deleteById($this->getExpectedDocumentId($id, 'Stage'));
         Phockito::verify($serviceMock, 0)
             ->deleteById($this->getExpectedDocumentId($id, 'Live'));
-    }
-}
-
-
-class SolrVersionedTest_Index extends SolrIndex
-{
-    public function init()
-    {
-        $this->addClass('SearchVariantVersionedTest_Item');
-        $this->addClass('SolrIndexVersionedTest_Object');
-        $this->addFilterField('TestText');
-        $this->addFulltextField('Content');
-    }
-}
-
-/**
- * Non-sitetree versioned dataobject
- */
-class SolrIndexVersionedTest_Object extends DataObject implements TestOnly {
-
-    private static $extensions = array(
-        'Versioned'
-    );
-
-    private static $db = array(
-        'Title' => 'Varchar',
-        'Content' => 'Text',
-        'TestText' => 'Varchar',
-    );
-}
-
-if (!class_exists('Phockito')) {
-    return;
-}
-
-class SolrDocumentMatcher extends Hamcrest_BaseMatcher
-{
-    protected $properties;
-
-    public function __construct($properties)
-    {
-        $this->properties = $properties;
-    }
-
-    public function describeTo(\Hamcrest_Description $description)
-    {
-        $description->appendText('Apache_Solr_Document with properties '.var_export($this->properties, true));
-    }
-
-    public function matches($item)
-    {
-        if (! ($item instanceof Apache_Solr_Document)) {
-            return false;
-        }
-
-        foreach ($this->properties as $key => $value) {
-            if ($item->{$key} != $value) {
-                return false;
-            }
-        }
-
-        return true;
     }
 }

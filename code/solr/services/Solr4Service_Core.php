@@ -1,5 +1,7 @@
 <?php
 
+namespace SilverStripe\FullTextSearch\Solr\Services;
+
 class Solr4Service_Core extends SolrService_Core
 {
     /**
@@ -18,12 +20,12 @@ class Solr4Service_Core extends SolrService_Core
         $rawPost = '<commit expungeDeletes="' . $expungeValue . '" waitSearcher="' . $searcherValue . '" />';
         return $this->_sendRawPost($this->_updateUrl, $rawPost, $timeout);
     }
-    
+
     /**
-     * @inheritdoc	
+     * @inheritdoc
      * @see Solr4Service_Core::addDocuments
      */
-    public function addDocument(Apache_Solr_Document $document, $allowDups = false,
+    public function addDocument(\Apache_Solr_Document $document, $allowDups = false,
         $overwritePending = true, $overwriteCommitted = true, $commitWithin = 0
     ) {
         return $this->addDocuments(array($document), $allowDups, $overwritePending, $overwriteCommitted, $commitWithin);
@@ -50,9 +52,4 @@ class Solr4Service_Core extends SolrService_Core
 
         return $this->add($rawPost);
     }
-}
-
-class Solr4Service extends SolrService
-{
-    private static $core_class = 'Solr4Service_Core';
 }

@@ -1,4 +1,5 @@
 <?php
+namespace SilverStripe\FullTextSearch\Search\Variants;
 
 class SearchVariantVersioned extends SearchVariant
 {
