@@ -4,6 +4,11 @@ use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use Psr\Log\LoggerInterface;
+use SilverStripe\Dev\BuildTask;
+use SilverStripe\Control\Director;
+use SilverStripe\Core\Injector\Injector;
+use SilverStripe\Core\ClassInfo;
+use SilverStripe\Core\Object;
 
 class Solr
 {
@@ -179,7 +184,7 @@ class Solr_BuildTask extends BuildTask
      */
     public function getLogger()
     {
-        return $this->logger;
+        return Injector::inst()->get('Logger');
     }
 
     /**
@@ -197,7 +202,7 @@ class Solr_BuildTask extends BuildTask
      */
     protected function getLoggerFactory()
     {
-        return Injector::inst()->get('SearchLogFactory');
+//        return Injector::inst()->get('SearchLogFactory');
     }
 
     /**
@@ -212,8 +217,9 @@ class Solr_BuildTask extends BuildTask
 
         // Set new logger
         $logger = $this
-            ->getLoggerFactory()
-            ->getOutputLogger($name, $verbose);
+            ->getLoggerFactory();
+//@todo: Cannot instantiate interface SearchLogFactory
+//            ->getOutputLogger($name, $verbose);
         $this->setLogger($logger);
     }
 }
@@ -229,6 +235,7 @@ class Solr_Configure extends Solr_BuildTask
 
         // Find the IndexStore handler, which will handle uploading config files to Solr
         $store = $this->getSolrConfigStore();
+
         $indexes = Solr::get_indexes();
         foreach ($indexes as $instance) {
             try {
@@ -251,23 +258,23 @@ class Solr_Configure extends Solr_BuildTask
     protected function updateIndex($instance, $store)
     {
         $index = $instance->getIndexName();
-        $this->getLogger()->info("Configuring $index.");
+        $this->getLogger()->addInfo("Configuring $index.");
 
         // Upload the config files for this index
-        $this->getLogger()->info("Uploading configuration ...");
+        $this->getLogger()->addInfo("Uploading configuration ...");
         $instance->uploadConfig($store);
 
         // Then tell Solr to use those config files
         $service = Solr::service();
         if ($service->coreIsActive($index)) {
-            $this->getLogger()->info("Reloading core ...");
+            $this->getLogger()->addInfo("Reloading core ...");
             $service->coreReload($index);
         } else {
-            $this->getLogger()->info("Creating core ...");
+            $this->getLogger()->addInfo("Creating core ...");
             $service->coreCreate($index, $store->instanceDir($index));
         }
 
-        $this->getLogger()->info("Done");
+        $this->getLogger()->addInfo("Done");
     }
 
     /**
@@ -280,7 +287,7 @@ class Solr_Configure extends Solr_BuildTask
         $options = Solr::solr_options();
 
         if (!isset($options['indexstore']) || !($indexstore = $options['indexstore'])) {
-            user_error('No index configuration for Solr provided', E_USER_ERROR);
+            throw new Exception('No index configuration for Solr provided', E_USER_ERROR);
         }
 
         // Find the IndexStore handler, which will handle uploading config files to Solr

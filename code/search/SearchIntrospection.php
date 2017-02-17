@@ -1,5 +1,7 @@
 <?php
 
+use SilverStripe\Core\ClassInfo;
+use SilverStripe\ORM\DataObject;
 /**
  * Some additional introspection tools that are used often by the fulltext search code
  */
@@ -45,14 +47,14 @@ class SearchIntrospection
             if ($idx !== false) {
                 array_splice($classes, 0, $idx+1);
             }
-
-            if ($dataOnly) {
-                foreach ($classes as $i => $class) {
-                    if (!DataObject::has_own_table($class)) {
-                        unset($classes[$i]);
-                    }
-                }
-            }
+//@todo find another way to determine if a dataobject does not have a table
+//            if ($dataOnly) {
+//                foreach ($classes as $i => $class) {
+//                    if (!DataObject::has_own_table($class)) {
+//                        unset($classes[$i]);
+//                    }
+//                }
+//            }
 
             self::$hierarchy[$key] = $classes;
         }

@@ -1,5 +1,6 @@
 <?php
 
+use SilverStripe\Core\ClassInfo;
 /**
  * A Search Variant handles decorators and other situations where the items to reindex or search through are modified
  * from the default state - for instance, dealing with Versioned or Subsite

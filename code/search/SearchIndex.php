@@ -1,5 +1,10 @@
 <?php
 
+use SilverStripe\View\ViewableData;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\ORM\DataObjectSchema;
+use SilverStripe\Core\Object;
+use SilverStripe\Core\ClassInfo;
 /**
  * SearchIndex is the base index class. Each connector will provide a subclass of this that
  * provides search engine specific behavior.
@@ -130,7 +135,7 @@ abstract class SearchIndex extends ViewableData
                 $type = null;
                 $fieldoptions = $options;
 
-                $fields = DataObject::database_fields($dataclass);
+                $fields = DataObject::getSchema()->databaseFields($class);
 
                 if (isset($fields[$field])) {
                     $type = $fields[$field];
@@ -209,7 +214,7 @@ abstract class SearchIndex extends ViewableData
             throw new Exception('Can\'t add class to Index after fields have already been added');
         }
 
-        if (!DataObject::has_own_table($class)) {
+        if (!DataObject::getSchema()->classHasTable($class)) {
             throw new InvalidArgumentException('Can\'t add classes which don\'t have data tables (no $db or $has_one set on the class)');
         }
 
@@ -286,7 +291,7 @@ abstract class SearchIndex extends ViewableData
     {
         foreach ($this->getClasses() as $class => $options) {
             foreach (SearchIntrospection::hierarchy($class, $includeSubclasses, true) as $dataclass) {
-                $fields = DataObject::database_fields($dataclass);
+                $fields = DataObject::getSchema()->databaseFields($class);
 
                 foreach ($fields as $field => $type) {
                     if (preg_match('/^(\w+)\(/', $type, $match)) {

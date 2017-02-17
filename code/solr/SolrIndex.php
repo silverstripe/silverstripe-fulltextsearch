@@ -2,6 +2,8 @@
 
 Solr::include_client_api();
 
+use SilverStripe\Dev\BuildTask;
+use SilverStripe\Control\Director;
 abstract class SolrIndex extends SearchIndex
 {
     public static $fulltextTypeMap = array(
