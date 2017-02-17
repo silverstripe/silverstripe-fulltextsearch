@@ -339,7 +339,9 @@ class Solr_Reindex extends Solr_BuildTask
      */
     protected function getHandler()
     {
-        return Injector::inst()->get('SolrReindexHandler');
+        //@todo: this needs to determine the best class from a Factory implementation
+        //@todo: it was 'SolrReindexHandler' but that doesn't work on 4.0
+        return Injector::inst()->get('SolrReindexImmediateHandler');
     }
 
     /**
@@ -397,6 +399,7 @@ class Solr_Reindex extends Solr_BuildTask
         // If not using queuedjobs, we need to invoke Solr_Reindex as a separate process
         // Otherwise each group is processed via a SolrReindexGroupJob
         $groups = $request->getVar('groups');
+
         $handler = $this->getHandler();
         if ($groups) {
             // Run grouped batches (id % groups = group)
