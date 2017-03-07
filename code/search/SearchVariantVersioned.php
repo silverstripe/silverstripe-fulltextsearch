@@ -66,6 +66,36 @@ class SearchVariantVersioned extends SearchVariant
         }
     }
 
+    /**
+     * If we are doing a delete or an unpublish where the *_Live table had a
+     * delete operation, this isn't included in the database manipulation array.
+     *
+     * We need to ensure each state is checked on every write.
+     */
+    public function extractManipulationWriteState(&$writes)
+    {
+        $self = get_class($this);
+
+        foreach ($writes as $key => $write) {
+            $applies = $this->appliesTo($write['class'], true);
+            if (!$applies) {
+                continue;
+            }
+
+            $reindexStates = $this->reindexStates();
+            $next = array();
+            foreach ($write['statefulids'] as $i => $statefulid) {
+                // Add copies of the state to write with all possible Versioned states
+                foreach ($reindexStates as $reindexState) {
+                    $reindexStatefulid = $statefulid;
+                    $reindexStatefulid['state'][$self] = $reindexState;
+                    $next[] = $reindexStatefulid;
+                }
+            }
+            $writes[$key]['statefulids'] = $next;
+        }
+    }
+
     public function extractStates(&$table, &$ids, &$fields)
     {
         $class = $table;

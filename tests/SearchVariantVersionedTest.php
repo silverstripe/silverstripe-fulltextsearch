@@ -53,11 +53,14 @@ class SearchVariantVersionedTest extends SapphireTest
         $item->publish("Stage", "Live");
 
         SearchUpdater::flush_dirty_indexes();
-        $this->assertEquals(self::$index->getAdded(array('ID', '_versionedstage')), array(
+        // Note: All states are checked on each action
+        $expectedStates = array(
+            array('ID' => $item->ID, '_versionedstage' => 'Stage'),
             array('ID' => $item->ID, '_versionedstage' => 'Live')
-        ));
+        );
+        $this->assertEquals($expectedStates, self::$index->getAdded(array('ID', '_versionedstage')));
 
-        // Just update a SiteTree field, and check it updates Stage
+        // Wne writing only to state, also update stage / live
 
         self::$index->reset();
 
@@ -66,12 +69,15 @@ class SearchVariantVersionedTest extends SapphireTest
 
         SearchUpdater::flush_dirty_indexes();
 
-        $expected = array(array(
-            'ID' => $item->ID,
-            '_versionedstage' => 'Stage'
-        ));
-        $added = self::$index->getAdded(array('ID', '_versionedstage'));
-        $this->assertEquals($expected, $added);
+        $this->assertEquals($expectedStates, self::$index->getAdded(array('ID', '_versionedstage')));
+
+        // Remove from live, test that live is removed
+        self::$index->reset();
+        $item->deleteFromStage('Live');
+        SearchUpdater::flush_dirty_indexes();
+
+        // Todo: Ensure this record is deleted from live index
+        $this->assertTrue(!empty(self::$index->deleted));
     }
 
     public function testExcludeVariantState()
