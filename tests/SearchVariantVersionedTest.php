@@ -72,6 +72,28 @@ class SearchVariantVersionedTest extends SapphireTest
         ));
         $added = self::$index->getAdded(array('ID', '_versionedstage'));
         $this->assertEquals($expected, $added);
+
+        // Test unpublish
+
+        self::$index->reset();
+
+        $item->deleteFromStage('Live');
+
+        SearchUpdater::flush_dirty_indexes();
+
+        $this->assertEquals(1, count(self::$index->deleted));
+        $this->assertEquals(
+            'SiteTree',
+            self::$index->deleted[0]['base']
+        );
+        $this->assertEquals(
+            $item->ID,
+            self::$index->deleted[0]['id']
+        );
+        $this->assertEquals(
+            'Live',
+            self::$index->deleted[0]['state']['SearchVariantVersioned']
+        );
     }
 
     public function testExcludeVariantState()
