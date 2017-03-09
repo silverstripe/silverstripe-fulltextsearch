@@ -97,6 +97,7 @@ class SearchUpdater extends Object
             $id = $details['id'];
             $state = $details['state'];
             $class = $details['class'];
+            $command = $details['command'];
             $fields = isset($details['fields']) ? $details['fields'] : array();
 
             $base = ClassInfo::baseDataClass($class);
@@ -111,6 +112,7 @@ class SearchUpdater extends Object
                     'class' => $class,
                     'id' => $id,
                     'statefulids' => $statefulids,
+                    'command' => $command,
                     'fields' => array()
                 );
             }
@@ -125,9 +127,9 @@ class SearchUpdater extends Object
             }
         }
 
-        // Trim records without fields
-        foreach(array_keys($writes) as $key) {
-            if(empty($writes[$key]['fields'])) {
+        // Trim non-delete records without fields
+        foreach (array_keys($writes) as $key) {
+            if ($writes[$key]['command'] !== 'delete' && empty($writes[$key]['fields'])) {
                 unset($writes[$key]);
             }
         }
@@ -201,80 +203,5 @@ class SearchUpdater extends Object
         }
         self::$processor->triggerProcessing();
         self::$processor = null;
-    }
-}
-
-class SearchUpdater_BindManipulationCaptureFilter implements RequestFilter
-{
-    public function preRequest(SS_HTTPRequest $request, Session $session, DataModel $model)
-    {
-        SearchUpdater::bind_manipulation_capture();
-    }
-
-    public function postRequest(SS_HTTPRequest $request, SS_HTTPResponse $response, DataModel $model)
-    {
-        /* NOP */
-    }
-}
-
-/**
- * Delete operations do not use database manipulations.
- *
- * If a delete has been requested, force a write on objects that should be
- * indexed.  This causes the object to be marked for deletion from the index.
- */
-
-class SearchUpdater_ObjectHandler extends DataExtension
-{
-    public function onAfterDelete()
-    {
-        // Calling delete() on empty objects does nothing
-        if (!$this->owner->ID) {
-            return;
-        }
-
-        // Force SearchUpdater to mark this record as dirty
-        $manipulation = array(
-            $this->owner->ClassName => array(
-                'fields' => array(),
-                'id' => $this->owner->ID,
-                'command' => 'update'
-            )
-        );
-        $this->owner->extend('augmentWrite', $manipulation);
-        SearchUpdater::handle_manipulation($manipulation);
-    }
-
-    /**
-     * Forces this object to trigger a re-index in the current state
-     */
-    public function triggerReindex()
-    {
-        if (!$this->owner->ID) {
-            return;
-        }
-
-        $id = $this->owner->ID;
-        $class = $this->owner->ClassName;
-        $state = SearchVariant::current_state($class);
-        $base = ClassInfo::baseDataClass($class);
-        $key = "$id:$base:".serialize($state);
-
-        $statefulids = array(array(
-            'id' => $id,
-            'state' => $state
-        ));
-
-        $writes = array(
-            $key => array(
-                'base' => $base,
-                'class' => $class,
-                'id' => $id,
-                'statefulids' => $statefulids,
-                'fields' => array()
-            )
-        );
-
-        SearchUpdater::process_writes($writes);
     }
 }
