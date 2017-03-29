@@ -71,7 +71,7 @@ class SearchVariantSubsites extends SearchVariant
      */
     public function alterQuery($query, $index)
     {
-        if ($this->isFieldFiltered('_subsite', $query, $index)) {
+        if ($this->isFieldFiltered('_subsite', $query)) {
             return;
         }
 
@@ -130,11 +130,10 @@ class SearchVariantSubsites extends SearchVariant
      * @param $index SearchIndex which specifies a filter field
      * @return bool true if $field is being filtered, false if it is not being filtered
      */
-    protected function isFieldFiltered($field, $query, $index)
+    protected function isFieldFiltered($field, $query)
     {
         $queryHasFilter = !empty($query->require[$field]);
 
         return $queryHasFilter;
-
     }
 }
