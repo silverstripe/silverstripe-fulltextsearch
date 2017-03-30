@@ -191,6 +191,17 @@ from a new file `mysite/solr/templates/types.ss` instead:
 			return $this->renderWith(Director::baseFolder() . '/mysite/solr/templates/types.ss');
 		}
 	}
+    
+#### Searching for words containing numbers
+
+By default, the fulltextmodule is configured to split words containing numbers into multiple tokens. For example, the word “A1” would be interpreted as “A” “1”; since “a” is a common stopword, the term “A1” will be excluded from search. 
+
+To allow searches on words containing numeric tokens, you'll need to update your overloaded template to change the behaviour of the  WordDelimiterFilterFactory.  Each instance of `<filter class="solr.WordDelimiterFilterFactory">` needs to include the following attributes and values:
+
+* add splitOnNumerics="0" on all WordDelimiterFilterFactory fields
+* change catenateOnNumbers="1" on all WordDelimiterFilterFactory fields
+
+Update your index to point to your overloaded template using the method described above.
 
 ### Spell Checking ("Did you mean...")
 
