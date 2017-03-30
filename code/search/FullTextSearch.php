@@ -1,5 +1,7 @@
 <?php
 
+use SilverStripe\Core\Config\Config;
+use SilverStripe\Core\ClassInfo;
 /**
  * Base class to manage active search indexes.
  */
