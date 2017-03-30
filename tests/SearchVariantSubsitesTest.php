@@ -79,7 +79,7 @@ class SearchVariantSubsiteTest extends SapphireTest
         $this->assertNotEquals(0, $query->require['_subsite'][0]);
 
         //subsite filter SearchQuery::missing should not be set so its expected location is empty
-        $this->assertArrayNotHasKey($query->require['_subsite'][1]);
+        $this->assertArrayNotHasKey(1, $query->require['_subsite']);
 
         //subsite filter has been modified with our arbitrary test value. The second value is not set
         //this proves that the query has not been altered by the variant
