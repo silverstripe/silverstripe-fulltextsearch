@@ -1,3 +1,4 @@
+
 # FullTextSearch module
 
 [![Build Status](https://secure.travis-ci.org/silverstripe/silverstripe-fulltextsearch.png?branch=master)](http://travis-ci.org/silverstripe/silverstripe-fulltextsearch)
