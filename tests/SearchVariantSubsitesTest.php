@@ -35,6 +35,7 @@ class SearchVariantSubsiteTest extends SapphireTest
         $query = new SearchQuery();
 
         //typical behaviour: nobody is explicitly filtering on subsite, so the search variant adds a filter to the query
+        $this->assertArrayNotHasKey('_subsite', $query->require);
         $variant = new SearchVariantSubsites();
         $variant->alterDefinition('SearchUpdaterTest_Container', $index);
         $variant->alterQuery($query, $index);
@@ -55,6 +56,9 @@ class SearchVariantSubsiteTest extends SapphireTest
         $index = new SolrIndexTest_FakeIndex();
         $query = new SearchQuery();
 
+        //check that _subsite is not applied yet
+        //this key should not be exist until the SearchVariant applies it later
+        $this->assertArrayNotHasKey('_subsite', $query->require);
 
         //apply the subsite filter on the query (for example, if it's passed into a controller and set before searching)
         //we've chosen an arbirary value of 2 here, to check if it is changed later
