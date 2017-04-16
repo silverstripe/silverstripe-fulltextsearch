@@ -14,7 +14,7 @@ class SolrReindexImmediateHandler extends SolrReindexBase
         $this->runReindex($logger, $batchSize, $taskName, $classes);
     }
 
-    protected function processIndex(
+    public function processIndex(
         LoggerInterface $logger, SolrIndex $indexInstance, $batchSize, $taskName, $classes = null
     ) {
         parent::processIndex($logger, $indexInstance, $batchSize, $taskName, $classes);

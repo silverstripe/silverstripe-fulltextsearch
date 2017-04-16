@@ -401,6 +401,16 @@ class Solr_Reindex extends Solr_BuildTask
             return;
         }
 
+        // run a specified index
+        $index = $request->getVar('index');
+        if ($index) {
+
+            $self = get_class($this);
+            $indexInstance = singleton($request->getVar('index'));
+            $handler->processIndex($this->getLogger(), $indexInstance, $this->config()->recordsPerRequest, $self);
+            return;
+        }
+
         // If run at the top level, delegate to appropriate handler
         $self = get_class($this);
         $handler->triggerReindex($this->getLogger(), $this->config()->recordsPerRequest, $self, $class);
