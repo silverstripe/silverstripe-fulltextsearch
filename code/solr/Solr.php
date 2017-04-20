@@ -154,7 +154,7 @@ class Solr
         static $included = false;
 
         if (!$included) {
-            $solr_php_path = BASE_PATH . DIRECTORY_SEPARATOR . 'fulltextsearch/thirdparty/solr-php-client';
+            $solr_php_path = __DIR__. '/../..' . '/thirdparty/solr-php-client';
             set_include_path($solr_php_path);
             require_once($solr_php_path . DIRECTORY_SEPARATOR . 'Apache/Solr/Service.php');
             require_once($solr_php_path . DIRECTORY_SEPARATOR . 'Apache/Solr/Document.php');
