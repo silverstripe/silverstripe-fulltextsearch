@@ -5,6 +5,7 @@
  *
  * API very much still in flux.
  */
+use SilverStripe\View\ViewableData;
 class SearchQuery extends ViewableData
 {
     public static $missing = null;

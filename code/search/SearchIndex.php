@@ -1,4 +1,5 @@
 <?php
+namespace FulltextSearch;
 
 use SilverStripe\View\ViewableData;
 use SilverStripe\ORM\DataObject;

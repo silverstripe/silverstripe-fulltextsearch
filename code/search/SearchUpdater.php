@@ -12,6 +12,14 @@
  *
  * TODO: The way we bind in is awful hacky.
  */
+use SilverStripe\Core\Object;
+use SilverStripe\Control\RequestFilter;
+use SilverStripe\Control\HTTPRequest;
+use SilverStripe\Control\Session;
+use SilverStripe\ORM\DataModel;
+use SilverStripe\Control\HTTPResponse;
+use SilverStripe\ORM\DataExtension;
+
 class SearchUpdater extends Object
 {
     /**
@@ -206,12 +214,13 @@ class SearchUpdater extends Object
 
 class SearchUpdater_BindManipulationCaptureFilter implements RequestFilter
 {
-    public function preRequest(SS_HTTPRequest $request, Session $session, DataModel $model)
+
+    public function preRequest(HTTPRequest $request, Session $session, DataModel $model)
     {
         SearchUpdater::bind_manipulation_capture();
     }
 
-    public function postRequest(SS_HTTPRequest $request, SS_HTTPResponse $response, DataModel $model)
+    public function postRequest(HTTPRequest $request, HTTPResponse $response, DataModel $model)
     {
         /* NOP */
     }

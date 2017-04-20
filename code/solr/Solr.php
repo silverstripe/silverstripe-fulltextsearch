@@ -154,9 +154,10 @@ class Solr
         static $included = false;
 
         if (!$included) {
-            set_include_path(get_include_path() . PATH_SEPARATOR . Director::baseFolder() . '/fulltextsearch/thirdparty/solr-php-client');
-            require_once('Apache/Solr/Service.php');
-            require_once('Apache/Solr/Document.php');
+            $solr_php_path = BASE_PATH . DIRECTORY_SEPARATOR . 'fulltextsearch/thirdparty/solr-php-client';
+            set_include_path($solr_php_path);
+            require_once($solr_php_path . DIRECTORY_SEPARATOR . 'Apache/Solr/Service.php');
+            require_once($solr_php_path . DIRECTORY_SEPARATOR . 'Apache/Solr/Document.php');
 
             $included = true;
         }
