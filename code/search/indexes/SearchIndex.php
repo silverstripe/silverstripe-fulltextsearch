@@ -7,6 +7,9 @@ use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\DataObjectSchema;
 use SilverStripe\Core\Object;
 use SilverStripe\Core\ClassInfo;
+use SilverStripe\FullTextSearch\Search\SearchIntrospection;
+use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
+use SilverStripe\FullTextSearch\Utils\MultipleArrayIterator;
 /**
  * SearchIndex is the base index class. Each connector will provide a subclass of this that
  * provides search engine specific behavior.
@@ -90,20 +93,20 @@ abstract class SearchIndex extends ViewableData
                     foreach (SearchIntrospection::hierarchy($source, $options['include_children']) as $dataclass) {
                         $singleton = singleton($dataclass);
 
-                        if ($hasOne = $singleton->has_one($lookup)) {
+                        if ($hasOne = $singleton->hasOne($lookup)) {
                             $class = $hasOne;
                             $options['lookup_chain'][] = array(
                                 'call' => 'method', 'method' => $lookup,
                                 'through' => 'has_one', 'class' => $dataclass, 'otherclass' => $class, 'foreignkey' => "{$lookup}ID"
                             );
-                        } elseif ($hasMany = $singleton->has_many($lookup)) {
+                        } elseif ($hasMany = $singleton->hasMany($lookup)) {
                             $class = $hasMany;
                             $options['multi_valued'] = true;
                             $options['lookup_chain'][] = array(
                                 'call' => 'method', 'method' => $lookup,
                                 'through' => 'has_many', 'class' => $dataclass, 'otherclass' => $class, 'foreignkey' => $singleton->getRemoteJoinField($lookup, 'has_many')
                             );
-                        } elseif ($manyMany = $singleton->many_many($lookup)) {
+                        } elseif ($manyMany = $singleton->manyMany($lookup)) {
                             $class = $manyMany[1];
                             $options['multi_valued'] = true;
                             $options['lookup_chain'][] = array(
@@ -112,7 +115,7 @@ abstract class SearchIndex extends ViewableData
                             );
                         }
 
-                        if ($class) {
+                        if (is_string($class) && $class) {
                             if (!isset($options['origin'])) {
                                 $options['origin'] = $dataclass;
                             }

@@ -1,5 +1,8 @@
 <?php
+
 namespace SilverStripe\FullTextSearch\Search\Updaters;
+
+use SilverStripe\ORM\DB;
 /**
  * This class is responsible for capturing changes to DataObjects and triggering index updates of the resulting dirty index
  * items.
