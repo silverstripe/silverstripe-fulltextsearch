@@ -187,7 +187,7 @@ class SolrIndexTest extends SapphireTest
         $serviceMock = $this->getServiceMock();
         $index = new SolrIndexTest_FakeIndex();
         $index->setService($serviceMock);
-        $obj = new SearchUpdaterTest_Container();
+        $obj = new Container();
 
         $obj->Field1 = 'Field1 val';
         $obj->Field2 = null;

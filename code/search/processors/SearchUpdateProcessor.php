@@ -1,5 +1,11 @@
 <?php
+
 namespace SilverStripe\FullTextSearch\Search\Processors;
+
+use SilverStripe\ORM\DataObject;
+use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
+use SilverStripe\FullTextSearch\Search\FullTextSearch;
+
 abstract class SearchUpdateProcessor
 {
     /**
@@ -33,7 +39,7 @@ abstract class SearchUpdateProcessor
 
     public function addDirtyIDs($class, $statefulids, $index)
     {
-        $base = ClassInfo::baseDataClass($class);
+        $base = DataObject::getSchema()->baseDataClass($class);
         $forclass = isset($this->dirty[$base]) ? $this->dirty[$base] : array();
 
         foreach ($statefulids as $statefulid) {

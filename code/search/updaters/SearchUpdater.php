@@ -3,6 +3,14 @@
 namespace SilverStripe\FullTextSearch\Search\Updaters;
 
 use SilverStripe\ORM\DB;
+use SilverStripe\Core\Object;
+use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\FullTextSearch\Search\FullTextSearch;
+use SilverStripe\FullTextSearch\Search\SearchIntrospection;
+use SilverStripe\Core\Injector\Injector;
+use SilverStripe\FullTextSearch\Search\Processors\SearchUpdateImmediateProcessor;
+use SilverStripe\FullTextSearch\Captures\SearchManipulateCapture_MySQLDatabase;
 /**
  * This class is responsible for capturing changes to DataObjects and triggering index updates of the resulting dirty index
  * items.
@@ -15,8 +23,6 @@ use SilverStripe\ORM\DB;
  *
  * TODO: The way we bind in is awful hacky.
  */
-use SilverStripe\Core\Object;
-use SilverStripe\ORM\DataExtension;
 
 class SearchUpdater extends Object
 {
@@ -27,31 +33,13 @@ class SearchUpdater extends Object
     {
         global $databaseConfig;
 
-        $current = DB::getConn();
-        if (!$current || !$current->currentDatabase() || @$current->isManipulationCapture) {
+        $current = DB::get_conn();
+        if (!$current || !$current->getSelectedDatabase() || @$current->isManipulationCapture) {
             return;
         } // If not yet set, or its already captured, just return
 
-        $type = get_class($current);
-        $file = TEMP_FOLDER."/.cache.SMC.$type";
 
-        if (!is_file($file)) {
-            file_put_contents($file, "<?php
-				class SearchManipulateCapture_$type extends $type {
-					public \$isManipulationCapture = true;
-
-					function manipulate(\$manipulation) {
-						\$res = parent::manipulate(\$manipulation);
-						SearchUpdater::handle_manipulation(\$manipulation);
-						return \$res;
-					}
-				}
-			");
-        }
-
-        require_once($file);
-        $dbClass = 'SearchManipulateCapture_'.$type;
-
+        $dbClass = SearchManipulateCapture_MySQLDatabase::class;
         /** @var SS_Database $captured */
         $captured = new $dbClass($databaseConfig);
 
@@ -63,8 +51,8 @@ class SearchUpdater extends Object
         }
 
         // The connection might have had it's name changed (like if we're currently in a test)
-        $captured->selectDatabase($current->currentDatabase());
-        DB::setConn($captured);
+        $captured->selectDatabase($current->getSelectedDatabase());
+        DB::set_conn($captured);
     }
 
     public static $registered = false;
@@ -85,7 +73,9 @@ class SearchUpdater extends Object
     {
         // First, extract any state that is in the manipulation itself
         foreach ($manipulation as $table => $details) {
-            $manipulation[$table]['class'] = $table;
+            if (!isset($manipulation[$table]['class'])) {
+                $manipulation[$table]['class'] = DataObject::getSchema()->tableClass($table);
+            }
             $manipulation[$table]['state'] = array();
         }
 
@@ -105,7 +95,7 @@ class SearchUpdater extends Object
             $class = $details['class'];
             $fields = isset($details['fields']) ? $details['fields'] : array();
 
-            $base = ClassInfo::baseDataClass($class);
+            $base = DataObject::getSchema()->baseDataClass($class);
             $key = "$id:$base:".serialize($state);
 
             $statefulids = array(array('id' => $id, 'state' => $state));
@@ -166,7 +156,7 @@ class SearchUpdater extends Object
                     foreach ($dirtyids as $dirtyclass => $ids) {
                         if ($ids) {
                             if (!self::$processor) {
-                                self::$processor = Injector::inst()->create('SearchUpdateProcessor');
+                                self::$processor = Injector::inst()->create(SearchUpdateImmediateProcessor::class);
                             }
                             self::$processor->addDirtyIDs($dirtyclass, $ids, $index);
                         }
@@ -182,7 +172,7 @@ class SearchUpdater extends Object
         $runningTests = class_exists('SapphireTest', false) && SapphireTest::is_running_test();
 
         if (self::$processor && !self::$registered && !$runningTests) {
-            register_shutdown_function(array("SearchUpdater", "flush_dirty_indexes"));
+            register_shutdown_function(array(SearchUpdater::class, "flush_dirty_indexes"));
             self::$registered = true;
         }
     }

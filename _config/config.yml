@@ -1,3 +1,6 @@
 DataObject:
   extensions:
     - 'SearchUpdater_ObjectHandler'
+Database:
+  extensions:
+    - 'SearchManipulateCaptureExtension'
