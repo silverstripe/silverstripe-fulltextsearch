@@ -4,7 +4,7 @@ Solr::include_client_api();
 
 use SilverStripe\Dev\BuildTask;
 use SilverStripe\Control\Director;
-use SilverStripe\FulltextSearch\SearchIndex;
+use SilverStripe\FulltextSearch\Search\SearchIndex;
 
 abstract class SolrIndex extends SearchIndex
 {

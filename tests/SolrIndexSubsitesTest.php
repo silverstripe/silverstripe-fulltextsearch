@@ -1,5 +1,7 @@
 <?php
 
+use SilverStripe\Dev\SapphireTest;
+
 if (class_exists('Phockito')) {
     Phockito::include_hamcrest(false);
 }

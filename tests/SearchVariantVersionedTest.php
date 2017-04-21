@@ -1,5 +1,10 @@
 <?php
 
+use SilverStripe\Dev\SapphireTest;
+use SilverStripe\CMS\Model\SiteTree;
+use SilverStripe\Dev\TestOnly;
+use SilverStripe\FullTextSearch\Search\SearchIndex_Recording;
+
 class SearchVariantVersionedTest extends SapphireTest
 {
     /**

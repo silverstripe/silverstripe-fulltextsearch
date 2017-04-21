@@ -1,5 +1,9 @@
 <?php
 
+use SilverStripe\Dev\SapphireTest;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\Dev\TestOnly;
+
 if (class_exists('Phockito')) {
     Phockito::include_hamcrest(false);
 }

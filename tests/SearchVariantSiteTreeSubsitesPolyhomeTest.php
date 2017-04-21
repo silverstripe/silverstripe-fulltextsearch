@@ -1,5 +1,9 @@
 <?php
 
+use SilverStripe\CMS\Model\SiteTree;
+use SilverStripe\FullTextSearch\Search\SearchIndex_Recording;
+use SilverStripe\Dev\SapphireTest;
+
 class SearchVariantSiteTreeSubsitesPolyhomeTest_Item extends SiteTree
 {
     // TODO: Currently theres a failure if you addClass a non-table class

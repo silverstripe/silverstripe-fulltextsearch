@@ -1,40 +1,9 @@
 <?php
 
+namespace SilverStripe\FullTextSearch\Tests;
 
-class BatchedProcessorTest_Object extends SiteTree implements TestOnly
-{
-    private static $db = array(
-        'TestText' => 'Varchar'
-    );
-}
-
-class BatchedProcessorTest_Index extends SearchIndex_Recording implements TestOnly
-{
-    public function init()
-    {
-        $this->addClass('BatchedProcessorTest_Object');
-        $this->addFilterField('TestText');
-    }
-}
-
-class BatchedProcessor_QueuedJobService
-{
-    protected $jobs = array();
-
-    public function queueJob(QueuedJob $job, $startAfter = null, $userId = null, $queueName = null)
-    {
-        $this->jobs[] = array(
-            'job' => $job,
-            'startAfter' => $startAfter
-        );
-        return $job;
-    }
-
-    public function getJobs()
-    {
-        return $this->jobs;
-    }
-}
+use SilverStripe\Dev\SapphireTest;
+use SilverStripe\FullTextSearch\Search\FullTextSearch;
 
 /**
  * Tests {@see SearchUpdateQueuedJobProcessor}

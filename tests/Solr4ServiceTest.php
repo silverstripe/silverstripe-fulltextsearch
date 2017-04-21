@@ -1,5 +1,7 @@
 <?php
 
+use SilverStripe\Dev\SapphireTest;
+
 /**
  * Test solr 4.0 compatibility
  */

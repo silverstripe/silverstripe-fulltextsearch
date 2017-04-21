@@ -1,4 +1,7 @@
 <?php
+
+use SilverStripe\Dev\SapphireTest;
+
 class SolrIndexTest extends SapphireTest
 {
     public function setUpOnce()

@@ -4,6 +4,10 @@ use Monolog\Handler\AbstractProcessingHandler;
 use Monolog\Handler\HandlerInterface;
 use Monolog\Logger;
 use Psr\Log\LoggerInterface;
+use SilverStripe\Dev\SapphireTest;
+use SilverStripe\Dev\TestOnly;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\ORM\DataExtension;
 
 if (class_exists('Phockito')) {
     Phockito::include_hamcrest(false);
@@ -339,7 +343,7 @@ class SolrReindexTest_ItemExtension extends DataExtension implements TestOnly
      * @param SQLQuery $query
      * @param DataQuery $dataQuery
      */
-    public function augmentSQL(SQLQuery &$query, DataQuery &$dataQuery = null)
+    public function augmentSQL(SilverStripe\ORM\Queries\SQLSelect $query, SilverStripe\ORM\DataQuery $dataQuery = NULL)
     {
         $variant = SolrReindexTest_Variant::get_current();
         if ($variant !== null && !$query->filtersOnID()) {

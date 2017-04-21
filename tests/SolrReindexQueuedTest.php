@@ -1,5 +1,7 @@
 <?php
 
+use SilverStripe\Dev\SapphireTest;
+
 /**
  * Additional tests of solr reindexing processes when run with queuedjobs
  */
