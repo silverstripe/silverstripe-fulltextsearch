@@ -1,5 +1,5 @@
 <?php
-
+namespace SilverStripe\FullTextSearch\Search\Processors;
 if (!interface_exists('QueuedJob')) {
     return;
 }

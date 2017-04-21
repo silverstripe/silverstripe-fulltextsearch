@@ -1,4 +1,5 @@
 <?php
+namespace SilverStripe\FullTextSearch\Search;
 
 class SearchVariantSiteTreeSubsitesPolyhome extends SearchVariant
 {

@@ -1,5 +1,5 @@
 <?php
-
+namespace SilverStripe\FullTextSearch\Solr\Reindex\Jobs;
 if (!interface_exists('QueuedJob')) {
     return;
 }

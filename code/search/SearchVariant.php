@@ -1,5 +1,5 @@
 <?php
-
+namespace SilverStripe\FullTextSearch\Search;
 use SilverStripe\Core\ClassInfo;
 /**
  * A Search Variant handles decorators and other situations where the items to reindex or search through are modified

@@ -1,5 +1,5 @@
 <?php
-
+namespace SilverStripe\FullTextSearch\Solr\Reindex\Jobs;
 use Monolog\Logger;
 use Psr\Log\LoggerInterface;
 

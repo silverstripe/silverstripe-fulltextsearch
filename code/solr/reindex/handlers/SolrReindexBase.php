@@ -1,5 +1,5 @@
 <?php
-
+namespace SilverStripe\FullTextSearch\Solr\Reindex\Handlers;
 use Psr\Log\LoggerInterface;
 
 /**

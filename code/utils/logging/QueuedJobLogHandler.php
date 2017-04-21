@@ -1,5 +1,5 @@
 <?php
-
+namespace SilverStripe\FullTextSearch\Utils\Logging;
 use Monolog\Handler\AbstractProcessingHandler;
 use Monolog\Logger;
 

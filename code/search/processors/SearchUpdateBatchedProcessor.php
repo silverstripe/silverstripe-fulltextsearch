@@ -1,5 +1,5 @@
 <?php
-
+namespace SilverStripe\FullTextSearch\Search\Processors;
 /**
  * Provides batching of search updates
  */
