@@ -1,8 +1,8 @@
 <?php
 
-namespace SilverStripe\FullTextSearch\Search;
+namespace SilverStripe\FullTextSearch\Search\Indexes;
 
-use SilverStripe\FullTextSearch\Search\SearchIndex;
+use SilverStripe\FullTextSearch\Search\Indexes\SearchIndex;
 
 /**
  * A search index that just records actions. Useful for testing

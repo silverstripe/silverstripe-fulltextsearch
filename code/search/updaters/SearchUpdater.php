@@ -1,5 +1,5 @@
 <?php
-namespace SilverStripe\FullTextSearch\Search;
+namespace SilverStripe\FullTextSearch\Search\Updaters;
 /**
  * This class is responsible for capturing changes to DataObjects and triggering index updates of the resulting dirty index
  * items.
@@ -13,11 +13,6 @@ namespace SilverStripe\FullTextSearch\Search;
  * TODO: The way we bind in is awful hacky.
  */
 use SilverStripe\Core\Object;
-use SilverStripe\Control\RequestFilter;
-use SilverStripe\Control\HTTPRequest;
-use SilverStripe\Control\Session;
-use SilverStripe\ORM\DataModel;
-use SilverStripe\Control\HTTPResponse;
 use SilverStripe\ORM\DataExtension;
 
 class SearchUpdater extends Object
@@ -212,78 +207,5 @@ class SearchUpdater extends Object
     }
 }
 
-class SearchUpdater_BindManipulationCaptureFilter implements RequestFilter
-{
 
-    public function preRequest(HTTPRequest $request, Session $session, DataModel $model)
-    {
-        SearchUpdater::bind_manipulation_capture();
-    }
 
-    public function postRequest(HTTPRequest $request, HTTPResponse $response, DataModel $model)
-    {
-        /* NOP */
-    }
-}
-
-/**
- * Delete operations do not use database manipulations.
- *
- * If a delete has been requested, force a write on objects that should be
- * indexed.  This causes the object to be marked for deletion from the index.
- */
-
-class SearchUpdater_ObjectHandler extends DataExtension
-{
-    public function onAfterDelete()
-    {
-        // Calling delete() on empty objects does nothing
-        if (!$this->owner->ID) {
-            return;
-        }
-
-        // Force SearchUpdater to mark this record as dirty
-        $manipulation = array(
-            $this->owner->ClassName => array(
-                'fields' => array(),
-                'id' => $this->owner->ID,
-                'command' => 'update'
-            )
-        );
-        $this->owner->extend('augmentWrite', $manipulation);
-        SearchUpdater::handle_manipulation($manipulation);
-    }
-
-    /**
-     * Forces this object to trigger a re-index in the current state
-     */
-    public function triggerReindex()
-    {
-        if (!$this->owner->ID) {
-            return;
-        }
-
-        $id = $this->owner->ID;
-        $class = $this->owner->ClassName;
-        $state = SearchVariant::current_state($class);
-        $base = ClassInfo::baseDataClass($class);
-        $key = "$id:$base:".serialize($state);
-
-        $statefulids = array(array(
-            'id' => $id,
-            'state' => $state
-        ));
-
-        $writes = array(
-            $key => array(
-                'base' => $base,
-                'class' => $class,
-                'id' => $id,
-                'statefulids' => $statefulids,
-                'fields' => array()
-            )
-        );
-
-        SearchUpdater::process_writes($writes);
-    }
-}
