@@ -2,6 +2,9 @@
 
 use SilverStripe\Dev\SapphireTest;
 
+use SilverStripe\FullTextSearch\Search\FullTextSearch;
+use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_Variant;
+
 if (class_exists('Phockito')) {
     Phockito::include_hamcrest(false);
 }

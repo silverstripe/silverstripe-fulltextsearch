@@ -2,7 +2,7 @@
 
 namespace SilverStripe\FullTextSearch\Tests\Solr4ServiceTest;
 
-use SilverStripe\FullTextSearch\Solr\Solr4Service_Core;
+use SilverStripe\FullTextSearch\Solr\Services\Solr4Service_Core;
 
 class Solr4ServiceTest_RecordingService extends Solr4Service_Core
 {

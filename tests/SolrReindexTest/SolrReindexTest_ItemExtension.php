@@ -4,6 +4,8 @@ namespace SilverStripe\FullTextSearch\Tests\SolrReindexTest;
 
 use SilverStripe\ORM\DataExtension;
 use SilverStripe\Dev\TestOnly;
+use SilverStripe\ORM\Queries\SQLSelect;
+use SilverStripe\ORM\DataQuery;
 use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_Variant;
 use SilverStripe\Core\Convert;
 
@@ -18,7 +20,7 @@ class SolrReindexTest_ItemExtension extends DataExtension implements TestOnly
      * @param SQLQuery $query
      * @param DataQuery $dataQuery
      */
-    public function augmentSQL(SilverStripe\ORM\Queries\SQLSelect $query, SilverStripe\ORM\DataQuery $dataQuery = NULL)
+    public function augmentSQL(SQLSelect $query, DataQuery $dataQuery = NULL)
     {
         $variant = SolrReindexTest_Variant::get_current();
         if ($variant !== null && !$query->filtersOnID()) {
