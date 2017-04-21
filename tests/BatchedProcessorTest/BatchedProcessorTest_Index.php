@@ -3,7 +3,7 @@
 namespace SilverStripe\FullTextSearch\Tests\BatchedProcessorTest;
 
 use SilverStripe\Dev\TestOnly;
-use SilverStripe\FullTextSearch\Search\SearchIndex_Recording;
+use SilverStripe\FullTextSearch\Search\Indexes\SearchIndex_Recording;
 
 class BatchedProcessorTest_Index extends SearchIndex_Recording implements TestOnly
 {

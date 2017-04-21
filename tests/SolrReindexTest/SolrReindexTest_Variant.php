@@ -3,7 +3,7 @@
 namespace SilverStripe\FullTextSearch\Tests\SolrReindexTest;
 
 use SilverStripe\Dev\TestOnly;
-use SilverStripe\FullTextSearch\Search\SearchVariant;
+use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
 
 /**
  * Dummy variant that selects items with field Varient matching the current value

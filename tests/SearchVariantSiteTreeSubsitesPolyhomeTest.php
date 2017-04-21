@@ -1,7 +1,7 @@
 <?php
 
 use SilverStripe\CMS\Model\SiteTree;
-use SilverStripe\FullTextSearch\Search\SearchIndex_Recording;
+use SilverStripe\FullTextSearch\Search\Indexes\SearchIndex_Recording;
 use SilverStripe\Dev\SapphireTest;
 
 class SearchVariantSiteTreeSubsitesPolyhomeTest_Item extends SiteTree
