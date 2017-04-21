@@ -1,5 +1,5 @@
 <?php
-
+namespace SilverStripe\FullTextSearch\Solr;
 class Solr4Service_Core extends SolrService_Core
 {
     /**

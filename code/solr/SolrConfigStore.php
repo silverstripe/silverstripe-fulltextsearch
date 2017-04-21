@@ -1,5 +1,5 @@
 <?php
-
+namespace SilverStripe\FullTextSearch\Solr;
 /**
  * Class SolrConfigStore
  *

@@ -1,5 +1,5 @@
 <?php
-
+namespace SilverStripe\FullTextSearch\Search;
 use SilverStripe\Core\ClassInfo;
 use SilverStripe\ORM\DataObject;
 /**

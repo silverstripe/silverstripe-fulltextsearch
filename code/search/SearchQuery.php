@@ -1,5 +1,5 @@
 <?php
-
+namespace SilverStripe\FullTextSearch\Search;
 /**
  * Represents a search query
  *

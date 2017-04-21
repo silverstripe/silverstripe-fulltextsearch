@@ -1,5 +1,5 @@
 <?php
-
+namespace SilverStripe\FullTextSearch\Search\Processors;
 class SearchUpdateMessageQueueProcessor extends SearchUpdateProcessor
 {
     /**

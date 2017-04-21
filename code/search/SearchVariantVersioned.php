@@ -1,5 +1,5 @@
 <?php
-
+namespace SilverStripe\FullTextSearch\Search;
 class SearchVariantVersioned extends SearchVariant
 {
     public function appliesToEnvironment()
