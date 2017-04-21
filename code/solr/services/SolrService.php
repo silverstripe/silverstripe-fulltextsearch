@@ -1,16 +1,8 @@
 <?php
-namespace SilverStripe\FullTextSearch\Solr;
-Solr::include_client_api();
+namespace SilverStripe\FullTextSearch\Solr\Services;
 use SilverStripe\Core\Config\Config;
-use \Apache_Solr_Service;
-
-/**
- * The API for accessing a specific core of a Solr server. Exactly the same as Apache_Solr_Service for now.
- */
-class SolrService_Core extends Apache_Solr_Service
-{
-}
-
+use SilverStripe\FullTextSearch\Solr\Solr;
+Solr::include_client_api();
 /**
  * The API for accessing the primary Solr installation, which includes both SolrService_Core,
  * plus extra methods for interrogating, creating, reloading and getting SolrService_Core instances
