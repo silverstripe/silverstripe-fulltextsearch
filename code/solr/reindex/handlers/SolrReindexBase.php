@@ -1,6 +1,10 @@
 <?php
+
 namespace SilverStripe\FullTextSearch\Solr\Reindex\Handlers;
+
 use Psr\Log\LoggerInterface;
+use SilverStripe\FullTextSearch\Solr\Solr;
+use SilverStripe\FullTextSearch\Solr\SolrIndex;
 
 /**
  * Base class for re-indexing of solr content

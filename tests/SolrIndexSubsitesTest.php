@@ -1,6 +1,7 @@
 <?php
 
 use SilverStripe\Dev\SapphireTest;
+use SilverStripe\FullTextSearch\Tests\SolrIndexSubsitesTest\SolrIndexSubsitesTest_Index;
 
 if (class_exists('Phockito')) {
     Phockito::include_hamcrest(false);
@@ -11,7 +12,7 @@ if (class_exists('Phockito')) {
  */
 class SolrIndexSubsitesTest extends SapphireTest {
 
-    public static $fixture_file = 'SolrIndexSubsitesTest.yml';
+    public static $fixture_file = 'SolrIndexSubsitesTest/SolrIndexSubsitesTest.yml';
 
     /**
      * @var SolrIndexSubsitesTest_Index
@@ -244,14 +245,4 @@ class SolrIndexSubsitesTest extends SapphireTest {
         }
     }
 
-}
-
-class SolrIndexSubsitesTest_Index extends SolrIndex
-{
-    public function init()
-    {
-        $this->addClass('File');
-        $this->addClass('SiteTree');
-        $this->addAllFulltextFields();
-    }
 }

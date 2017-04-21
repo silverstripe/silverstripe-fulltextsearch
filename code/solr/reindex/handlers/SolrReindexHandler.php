@@ -1,6 +1,9 @@
 <?php
+
 namespace SilverStripe\FullTextSearch\Solr\Reindex\Handlers;
+
 use Psr\Log\LoggerInterface;
+use SilverStripe\FullTextSearch\Solr\SolrIndex;
 
 /**
  * Provides interface for queueing a solr reindex
