@@ -1,6 +1,6 @@
 <?php
 
-namespace SilverStripe\FullTextSearch\Search;
+namespace SilverStripe\FullTextSearch\Search\Indexes;
 
 use SilverStripe\View\ViewableData;
 use SilverStripe\ORM\DataObject;

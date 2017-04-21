@@ -1,5 +1,5 @@
 <?php
-namespace SilverStripe\FullTextSearch\Search;
+namespace SilverStripe\FullTextSearch\Search\Variants;
 class SearchVariantSubsites extends SearchVariant
 {
     public function appliesToEnvironment()
