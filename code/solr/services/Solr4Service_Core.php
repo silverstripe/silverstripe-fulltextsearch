@@ -25,7 +25,7 @@ class Solr4Service_Core extends SolrService_Core
      * @inheritdoc
      * @see Solr4Service_Core::addDocuments
      */
-    public function addDocument(Apache_Solr_Document $document, $allowDups = false,
+    public function addDocument(\Apache_Solr_Document $document, $allowDups = false,
         $overwritePending = true, $overwriteCommitted = true, $commitWithin = 0
     ) {
         return $this->addDocuments(array($document), $allowDups, $overwritePending, $overwriteCommitted, $commitWithin);
