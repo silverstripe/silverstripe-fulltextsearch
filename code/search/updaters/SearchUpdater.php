@@ -11,6 +11,7 @@ use SilverStripe\FullTextSearch\Search\SearchIntrospection;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\FullTextSearch\Search\Processors\SearchUpdateImmediateProcessor;
 use SilverStripe\FullTextSearch\Captures\SearchManipulateCapture_MySQLDatabase;
+use ReflectionClass;
 /**
  * This class is responsible for capturing changes to DataObjects and triggering index updates of the resulting dirty index
  * items.
@@ -38,17 +39,20 @@ class SearchUpdater extends Object
             return;
         } // If not yet set, or its already captured, just return
 
+        $type = (new ReflectionClass($current))->getShortName();
+        $dbClass = 'SilverStripe\FullTextSearch\Captures\SearchManipulateCapture_' . $type;
 
-        $dbClass = SearchManipulateCapture_MySQLDatabase::class;
+        // Check if Capture class exists.
+        if (!class_exists($dbClass)) {
+            return;
+        }
+
         /** @var SS_Database $captured */
         $captured = new $dbClass($databaseConfig);
 
-        // Framework 3.2+ ORM needs some dependencies set
-        if (method_exists($captured, "setConnector")) {
-            $captured->setConnector($current->getConnector());
-            $captured->setQueryBuilder($current->getQueryBuilder());
-            $captured->setSchemaManager($current->getSchemaManager());
-        }
+        $captured->setConnector($current->getConnector());
+        $captured->setQueryBuilder($current->getQueryBuilder());
+        $captured->setSchemaManager($current->getSchemaManager());
 
         // The connection might have had it's name changed (like if we're currently in a test)
         $captured->selectDatabase($current->getSelectedDatabase());
