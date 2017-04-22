@@ -41,7 +41,7 @@ class SolrReindexTest extends SapphireTest
         }
 
         // Set test handler for reindex
-        Config::inst()->update('Injector', 'SolrReindexHandler', array(
+        Config::modify()->set('Injector', 'SolrReindexHandler', array(
             'class' => 'SolrReindexTest_TestHandler'
         ));
         Injector::inst()->registerService(new SolrReindexTest_TestHandler(), 'SolrReindexHandler');

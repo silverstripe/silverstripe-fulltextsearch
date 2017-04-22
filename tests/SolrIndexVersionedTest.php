@@ -44,7 +44,7 @@ class SolrIndexVersionedTest extends SapphireTest
 
         SearchUpdater::bind_manipulation_capture();
 
-        Config::inst()->update('Injector', 'SearchUpdateProcessor', array(
+        Config::modify()->set('Injector', 'SearchUpdateProcessor', array(
             'class' => 'SearchUpdateImmediateProcessor'
         ));
 
@@ -77,7 +77,7 @@ class SolrIndexVersionedTest extends SapphireTest
         $class = ClassInfo::baseDataClass($object);
         // Prevent subsites from breaking tests
         $subsites = '';
-        if(class_exists('Subsite') && $object->hasOne('Subsite')) {
+        if(class_exists('Subsite') && DataObject::getSchema()->hasOneComponent($object->getClassName(), 'Subsite')) {
             $subsites = '"SearchVariantSubsites":"0",';
         }
         return $id.'-'.$class.'-{'.$subsites.'"SearchVariantVersioned":"'.$stage.'"}';

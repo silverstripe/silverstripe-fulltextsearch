@@ -209,7 +209,7 @@ class SolrIndexTest extends SapphireTest
     public function testAddFieldExtraOptions()
     {
         Config::inst()->nest();
-        Config::inst()->update('Director', 'environment_type', 'live'); // dev mode sets stored=true for everything
+        Config::modify()->set('Director', 'environment_type', 'live'); // dev mode sets stored=true for everything
 
         $index = new SolrIndexTest_FakeIndex();
 

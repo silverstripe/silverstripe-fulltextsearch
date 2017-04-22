@@ -27,7 +27,7 @@ class SearchUpdaterTest extends SapphireTest
 
         SearchUpdater::bind_manipulation_capture();
 
-        Config::inst()->update('Injector', 'SearchUpdateProcessor', array(
+        Config::modify()->set('Injector', 'SearchUpdateProcessor', array(
             'class' => 'SearchUpdateImmediateProcessor'
         ));
 
@@ -86,6 +86,7 @@ class SearchUpdaterTest extends SapphireTest
 
         SearchUpdater::flush_dirty_indexes();
         $added = self::$index->getAdded(array('ID'));
+
         // Some databases don't output $added in a consistent order; that's okay
         usort($added, function ($a, $b) {return $a['ID']-$b['ID']; });
 

@@ -48,9 +48,9 @@ class BatchedProcessorTest extends SapphireTest
 
         SS_Datetime::set_mock_now('2015-05-07 06:00:00');
 
-        Config::inst()->update('SearchUpdateBatchedProcessor', 'batch_size', 5);
-        Config::inst()->update('SearchUpdateBatchedProcessor', 'batch_soft_cap', 0);
-        Config::inst()->update('SearchUpdateCommitJobProcessor', 'cooldown', 600);
+        Config::modify()->set('SearchUpdateBatchedProcessor', 'batch_size', 5);
+        Config::modify()->set('SearchUpdateBatchedProcessor', 'batch_soft_cap', 0);
+        Config::modify()->set('SearchUpdateCommitJobProcessor', 'cooldown', 600);
 
         Versioned::reading_stage("Stage");
 
@@ -195,20 +195,20 @@ class BatchedProcessorTest extends SapphireTest
         $processor = $this->generateDirtyIds();
 
         // Test that increasing the soft cap to 2 will reduce the number of batches
-        Config::inst()->update('SearchUpdateBatchedProcessor', 'batch_soft_cap', 2);
+        Config::modify()->set('SearchUpdateBatchedProcessor', 'batch_soft_cap', 2);
         $processor->batchData();
         $data = $processor->getJobData();
         //Debug::dump($data);die;
         $this->assertEquals(8, $data->totalSteps);
 
         // A soft cap of 1 should not fit in the hanging two items
-        Config::inst()->update('SearchUpdateBatchedProcessor', 'batch_soft_cap', 1);
+        Config::modify()->set('SearchUpdateBatchedProcessor', 'batch_soft_cap', 1);
         $processor->batchData();
         $data = $processor->getJobData();
         $this->assertEquals(9, $data->totalSteps);
 
         // Extra large soft cap should fit both items
-        Config::inst()->update('SearchUpdateBatchedProcessor', 'batch_soft_cap', 4);
+        Config::modify()->set('SearchUpdateBatchedProcessor', 'batch_soft_cap', 4);
         $processor->batchData();
         $data = $processor->getJobData();
         $this->assertEquals(8, $data->totalSteps);

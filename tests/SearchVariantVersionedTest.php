@@ -31,7 +31,7 @@ class SearchVariantVersionedTest extends SapphireTest
 
         SearchUpdater::bind_manipulation_capture();
 
-        Config::inst()->update('Injector', 'SearchUpdateProcessor', array(
+        Config::modify()->set('Injector', 'SearchUpdateProcessor', array(
             'class' => 'SearchUpdateImmediateProcessor'
         ));
 

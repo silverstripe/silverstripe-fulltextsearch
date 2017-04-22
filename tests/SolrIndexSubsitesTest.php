@@ -51,7 +51,7 @@ class SolrIndexSubsitesTest extends SapphireTest {
 
         SearchUpdater::bind_manipulation_capture();
 
-        Config::inst()->update('Injector', 'SearchUpdateProcessor', array(
+        Config::modify()->set('Injector', 'SearchUpdateProcessor', array(
             'class' => 'SearchUpdateImmediateProcessor'
         ));
 
@@ -86,7 +86,7 @@ class SolrIndexSubsitesTest extends SapphireTest {
         $variants = array();
 
         // Check subsite
-        if(class_exists('Subsite') && $object->hasOne('Subsite')) {
+        if(class_exists('Subsite') && DataObject::getSchema()->hasOneComponent($object->getClassName(), 'Subsite')) {
             $variants[] = '"SearchVariantSubsites":"' . $subsiteID. '"';
         }
 

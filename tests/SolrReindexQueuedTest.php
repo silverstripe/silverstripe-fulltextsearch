@@ -45,7 +45,7 @@ class SolrReindexQueuedTest extends SapphireTest
         }
 
         // Set queued handler for reindex
-        Config::inst()->update('Injector', 'SolrReindexHandler', array(
+        Config::modify()->set('Injector', 'SolrReindexHandler', array(
             'class' => 'SolrReindexQueuedHandler'
         ));
         Injector::inst()->registerService(new SolrReindexQueuedHandler(), 'SolrReindexHandler');

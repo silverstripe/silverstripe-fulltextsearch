@@ -17,7 +17,7 @@ class SolrReindexTest_ItemExtension extends DataExtension implements TestOnly
     /**
      * Filter records on the current variant
      *
-     * @param SQLQuery $query
+     * @param SQLSelect $query
      * @param DataQuery $dataQuery
      */
     public function augmentSQL(SQLSelect $query, DataQuery $dataQuery = NULL)
