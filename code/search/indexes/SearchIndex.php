@@ -10,6 +10,7 @@ use SilverStripe\Core\ClassInfo;
 use SilverStripe\FullTextSearch\Search\SearchIntrospection;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
 use SilverStripe\FullTextSearch\Utils\MultipleArrayIterator;
+use SilverStripe\ORM\Queries\SQLSelect;
 /**
  * SearchIndex is the base index class. Each connector will provide a subclass of this that
  * provides search engine specific behavior.
@@ -92,21 +93,23 @@ abstract class SearchIndex extends ViewableData
 
                     foreach (SearchIntrospection::hierarchy($source, $options['include_children']) as $dataclass) {
                         $singleton = singleton($dataclass);
+                        $schema = DataObject::getSchema();
+                        $className = $singleton->getClassName();
 
-                        if ($hasOne = $singleton->hasOne($lookup)) {
+                        if ($hasOne = $schema->hasOneComponent($className, $lookup)) {
                             $class = $hasOne;
                             $options['lookup_chain'][] = array(
                                 'call' => 'method', 'method' => $lookup,
                                 'through' => 'has_one', 'class' => $dataclass, 'otherclass' => $class, 'foreignkey' => "{$lookup}ID"
                             );
-                        } elseif ($hasMany = $singleton->hasMany($lookup)) {
+                        } elseif ($hasMany = $schema->hasManyComponent($className, $lookup)) {
                             $class = $hasMany;
                             $options['multi_valued'] = true;
                             $options['lookup_chain'][] = array(
                                 'call' => 'method', 'method' => $lookup,
-                                'through' => 'has_many', 'class' => $dataclass, 'otherclass' => $class, 'foreignkey' => $singleton->getRemoteJoinField($lookup, 'has_many')
+                                'through' => 'has_many', 'class' => $dataclass, 'otherclass' => $class, 'foreignkey' => $schema->getRemoteJoinField($className, $lookup, 'has_many')
                             );
-                        } elseif ($manyMany = $singleton->manyMany($lookup)) {
+                        } elseif ($manyMany = $schema->manyManyComponent($className, $lookup)) {
                             $class = $manyMany[1];
                             $options['multi_valued'] = true;
                             $options['lookup_chain'][] = array(
@@ -555,14 +558,20 @@ abstract class SearchIndex extends ViewableData
                 $ids = array($id);
 
                 foreach ($derivation['chain'] as $step) {
+                    // Use TableName for queries
+                    $tableName = DataObject::getSchema()->tableName($step['class']);
+
                     if ($step['through'] == 'has_one') {
-                        $sql = new SQLQuery('"ID"', '"'.$step['class'].'"', '"'.$step['foreignkey'].'" IN ('.implode(',', $ids).')');
+                        $sql = new SQLSelect('"ID"', '"'.$tableName.'"', '"'.$step['foreignkey'].'" IN ('.implode(',', $ids).')');
                         singleton($step['class'])->extend('augmentSQL', $sql);
 
                         $ids = $sql->execute()->column();
                     } elseif ($step['through'] == 'has_many') {
-                        $sql = new SQLQuery('"'.$step['class'].'"."ID"', '"'.$step['class'].'"', '"'.$step['otherclass'].'"."ID" IN ('.implode(',', $ids).')');
-                        $sql->addInnerJoin($step['otherclass'], '"'.$step['class'].'"."ID" = "'.$step['otherclass'].'"."'.$step['foreignkey'].'"');
+                        // Use TableName for queries
+                        $otherTableName = DataObject::getSchema()->tableName($step['otherclass']);
+                        
+                        $sql = new SQLSelect('"'.$tableName.'"."ID"', '"'.$tableName.'"', '"'.$otherTableName.'"."ID" IN ('.implode(',', $ids).')');
+                        $sql->addInnerJoin($otherTableName, '"'.$tableName.'"."ID" = "'.$otherTableName.'"."'.$step['foreignkey'].'"');
                         singleton($step['class'])->extend('augmentSQL', $sql);
 
                         $ids = $sql->execute()->column();
