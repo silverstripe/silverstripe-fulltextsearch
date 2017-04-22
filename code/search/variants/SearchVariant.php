@@ -1,5 +1,7 @@
 <?php
+
 namespace SilverStripe\FullTextSearch\Search\Variants;
+
 use SilverStripe\Core\ClassInfo;
 /**
  * A Search Variant handles decorators and other situations where the items to reindex or search through are modified
@@ -22,7 +24,10 @@ abstract class SearchVariant
      * Return false if there is something missing from the environment (probably a
      * not installed module) that means this variant can't apply to any class
      */
-    abstract public function appliesToEnvironment();
+    public function appliesToEnvironment()
+    {
+        return true;
+    }
 
     /**
      * Return true if this variant applies to the passed class & subclass

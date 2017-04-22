@@ -1,5 +1,9 @@
 <?php
+
 namespace SilverStripe\FullTextSearch\Search\Variants;
+
+use SilverStripe\ORM\Queries\SQLSelect;
+
 class SearchVariantSubsites extends SearchVariant
 {
     public function appliesToEnvironment()
@@ -74,7 +78,7 @@ class SearchVariantSubsites extends SearchVariant
     public function extractManipulationWriteState(&$writes)
     {
         $self = get_class($this);
-        $query = new SQLQuery('"ID"', '"Subsite"');
+        $query = new SQLSelect('"ID"', '"Subsite"');
         $subsites = array_merge(array('0'), $query->execute()->column());
 
         foreach ($writes as $key => $write) {

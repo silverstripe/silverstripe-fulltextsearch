@@ -3,14 +3,9 @@ namespace SilverStripe\FullTextSearch\Search\Variants;
 
 class SearchVariantVersioned extends SearchVariant
 {
-    public function appliesToEnvironment()
-    {
-        return class_exists('Versioned');
-    }
-
     public function appliesTo($class, $includeSubclasses)
     {
-        return SearchIntrospection::has_extension($class, 'Versioned', $includeSubclasses);
+        return SearchIntrospection::has_extension($class, Versioned::class, $includeSubclasses);
     }
 
     public function currentState()

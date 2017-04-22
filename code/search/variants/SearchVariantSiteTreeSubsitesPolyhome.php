@@ -1,6 +1,8 @@
 <?php
 namespace SilverStripe\FullTextSearch\Search\Variants;
 
+use SilverStripe\ORM\Queries\SQLSelect;
+
 class SearchVariantSiteTreeSubsitesPolyhome extends SearchVariant
 {
     public function appliesToEnvironment()
@@ -78,7 +80,7 @@ class SearchVariantSiteTreeSubsitesPolyhome extends SearchVariant
             }
 
             if (self::$subsites === null) {
-                $query = new SQLQuery('ID', 'Subsite');
+                $query = new SQLSelect('ID', 'Subsite');
                 self::$subsites = array_merge(array('0'), $query->execute()->column());
             }
 
