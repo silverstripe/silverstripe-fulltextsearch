@@ -26,6 +26,7 @@ class SolrIndexSubsitesTest extends SapphireTest {
         // Prevent parent::setUp() crashing on db build
         if (!class_exists('Subsite')) {
             $this->skipTest = true;
+            $this->markTestSkipped("These tests need the Subsite module installed to run");
         }
 
         parent::setUp();
