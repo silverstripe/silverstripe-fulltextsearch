@@ -4,6 +4,8 @@ use Monolog\Formatter\FormatterInterface;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\HandlerInterface;
 use Monolog\Logger;
+use SilverStripe\Core\Injector\Injector;
+use SilverStripe\Control\Director;
 
 /**
  * Provides logging based on monolog

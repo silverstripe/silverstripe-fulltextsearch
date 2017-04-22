@@ -3,6 +3,7 @@
 namespace SilverStripe\FullTextSearch\Solr\Reindex\Handlers;
 
 use Psr\Log\LoggerInterface;
+use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
 use SilverStripe\FullTextSearch\Solr\Solr;
 use SilverStripe\FullTextSearch\Solr\SolrIndex;
 

@@ -106,7 +106,7 @@ class SolrReindexQueuedTest extends SapphireTest
      */
     protected function getHandler()
     {
-        return Injector::inst()->get('SolrReindexHandler');
+        return Injector::inst()->get('SilverStripe\FullTextSearch\Solr\Reindex\Handlers\SolrReindexHandler');
     }
 
     /**

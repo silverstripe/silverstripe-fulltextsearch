@@ -2,7 +2,12 @@
 
 namespace SilverStripe\FullTextSearch\Search\Updaters;
 
+use SilverStripe\Dev\SapphireTest;
+use SilverStripe\FullTextSearch\Search\FullTextSearch;
+use SilverStripe\FullTextSearch\Search\SearchIntrospection;
+use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
 use SilverStripe\ORM\DB;
+use SilverStripe\Core\ClassInfo;
 /**
  * This class is responsible for capturing changes to DataObjects and triggering index updates of the resulting dirty index
  * items.

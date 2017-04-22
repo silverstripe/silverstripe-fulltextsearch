@@ -1,5 +1,11 @@
 <?php
 namespace SilverStripe\FullTextSearch\Solr\Tasks;
+use Exception;
+use SilverStripe\Core\ClassInfo;
+use SilverStripe\FullTextSearch\Solr\Solr;
+use SilverStripe\FullTextSearch\Solr\Stores\SolrConfigStore_File;
+use SilverStripe\FullTextSearch\Solr\Stores\SolrConfigStore_WebDAV;
+
 class Solr_Configure extends Solr_BuildTask
 {
     protected $enabled = true;
@@ -72,7 +78,7 @@ class Solr_Configure extends Solr_BuildTask
             return new SolrConfigStore_File($indexstore);
         } elseif ($mode == 'webdav') {
             return new SolrConfigStore_WebDAV($indexstore);
-        } elseif (ClassInfo::exists($mode) && ClassInfo::classImplements($mode, 'SolrConfigStore')) {
+        } elseif (ClassInfo::exists($mode) && ClassInfo::classImplements($mode, 'SilverStripe\FullTextSearch\Solr\Stores\SolrConfigStore')) {
             return new $mode($indexstore);
         } else {
             user_error('Unknown Solr index mode '.$indexstore['mode'], E_USER_ERROR);

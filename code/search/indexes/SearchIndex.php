@@ -2,6 +2,8 @@
 
 namespace SilverStripe\FullTextSearch\Search\Indexes;
 
+use Exception;
+use InvalidArgumentException;
 use SilverStripe\View\ViewableData;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\DataObjectSchema;
@@ -303,7 +305,7 @@ abstract class SearchIndex extends ViewableData
                         $type = $match[1];
                     }
                     list($type, $args) = Object::parse_class_spec($type);
-                    if (is_subclass_of($type, 'StringField')) {
+                    if (is_subclass_of($type, 'SilverStripe\ORM\FieldType\DBString')) {
                         $this->addFulltextField($field);
                     }
                 }

@@ -44,7 +44,7 @@ abstract class SolrReindexQueuedJobBase implements QueuedJob
      */
     protected function getLoggerFactory()
     {
-        return Injector::inst()->get('SearchLogFactory');
+        return Injector::inst()->get('SilverStripe\FullTextSearch\Utils\Logging\SearchLogFactory');
     }
 
     /**
@@ -103,7 +103,7 @@ abstract class SolrReindexQueuedJobBase implements QueuedJob
      */
     protected function getHandler()
     {
-        return Injector::inst()->get('SolrReindexHandler');
+        return Injector::inst()->get('SilverStripe\FullTextSearch\Solr\Reindex\Handlers\SolrReindexHandler');
     }
 
     public function jobFinished()
