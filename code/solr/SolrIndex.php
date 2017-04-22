@@ -541,7 +541,7 @@ abstract class SolrIndex extends SearchIndex
     {
         $includeSubs = $options['include_children'];
 
-        $doc = new Apache_Solr_Document();
+        $doc = new \Apache_Solr_Document();
 
         // Always present fields
 
