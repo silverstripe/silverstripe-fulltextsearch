@@ -25,7 +25,7 @@ class Solr_BuildTask extends BuildTask
      */
     public function getLogger()
     {
-        return Injector::inst()->get('Psr\Log\LoggerInterface');
+        return Injector::inst()->get(LoggerInterface::class);
     }
 
     /**
@@ -43,7 +43,7 @@ class Solr_BuildTask extends BuildTask
      */
     protected function getLoggerFactory()
     {
-        return Injector::inst()->get('SilverStripe\FullTextSearch\Utils\Logging\SearchLogFactory');
+        return Injector::inst()->get(SearchLogFactory::class);
     }
 
     /**

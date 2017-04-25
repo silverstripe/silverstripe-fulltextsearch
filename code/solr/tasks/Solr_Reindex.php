@@ -6,6 +6,8 @@ use SilverStripe\Core\ClassInfo;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
 use SilverStripe\ORM\DataList;
+use SilverStripe\FullTextSearch\Solr\Reindex\Handlers\SolrReindexHandler;
+use SilverStripe\FullTextSearch\Solr\SolrIndex;
 
 /**
  * Task used for both initiating a new reindex, as well as for processing incremental batches
@@ -41,7 +43,7 @@ class Solr_Reindex extends Solr_BuildTask
      */
     protected function getHandler()
     {
-        return Injector::inst()->get('SilverStripe\FullTextSearch\Solr\Reindex\Handlers\SolrReindexHandler');
+        return Injector::inst()->get(SolrReindexHandler::class);
     }
 
     /**
@@ -70,7 +72,7 @@ class Solr_Reindex extends Solr_BuildTask
         // this is for when index names do not match the class name (this can be done by overloading getIndexName() on
         // indexes
         if ($index && !ClassInfo::exists($index)) {
-            foreach(ClassInfo::subclassesFor('SilverStripe\FullTextSearch\Solr\SolrIndex') as $solrIndexClass) {
+            foreach(ClassInfo::subclassesFor(SolrIndex::class) as $solrIndexClass) {
                 $reflection = new ReflectionClass($solrIndexClass);
                 //skip over abstract classes
                 if (!$reflection->isInstantiable()) {

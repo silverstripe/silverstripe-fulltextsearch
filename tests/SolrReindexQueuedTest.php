@@ -4,6 +4,7 @@ use SilverStripe\Dev\SapphireTest;
 
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
 use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_Variant;
+use SilverStripe\FullTextSearch\Solr\Reindex\Handlers\SolrReindexHandler;
 
 /**
  * Additional tests of solr reindexing processes when run with queuedjobs
@@ -106,7 +107,7 @@ class SolrReindexQueuedTest extends SapphireTest
      */
     protected function getHandler()
     {
-        return Injector::inst()->get('SilverStripe\FullTextSearch\Solr\Reindex\Handlers\SolrReindexHandler');
+        return Injector::inst()->get(SolrReindexHandler::class);
     }
 
     /**
@@ -158,7 +159,7 @@ class SolrReindexQueuedTest extends SapphireTest
         $this->assertEquals(3, $logger->countMessages(' of SolrReindexTest_Item in {"SolrReindexTest_Variant":"1"}'));
         $this->assertEquals(1, $logger->countMessages('Completed init of reindex'));
 
-        
+
         // Test that invalid classes are removed
         $this->assertNotEmpty($logger->getMessages('Clearing obsolete classes from SolrReindexTest_Index'));
         Phockito::verify($this->service, 1)

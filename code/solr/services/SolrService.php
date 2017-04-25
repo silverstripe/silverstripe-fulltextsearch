@@ -2,6 +2,7 @@
 namespace SilverStripe\FullTextSearch\Solr\Services;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\FullTextSearch\Solr\Solr;
+use SilverStripe\FullTextSearch\Solr\Services\SolrService_Core;
 Solr::include_client_api();
 /**
  * The API for accessing the primary Solr installation, which includes both SolrService_Core,
@@ -10,7 +11,7 @@ Solr::include_client_api();
  */
 class SolrService extends SolrService_Core
 {
-    private static $core_class = 'SilverStripe\FullTextSearch\Solr\Services\SolrService_Core';
+    private static $core_class = SolrService_Core::class;
 
     /**
      * Handle encoding the GET parameters and making the HTTP call to execute a core command

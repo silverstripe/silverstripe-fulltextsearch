@@ -4,6 +4,7 @@ namespace SilverStripe\FullTextSearch\Solr;
 use SilverStripe\Control\Director;
 use SilverStripe\Core\Object;
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
+use SilverStripe\FullTextSearch\Solr\SolrIndex;
 
 class Solr
 {
@@ -137,7 +138,7 @@ class Solr
 
     public static function get_indexes()
     {
-        return FullTextSearch::get_indexes('SilverStripe\FullTextSearch\Solr\SolrIndex');
+        return FullTextSearch::get_indexes(SolrIndex::class);
     }
 
     /**
