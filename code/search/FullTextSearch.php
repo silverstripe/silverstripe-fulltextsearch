@@ -5,6 +5,7 @@ namespace SilverStripe\FullTextSearch\Search;
 use ReflectionClass;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Core\ClassInfo;
+use SilverStripe\FullTextSearch\Solr\SearchIndex;
 /**
  * Base class to manage active search indexes.
  */
@@ -42,7 +43,7 @@ class FullTextSearch
             if (self::$all_indexes === null) {
                 // Get declared indexes, or otherwise default to all subclasses of SearchIndex
                 $classes = Config::inst()->get(__CLASS__, 'indexes')
-                    ?: ClassInfo::subclassesFor('SilverStripe\FullTextSearch\Solr\SearchIndex');
+                    ?: ClassInfo::subclassesFor(SearchIndex::class);
 
                 $hidden = array();
                 $candidates = array();
