@@ -1,6 +1,3 @@
-DataObject:
+SilverStripe\ORM\DataObject:
   extensions:
-    - 'SearchUpdater_ObjectHandler'
-Database:
-  extensions:
-    - 'SearchManipulateCaptureExtension'
+    - SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater_ObjectHandler
