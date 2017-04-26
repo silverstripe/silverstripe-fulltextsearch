@@ -3,7 +3,10 @@
 namespace SilverStripe\FullTextSearch\Search;
 
 use SilverStripe\Core\Config\Config;
+use SilverStripe\ORM\DataObject;
 use SilverStripe\Core\ClassInfo;
+use ReflectionClass;
+
 /**
  * Base class to manage active search indexes.
  */

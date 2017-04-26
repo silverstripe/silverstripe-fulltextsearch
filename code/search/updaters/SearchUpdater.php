@@ -6,6 +6,7 @@ use SilverStripe\ORM\DB;
 use SilverStripe\Core\Object;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
 use SilverStripe\ORM\DataObject;
+use SilverStripe\Dev\SapphireTest;
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
 use SilverStripe\FullTextSearch\Search\SearchIntrospection;
 use SilverStripe\Core\Injector\Injector;
@@ -173,9 +174,8 @@ class SearchUpdater extends Object
 
         // Don't do it if we're testing - there's no database connection outside the test methods, so we'd
         // just get errors
-        $runningTests = class_exists('SapphireTest', false) && SapphireTest::is_running_test();
 
-        if (self::$processor && !self::$registered && !$runningTests) {
+        if (self::$processor && !self::$registered && !SapphireTest::is_running_test()) {
             register_shutdown_function(array(SearchUpdater::class, "flush_dirty_indexes"));
             self::$registered = true;
         }
@@ -203,6 +203,3 @@ class SearchUpdater extends Object
         self::$processor = null;
     }
 }
-
-
-
