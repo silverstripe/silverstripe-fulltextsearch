@@ -112,7 +112,7 @@ abstract class SearchIndex extends ViewableData
                                 'through' => 'has_many', 'class' => $dataclass, 'otherclass' => $class, 'foreignkey' => $schema->getRemoteJoinField($className, $lookup, 'has_many')
                             );
                         } elseif ($manyMany = $schema->manyManyComponent($className, $lookup)) {
-                            $class = $manyMany[1];
+                            $class = $manyMany[2];
                             $options['multi_valued'] = true;
                             $options['lookup_chain'][] = array(
                                 'call' => 'method', 'method' => $lookup,
