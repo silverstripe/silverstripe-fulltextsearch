@@ -99,6 +99,7 @@ class SearchUpdater extends Object
             $id = $details['id'];
             $state = $details['state'];
             $class = $details['class'];
+            $command = $details['command'];
             $fields = isset($details['fields']) ? $details['fields'] : array();
 
             $base = DataObject::getSchema()->baseDataClass($class);
@@ -113,6 +114,7 @@ class SearchUpdater extends Object
                     'class' => $class,
                     'id' => $id,
                     'statefulids' => $statefulids,
+                    'command' => $command,
                     'fields' => array()
                 );
             }
@@ -127,9 +129,9 @@ class SearchUpdater extends Object
             }
         }
 
-        // Trim records without fields
-        foreach(array_keys($writes) as $key) {
-            if(empty($writes[$key]['fields'])) {
+        // Trim non-delete records without fields
+        foreach (array_keys($writes) as $key) {
+            if ($writes[$key]['command'] !== 'delete' && empty($writes[$key]['fields'])) {
                 unset($writes[$key]);
             }
         }
