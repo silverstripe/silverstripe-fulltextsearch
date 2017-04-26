@@ -11,6 +11,8 @@ use SilverStripe\FullTextSearch\Search\SearchIntrospection;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
 use SilverStripe\FullTextSearch\Utils\MultipleArrayIterator;
 use SilverStripe\ORM\Queries\SQLSelect;
+use SilverStripe\Core\Injector\Injector;
+
 /**
  * SearchIndex is the base index class. Each connector will provide a subclass of this that
  * provides search engine specific behavior.
@@ -75,7 +77,7 @@ abstract class SearchIndex extends ViewableData
         $sources = $this->getClasses();
 
         foreach ($sources as $source => $options) {
-            $sources[$source]['base'] = ClassInfo::baseDataClass($source);
+            $sources[$source]['base'] = DataObject::getSchema()->baseDataClass($source);
             $sources[$source]['lookup_chain'] = array();
         }
 
@@ -223,7 +225,7 @@ abstract class SearchIndex extends ViewableData
         }
 
         if (!DataObject::getSchema()->classHasTable($class)) {
-            throw new InvalidArgumentException('Can\'t add classes which don\'t have data tables (no $db or $has_one set on the class)');
+            throw new \InvalidArgumentException('Can\'t add classes which don\'t have data tables (no $db or $has_one set on the class)');
         }
 
         $options = array_merge(array(
@@ -300,13 +302,16 @@ abstract class SearchIndex extends ViewableData
         foreach ($this->getClasses() as $class => $options) {
             foreach (SearchIntrospection::hierarchy($class, $includeSubclasses, true) as $dataclass) {
                 $fields = DataObject::getSchema()->databaseFields($class);
-
                 foreach ($fields as $field => $type) {
                     if (preg_match('/^(\w+)\(/', $type, $match)) {
                         $type = $match[1];
                     }
                     list($type, $args) = Object::parse_class_spec($type);
-                    if (is_subclass_of($type, 'StringField')) {
+
+                    // Get class from shortName
+                    $object = Injector::inst()->get($type, false, ['Name' => 'test']);
+
+                    if (is_subclass_of(get_class($object), 'SilverStripe\ORM\FieldType\DBString')) {
                         $this->addFulltextField($field);
                     }
                 }
@@ -530,7 +535,7 @@ abstract class SearchIndex extends ViewableData
         // First, if this object is directly contained in the index, add it
         foreach ($this->classes as $searchclass => $options) {
             if ($searchclass == $class || ($options['include_children'] && is_subclass_of($class, $searchclass))) {
-                $base = ClassInfo::baseDataClass($searchclass);
+                $base = DataObject::getSchema()->baseDataClass($searchclass);
                 $dirty[$base] = array();
                 foreach ($statefulids as $statefulid) {
                     $key = serialize($statefulid);
@@ -569,14 +574,14 @@ abstract class SearchIndex extends ViewableData
                     } elseif ($step['through'] == 'has_many') {
                         // Use TableName for queries
                         $otherTableName = DataObject::getSchema()->tableName($step['otherclass']);
-                        
+
                         $sql = new SQLSelect('"'.$tableName.'"."ID"', '"'.$tableName.'"', '"'.$otherTableName.'"."ID" IN ('.implode(',', $ids).')');
                         $sql->addInnerJoin($otherTableName, '"'.$tableName.'"."ID" = "'.$otherTableName.'"."'.$step['foreignkey'].'"');
                         singleton($step['class'])->extend('augmentSQL', $sql);
 
                         $ids = $sql->execute()->column();
                     }
-                    
+
                     if (empty($ids)) {
                         break;
                     }
