@@ -544,7 +544,10 @@ abstract class SolrIndex extends SearchIndex
                 return;
             }
 
-            $doc->setField($field['name'], $value);
+            // Only index fields that are not null
+            if ($value !== null) {
+                $doc->setField($field['name'], $value);
+            }
         }
     }
 
