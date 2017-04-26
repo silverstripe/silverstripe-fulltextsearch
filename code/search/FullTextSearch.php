@@ -1,10 +1,10 @@
 <?php
-
 namespace SilverStripe\FullTextSearch\Search;
 
+use SilverStripe\Core\ClassInfo;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\ORM\DataObject;
-use SilverStripe\Core\ClassInfo;
+use SilverStripe\FullTextSearch\Search\Indexes\SearchIndex;
 use ReflectionClass;
 
 /**
@@ -44,7 +44,7 @@ class FullTextSearch
             if (self::$all_indexes === null) {
                 // Get declared indexes, or otherwise default to all subclasses of SearchIndex
                 $classes = Config::inst()->get(__CLASS__, 'indexes')
-                    ?: ClassInfo::subclassesFor('SearchIndex');
+                    ?: ClassInfo::subclassesFor(SearchIndex::class);
 
                 $hidden = array();
                 $candidates = array();

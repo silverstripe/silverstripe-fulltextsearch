@@ -3,10 +3,10 @@
 namespace SilverStripe\FullTextSearch\Solr\Reindex\Handlers;
 
 use Psr\Log\LoggerInterface;
-use SilverStripe\FullTextSearch\Solr\SolrIndex;
-use SilverStripe\FullTextSearch\Solr\Solr;
-use SilverStripe\ORM\DB;
 use SilverStripe\Control\Director;
+use SilverStripe\FullTextSearch\Solr\Solr;
+use SilverStripe\FullTextSearch\Solr\SolrIndex;
+use SilverStripe\ORM\DB;
 
 /**
  * Invokes an immediate reindex

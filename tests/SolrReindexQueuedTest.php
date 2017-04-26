@@ -185,7 +185,7 @@ class SolrReindexQueuedTest extends SapphireTest
         $this->assertEquals(1, $logger->countMessages('Completed init of reindex'));
 
         // Test that invalid classes are removed
-        $this->assertNotEmpty($logger->getMessages('Clearing obsolete classes from SolrReindexTest_Index'));
+        $this->assertNotEmpty($logger->getMessages('Clearing obsolete classes from ' . SolrReindexTest_Index::class));
 
         // Test that valid classes in invalid variants are removed
         $this->assertNotEmpty($logger->getMessages(

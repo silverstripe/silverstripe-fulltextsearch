@@ -7,7 +7,7 @@ SilverStripe\Core\Injector\Injector:
   SilverStripe\FullTextSearch\Solr\Reindex\Handlers\SolrReindexHandler:
     class: SilverStripe\FullTextSearch\Solr\Reindex\Handlers\SolrReindexImmediateHandler
   SilverStripe\FullTextSearch\Utils\Logging\SearchLogFactory:
-    class: 'MonologFactory'
+    class: SilverStripe\FullTextSearch\Utils\Logging\MonologFactory
 ---
 Name: queuedjobprocessor
 Only:

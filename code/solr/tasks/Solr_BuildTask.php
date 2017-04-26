@@ -1,6 +1,9 @@
 <?php
 namespace SilverStripe\FullTextSearch\Solr\Tasks;
+use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\BuildTask;
+use Psr\Log\LoggerInterface;
+use SilverStripe\FullTextSearch\Utils\Logging\SearchLogFactory;
 /**
  * Abstract class for build tasks
  */
@@ -22,7 +25,9 @@ class Solr_BuildTask extends BuildTask
      */
     public function getLogger()
     {
-        return Injector::inst()->get('Logger');
+        //@todo left commented after a confusing merge conflict. Revisit if further testing is required
+        //return Injector::inst()->get('Logger');
+        return Injector::inst()->get(LoggerInterface::class);
     }
 
     /**
@@ -40,7 +45,9 @@ class Solr_BuildTask extends BuildTask
      */
     protected function getLoggerFactory()
     {
-//        return Injector::inst()->get('SearchLogFactory');
+        //@todo left commented after a confusing merge conflict. Revisit if further testing is required
+        //return Injector::inst()->get('SearchLogFactory');
+        return Injector::inst()->get(SearchLogFactory::class);
     }
 
     /**
@@ -55,9 +62,8 @@ class Solr_BuildTask extends BuildTask
 
         // Set new logger
         $logger = $this
-            ->getLoggerFactory();
-//@todo: Cannot instantiate interface SearchLogFactory
-//            ->getOutputLogger($name, $verbose);
+            ->getLoggerFactory()
+            ->getOutputLogger($name, $verbose);
         $this->setLogger($logger);
     }
 }

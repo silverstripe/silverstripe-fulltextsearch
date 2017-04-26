@@ -2,9 +2,10 @@
 
 namespace SilverStripe\FullTextSearch\Search\Indexes;
 
+use Exception;
+use InvalidArgumentException;
 use SilverStripe\View\ViewableData;
 use SilverStripe\ORM\DataObject;
-use SilverStripe\ORM\DataObjectSchema;
 use SilverStripe\Core\Object;
 use SilverStripe\Core\ClassInfo;
 use SilverStripe\FullTextSearch\Search\SearchIntrospection;
@@ -476,9 +477,8 @@ abstract class SearchIndex extends ViewableData
                     }
 
                     $object = $next;
-                }
-                // Otherwise, just call
-                else {
+                } else {
+                    // Otherwise, just call
                     if ($step['call'] == 'method') {
                         $method = $step['method'];
                         $object = $object->$method();
@@ -508,9 +508,10 @@ abstract class SearchIndex extends ViewableData
      * @param Exception $e
      * @throws Exception
      */
-    public static function warn($e) {
+    public static function warn($e)
+    {
         // Noisy errors during testing
-        if(class_exists('SapphireTest', false) && SapphireTest::is_running_test()) {
+        if (class_exists('SapphireTest', false) && SapphireTest::is_running_test()) {
             throw $e;
         }
         SS_Log::log($e, SS_Log::WARN);
@@ -609,8 +610,8 @@ abstract class SearchIndex extends ViewableData
 
     /** !! These should be implemented by the full text search engine */
 
-    abstract public function add($object) ;
-    abstract public function delete($base, $id, $state) ;
+    abstract public function add($object);
+    abstract public function delete($base, $id, $state);
 
     abstract public function commit();
 

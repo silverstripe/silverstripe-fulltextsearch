@@ -2,17 +2,17 @@
 
 namespace SilverStripe\FullTextSearch\Search\Updaters;
 
-use SilverStripe\ORM\DB;
+use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Core\Object;
-use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
-use SilverStripe\ORM\DataObject;
 use SilverStripe\Dev\SapphireTest;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\ORM\DB;
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
 use SilverStripe\FullTextSearch\Search\SearchIntrospection;
-use SilverStripe\Core\Injector\Injector;
+use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
 use SilverStripe\FullTextSearch\Search\Processors\SearchUpdateImmediateProcessor;
-use SilverStripe\FullTextSearch\Captures\SearchManipulateCapture_MySQLDatabase;
 use ReflectionClass;
+
 /**
  * This class is responsible for capturing changes to DataObjects and triggering index updates of the resulting dirty index
  * items.
@@ -36,6 +36,7 @@ class SearchUpdater extends Object
         global $databaseConfig;
 
         $current = DB::get_conn();
+
         if (!$current || !$current->getSelectedDatabase() || @$current->isManipulationCapture) {
             return;
         } // If not yet set, or its already captured, just return

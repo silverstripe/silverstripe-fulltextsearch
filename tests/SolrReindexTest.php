@@ -8,6 +8,7 @@ use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_Index;
 use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_TestHandler;
 use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_Item;
 use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_RecordingLogger;
+use SilverStripe\FullTextSearch\Solr\Reindex\Handlers\SolrReindexHandler;
 use SilverStripe\FullTextSearch\Solr\Services\Solr4Service;
 use SilverStripe\FullTextSearch\Solr\Tasks\Solr_Reindex;
 use SilverStripe\Core\Config\Config;
@@ -42,10 +43,10 @@ class SolrReindexTest extends SapphireTest
         parent::setUp();
 
         // Set test handler for reindex
-        Config::modify()->set('Injector', 'SolrReindexHandler', array(
+        Config::modify()->set('Injector', SolrReindexHandler::class, array(
             'class' => SolrReindexTest_TestHandler::class
         ));
-        Injector::inst()->registerService(new SolrReindexTest_TestHandler(), 'SolrReindexHandler');
+        Injector::inst()->registerService(new SolrReindexTest_TestHandler(), SolrReindexHandler::class);
 
         // Set test variant
         SolrReindexTest_Variant::enable();
@@ -105,7 +106,7 @@ class SolrReindexTest extends SapphireTest
      */
     protected function getHandler()
     {
-        return Injector::inst()->get('SolrReindexHandler');
+        return Injector::inst()->get(SolrReindexHandler::class);
     }
 
     /**

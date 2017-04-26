@@ -1,7 +1,10 @@
 <?php
+
 namespace SilverStripe\FullTextSearch\Solr\Services;
+
 use SilverStripe\Core\Config\Config;
 use SilverStripe\FullTextSearch\Solr\Solr;
+
 Solr::include_client_api();
 /**
  * The API for accessing the primary Solr installation, which includes both SolrService_Core,
@@ -10,12 +13,12 @@ Solr::include_client_api();
  */
 class SolrService extends SolrService_Core
 {
-    private static $core_class = 'SilverStripe\FullTextSearch\Solr\Services\SolrService_Core';
+    private static $core_class = SolrService_Core::class;
 
     /**
      * Handle encoding the GET parameters and making the HTTP call to execute a core command
      */
-    protected function coreCommand($command, $core, $params=array())
+    protected function coreCommand($command, $core, $params = array())
     {
         $command = strtoupper($command);
 
@@ -45,7 +48,7 @@ class SolrService extends SolrService_Core
      * @param $datadir string - The path to store data for this core on the server. Default depends on solrconfig.xml
      * @return Apache_Solr_Response
      */
-    public function coreCreate($core, $instancedir, $config=null, $schema=null, $datadir=null)
+    public function coreCreate($core, $instancedir, $config = null, $schema = null, $datadir = null)
     {
         $args = array('instanceDir' => $instancedir);
         if ($config) {
