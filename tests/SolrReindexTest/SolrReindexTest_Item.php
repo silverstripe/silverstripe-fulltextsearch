@@ -9,8 +9,10 @@ use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_ItemExtens
 /**
  * Does not have any variant extensions
  */
-class SolrReindexTest_Item extends DataObject implements TestOnly
+class SolrReindexTest_Item extends DataObject
 {
+    private static $table_name = 'SolrReindexTest_Item';
+
     private static $extensions = [
         SolrReindexTest_ItemExtension::class
     ];

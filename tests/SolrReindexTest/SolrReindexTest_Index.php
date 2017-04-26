@@ -9,7 +9,7 @@ class SolrReindexTest_Index extends SolrIndex implements TestOnly
 {
     public function init()
     {
-        $this->addClass('SolrReindexTest_Item');
+        $this->addClass(SolrReindexTest_Item::class);
         $this->addAllFulltextFields();
     }
 }

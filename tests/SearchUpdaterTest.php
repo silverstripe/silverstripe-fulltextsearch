@@ -3,11 +3,14 @@
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater;
 use SilverStripe\Core\Config\Config;
+use SilverStripe\Core\Injector\Injector;
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
 use SilverStripe\FullTextSearch\Tests\SearchUpdaterTest\SearchUpdaterTest_Container;
 use SilverStripe\FullTextSearch\Tests\SearchUpdaterTest\SearchUpdaterTest_HasOne;
 use SilverStripe\FullTextSearch\Tests\SearchUpdaterTest\SearchUpdaterTest_HasMany;
 use SilverStripe\FullTextSearch\Tests\SearchUpdaterTest\SearchUpdaterTest_Index;
+use SilverStripe\FullTextSearch\Search\Processors\SearchUpdateProcessor;
+use SilverStripe\FullTextSearch\Search\Processors\SearchUpdateImmediateProcessor;
 
 class SearchUpdaterTest extends SapphireTest
 {
@@ -27,8 +30,8 @@ class SearchUpdaterTest extends SapphireTest
 
         SearchUpdater::bind_manipulation_capture();
 
-        Config::modify()->set('Injector', 'SearchUpdateProcessor', array(
-            'class' => 'SearchUpdateImmediateProcessor'
+        Config::modify()->set(Injector::class, SearchUpdateProcessor::class, array(
+            'class' => SearchUpdateImmediateProcessor::class
         ));
 
         FullTextSearch::force_index_list(self::$index);

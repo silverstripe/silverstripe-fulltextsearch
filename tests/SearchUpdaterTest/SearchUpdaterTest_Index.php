@@ -8,7 +8,7 @@ class SearchUpdaterTest_Index extends SearchIndex_Recording
 {
     public function init()
     {
-        $this->addClass('SilverStripe\FullTextSearch\Tests\SearchUpdaterTest\SearchUpdaterTest_Container');
+        $this->addClass(SearchUpdaterTest_Container::class);
 
         $this->addFilterField('Field1');
         $this->addFilterField('HasOneObject.Field1');

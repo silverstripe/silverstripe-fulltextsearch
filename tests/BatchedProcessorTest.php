@@ -4,6 +4,19 @@ namespace SilverStripe\FullTextSearch\Tests;
 
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
+use SilverStripe\ORM\FieldType\DBDatetime;
+use SilverStripe\Core\Config\Config;
+use SilverStripe\Versioned\Versioned;
+use SilverStripe\Core\Injector\Injector;
+use SilverStripe\FullTextSearch\Tests\BatchedProcessorTest\BatchedProcessor_QueuedJobService;
+use SilverStripe\FullTextSearch\Tests\BatchedProcessorTest\BatchedProcessorTest_Index;
+use SilverStripe\FullTextSearch\Tests\BatchedProcessorTest\BatchedProcessorTest_Object;
+use SilverStripe\FullTextSearch\Search\Processors\SearchUpdateCommitJobProcessor;
+use SilverStripe\FullTextSearch\Search\Processors\SearchUpdateQueuedJobProcessor;
+use SilverStripe\FullTextSearch\Search\Processors\SearchUpdateBatchedProcessor;
+use SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater;
+use SilverStripe\FullTextSearch\Search\Variants\SearchVariantVersioned;
+use SilverStripe\QueuedJobs\Services\QueuedJobService;
 
 /**
  * Tests {@see SearchUpdateQueuedJobProcessor}
@@ -12,8 +25,8 @@ class BatchedProcessorTest extends SapphireTest
 {
     protected $oldProcessor;
 
-    protected $extraDataObjects = array(
-        'BatchedProcessorTest_Object'
+    protected static $extra_dataobjects = array(
+        BatchedProcessorTest_Object::class
     );
 
     protected $illegalExtensions = array(
@@ -26,7 +39,7 @@ class BatchedProcessorTest extends SapphireTest
     public function setUpOnce()
     {
         // Disable illegal extensions if skipping this test
-        if (class_exists('Subsite') || !interface_exists('QueuedJob')) {
+        if (class_exists('Subsite') || !interface_exists('SilverStripe\QueuedJobs\Services\QueuedJob')) {
             $this->illegalExtensions = array();
         }
         parent::setUpOnce();
@@ -36,7 +49,7 @@ class BatchedProcessorTest extends SapphireTest
     {
         parent::setUp();
 
-        if (!interface_exists('QueuedJob')) {
+        if (!interface_exists('SilverStripe\QueuedJobs\Services\QueuedJob')) {
             $this->skipTest = true;
             $this->markTestSkipped("These tests need the QueuedJobs module installed to run");
         }
@@ -46,17 +59,17 @@ class BatchedProcessorTest extends SapphireTest
             $this->markTestSkipped(get_class() . ' skipped when running with subsites');
         }
 
-        SS_Datetime::set_mock_now('2015-05-07 06:00:00');
+        DBDatetime::set_mock_now('2015-05-07 06:00:00');
 
-        Config::modify()->set('SearchUpdateBatchedProcessor', 'batch_size', 5);
-        Config::modify()->set('SearchUpdateBatchedProcessor', 'batch_soft_cap', 0);
-        Config::modify()->set('SearchUpdateCommitJobProcessor', 'cooldown', 600);
+        Config::modify()->set(SearchUpdateBatchedProcessor::class, 'batch_size', 5);
+        Config::modify()->set(SearchUpdateBatchedProcessor::class, 'batch_soft_cap', 0);
+        Config::modify()->set(SearchUpdateCommitJobProcessor::class, 'cooldown', 600);
 
-        Versioned::reading_stage("Stage");
+        Versioned::set_stage("Stage");
 
-        Injector::inst()->registerService(new BatchedProcessor_QueuedJobService(), 'QueuedJobService');
+        Injector::inst()->registerService(new BatchedProcessor_QueuedJobService(), QueuedJobService::class);
 
-        FullTextSearch::force_index_list('BatchedProcessorTest_Index');
+        FullTextSearch::force_index_list(BatchedProcessorTest_Index::class);
 
         SearchUpdateCommitJobProcessor::$dirty_indexes = array();
         SearchUpdateCommitJobProcessor::$has_run = false;
@@ -87,12 +100,12 @@ class BatchedProcessorTest extends SapphireTest
             $object->write();
             // Add to index manually
             $processor->addDirtyIDs(
-                'BatchedProcessorTest_Object',
+                BatchedProcessorTest_Object::class,
                 array(array(
                     'id' => $id,
-                    'state' => array('SearchVariantVersioned' => 'Stage')
+                    'state' => array(SearchVariantVersioned::class => 'Stage')
                 )),
-                'BatchedProcessorTest_Index'
+                BatchedProcessorTest_Index::class
             );
         }
         $processor->batchData();
@@ -104,7 +117,7 @@ class BatchedProcessorTest extends SapphireTest
      */
     public function testBatching()
     {
-        $index = singleton('BatchedProcessorTest_Index');
+        $index = singleton(BatchedProcessorTest_Index::class);
         $index->reset();
         $processor = $this->generateDirtyIds();
 
@@ -132,10 +145,10 @@ class BatchedProcessorTest extends SapphireTest
 
         // Check any additional queued jobs
         $processor->afterComplete();
-        $service = singleton('QueuedJobService');
+        $service = singleton(QueuedJobService::class);
         $jobs = $service->getJobs();
         $this->assertEquals(1, count($jobs));
-        $this->assertInstanceOf('SearchUpdateCommitJobProcessor', $jobs[0]['job']);
+        $this->assertInstanceOf(SearchUpdateCommitJobProcessor::class, $jobs[0]['job']);
     }
 
     /**
@@ -143,7 +156,7 @@ class BatchedProcessorTest extends SapphireTest
      */
     public function testMultipleCommits()
     {
-        $index = singleton('BatchedProcessorTest_Index');
+        $index = singleton(BatchedProcessorTest_Index::class);
         $index->reset();
 
         // Test that running a commit immediately after submitting to the indexes
@@ -190,25 +203,25 @@ class BatchedProcessorTest extends SapphireTest
      */
     public function testSoftCap()
     {
-        $index = singleton('BatchedProcessorTest_Index');
+        $index = singleton(BatchedProcessorTest_Index::class);
         $index->reset();
         $processor = $this->generateDirtyIds();
 
         // Test that increasing the soft cap to 2 will reduce the number of batches
-        Config::modify()->set('SearchUpdateBatchedProcessor', 'batch_soft_cap', 2);
+        Config::modify()->set(SearchUpdateBatchedProcessor::class, 'batch_soft_cap', 2);
         $processor->batchData();
         $data = $processor->getJobData();
         //Debug::dump($data);die;
         $this->assertEquals(8, $data->totalSteps);
 
         // A soft cap of 1 should not fit in the hanging two items
-        Config::modify()->set('SearchUpdateBatchedProcessor', 'batch_soft_cap', 1);
+        Config::modify()->set(SearchUpdateBatchedProcessor::class, 'batch_soft_cap', 1);
         $processor->batchData();
         $data = $processor->getJobData();
         $this->assertEquals(9, $data->totalSteps);
 
         // Extra large soft cap should fit both items
-        Config::modify()->set('SearchUpdateBatchedProcessor', 'batch_soft_cap', 4);
+        Config::modify()->set(SearchUpdateBatchedProcessor::class, 'batch_soft_cap', 4);
         $processor->batchData();
         $data = $processor->getJobData();
         $this->assertEquals(8, $data->totalSteps);

@@ -2,6 +2,8 @@
 
 namespace SilverStripe\FullTextSearch\Tests\BatchedProcessorTest;
 
+use SilverStripe\QueuedJobs\Services\QueuedJob;
+
 class BatchedProcessor_QueuedJobService
 {
     protected $jobs = array();

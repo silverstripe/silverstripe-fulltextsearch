@@ -9,7 +9,7 @@ class BatchedProcessorTest_Index extends SearchIndex_Recording implements TestOn
 {
     public function init()
     {
-        $this->addClass('BatchedProcessorTest_Object');
+        $this->addClass(BatchedProcessorTest_Object::class);
         $this->addFilterField('TestText');
     }
 }

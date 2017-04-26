@@ -3,6 +3,7 @@
 namespace SilverStripe\FullTextSearch\Tests\SolrIndexTest;
 
 use SilverStripe\FullTextSearch\Solr\SolrIndex;
+use SilverStripe\FullTextSearch\Tests\SearchUpdaterTest\SearchUpdaterTest_Container;
 
 class SolrIndexTest_BoostedIndex extends SolrIndex
 {
@@ -14,9 +15,9 @@ class SolrIndexTest_BoostedIndex extends SolrIndex
 
     public function init()
     {
-        $this->addClass('SearchUpdaterTest_Container');
+        $this->addClass(SearchUpdaterTest_Container::class);
         $this->addAllFulltextFields();
-        $this->setFieldBoosting('SearchUpdaterTest_Container_Field1', 1.5);
+        $this->setFieldBoosting(SearchUpdaterTest_Container::class . '_Field1', 1.5);
         $this->addBoostedField('Field2', null, array(), 2.1);
     }
 }

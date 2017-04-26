@@ -3,8 +3,8 @@
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\FullTextSearch\Tests\SolrIndexSubsitesTest\SolrIndexSubsitesTest_Index;
 
-if (class_exists('Phockito')) {
-    Phockito::include_hamcrest(false);
+if (class_exists('\Phockito')) {
+    \Phockito::include_hamcrest(false);
 }
 
 /**
@@ -33,9 +33,9 @@ class SolrIndexSubsitesTest extends SapphireTest {
 
         $this->server = $_SERVER;
 
-        if (!class_exists('Phockito')) {
+        if (!class_exists('\Phockito')) {
             $this->skipTest = true;
-            $this->markTestSkipped("These tests need the Phockito module installed to run");
+            $this->markTestSkipped("These tests need the \Phockito module installed to run");
             return;
         }
 
@@ -71,7 +71,7 @@ class SolrIndexSubsitesTest extends SapphireTest {
 
     protected function getServiceMock()
     {
-        return Phockito::mock('Solr4Service');
+        return \Phockito::mock('Solr4Service');
     }
 
     /**
@@ -83,7 +83,7 @@ class SolrIndexSubsitesTest extends SapphireTest {
     protected function getExpectedDocumentId($object, $subsiteID, $stage = null)
     {
         $id = $object->ID;
-        $class = ClassInfo::baseDataClass($object);
+        $class = DataObject::getSchema()->baseDataClass($object);
         $variants = array();
 
         // Check subsite
@@ -109,7 +109,7 @@ class SolrIndexSubsitesTest extends SapphireTest {
         // Add records to first subsite
         Versioned::reading_stage('Stage');
         $_SERVER['HTTP_HOST'] = 'www.subsite1.com';
-        Phockito::reset($serviceMock);
+        \Phockito::reset($serviceMock);
         $file = new File();
         $file->Title = 'My File';
         $file->SubsiteID = $subsite1->ID;
@@ -132,8 +132,8 @@ class SolrIndexSubsitesTest extends SapphireTest {
             'File_Title' => 'My File',
             '_subsite' => $subsite1->ID
         ));
-        Phockito::verify($serviceMock)->addDocument($doc1);
-        Phockito::verify($serviceMock)->addDocument($doc2);
+        \Phockito::verify($serviceMock)->addDocument($doc1);
+        \Phockito::verify($serviceMock)->addDocument($doc2);
 
     }
 

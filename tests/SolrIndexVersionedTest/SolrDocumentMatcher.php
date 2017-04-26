@@ -1,14 +1,14 @@
 <?php
 
-namespace SilverStripe\FullTextSearch\Tests\SolrVersionedTest;
+namespace SilverStripe\FullTextSearch\Tests\SolrIndexVersionedTest;
 
-if (!class_exists('Phockito')) {
+if (!class_exists('\Phockito')) {
     return;
 }
 
-Phockito::include_hamcrest(false);
+\Phockito::include_hamcrest(false);
 
-class SolrDocumentMatcher extends Hamcrest_BaseMatcher
+class SolrDocumentMatcher extends \Hamcrest_BaseMatcher
 {
     protected $properties;
 
