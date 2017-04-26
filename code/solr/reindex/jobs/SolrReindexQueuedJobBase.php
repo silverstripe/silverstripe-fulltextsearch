@@ -2,6 +2,8 @@
 namespace SilverStripe\FullTextSearch\Solr\Reindex\Jobs;
 use Monolog\Logger;
 use Psr\Log\LoggerInterface;
+use SilverStripe\FullTextSearch\Utils\Logging\SearchLogFactory;
+use SilverStripe\FullTextSearch\Solr\Reindex\Handlers\SolrReindexHandler;
 
 if (!interface_exists('QueuedJob')) {
     return;
@@ -44,7 +46,7 @@ abstract class SolrReindexQueuedJobBase implements QueuedJob
      */
     protected function getLoggerFactory()
     {
-        return Injector::inst()->get('SearchLogFactory');
+        return Injector::inst()->get(SearchLogFactory::class);
     }
 
     /**
@@ -103,7 +105,7 @@ abstract class SolrReindexQueuedJobBase implements QueuedJob
      */
     protected function getHandler()
     {
-        return Injector::inst()->get('SolrReindexHandler');
+        return Injector::inst()->get(SolrReindexHandler::class);
     }
 
     public function jobFinished()

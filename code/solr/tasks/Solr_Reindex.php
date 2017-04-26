@@ -1,5 +1,13 @@
 <?php
 namespace SilverStripe\FullTextSearch\Solr\Tasks;
+use ReflectionClass;
+use SilverStripe\Core\ClassInfo;
+use SilverStripe\Core\Injector\Injector;
+use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
+use SilverStripe\ORM\DataList;
+use SilverStripe\FullTextSearch\Solr\Reindex\Handlers\SolrReindexHandler;
+use SilverStripe\FullTextSearch\Solr\SolrIndex;
+
 /**
  * Task used for both initiating a new reindex, as well as for processing incremental batches
  * within a reindex.
@@ -36,9 +44,12 @@ class Solr_Reindex extends Solr_BuildTask
      */
     protected function getHandler()
     {
+
         //@todo: this needs to determine the best class from a Factory implementation
         //@todo: it was 'SolrReindexHandler' but that doesn't work on 4.0
-        return Injector::inst()->get('SolrReindexImmediateHandler');
+        //@todo left commented after a confusing merge conflict. Revisit if further investigation /testing is needed
+        //return Injector::inst()->get('SolrReindexImmediateHandler');
+        return Injector::inst()->get(SolrReindexHandler::class);
     }
 
     /**
@@ -67,7 +78,7 @@ class Solr_Reindex extends Solr_BuildTask
         // this is for when index names do not match the class name (this can be done by overloading getIndexName() on
         // indexes
         if ($index && !ClassInfo::exists($index)) {
-            foreach(ClassInfo::subclassesFor('SolrIndex') as $solrIndexClass) {
+            foreach(ClassInfo::subclassesFor(SolrIndex::class) as $solrIndexClass) {
                 $reflection = new ReflectionClass($solrIndexClass);
                 //skip over abstract classes
                 if (!$reflection->isInstantiable()) {

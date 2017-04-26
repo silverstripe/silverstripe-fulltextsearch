@@ -44,7 +44,7 @@ class Solr4Service_Core extends SolrService_Core
 
         $rawPost = "<add overwrite=\"{$overwriteVal}\"{$commitWithinString}>";
         foreach ($documents as $document) {
-            if ($document instanceof Apache_Solr_Document) {
+            if ($document instanceof \Apache_Solr_Document) {
                 $rawPost .= $this->_documentToXmlFragment($document);
             }
         }

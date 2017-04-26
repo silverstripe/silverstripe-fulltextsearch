@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: elliot
- * Date: 21/04/17
- * Time: 1:13 PM
- */
 
 namespace SilverStripe\FullTextSearch\Search\Variants;
 

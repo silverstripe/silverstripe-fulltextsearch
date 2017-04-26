@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: elliot
- * Date: 21/04/17
- * Time: 12:45 PM
- */
 
 namespace SilverStripe\FullTextSearch\Solr\Services;
 

@@ -4,6 +4,7 @@ use SilverStripe\Dev\SapphireTest;
 
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
 use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_Variant;
+use SilverStripe\FullTextSearch\Solr\Reindex\Handlers\SolrReindexHandler;
 
 if (class_exists('Phockito')) {
     Phockito::include_hamcrest(false);
@@ -102,7 +103,7 @@ class SolrReindexTest extends SapphireTest
      */
     protected function getHandler()
     {
-        return Injector::inst()->get('SolrReindexHandler');
+        return Injector::inst()->get(SolrReindexHandler::class);
     }
 
     /**
