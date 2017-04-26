@@ -2,6 +2,9 @@
 
 namespace SilverStripe\FullTextSearch\Solr\Stores;
 
+use SilverStripe\FullTextSearch\Utils\WebDAV;
+use SilverStripe\FullTextSearch\Solr\Solr;
+
 /**
  * Class SolrConfigStore_WebDAV
  *

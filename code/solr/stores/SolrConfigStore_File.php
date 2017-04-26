@@ -25,7 +25,7 @@ class SolrConfigStore_File implements SolrConfigStore
             $worked = @mkdir($targetDir, 0770, true);
 
             if (!$worked) {
-                throw new RuntimeException(
+                throw new \RuntimeException(
                     sprintf('Failed creating target directory %s, please check permissions', $targetDir)
                 );
             }

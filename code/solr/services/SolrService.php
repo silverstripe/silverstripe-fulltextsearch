@@ -10,7 +10,7 @@ Solr::include_client_api();
  */
 class SolrService extends SolrService_Core
 {
-    private static $core_class = 'SolrService_Core';
+    private static $core_class = 'SilverStripe\FullTextSearch\Solr\Services\SolrService_Core';
 
     /**
      * Handle encoding the GET parameters and making the HTTP call to execute a core command
