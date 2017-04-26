@@ -58,7 +58,7 @@ class SearchVariantVersioned extends SearchVariant
             $stage = 'Stage';
 
             if (preg_match('/^(.*)_Live$/', $table, $matches)) {
-                $class = $matches[1];
+                $class = DataObject::getSchema()->tableClass($matches[1]);
                 $stage = 'Live';
             }
 
