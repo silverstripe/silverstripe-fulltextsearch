@@ -2,7 +2,11 @@
 
 namespace SilverStripe\FullTextSearch\Search\Variants;
 
+use SilverStripe\ORM\DataObject;
 use SilverStripe\Core\ClassInfo;
+use SilverStripe\FullTextSearch\Utils\CombinationsArrayIterator;
+use ReflectionClass;
+
 /**
  * A Search Variant handles decorators and other situations where the items to reindex or search through are modified
  * from the default state - for instance, dealing with Versioned or Subsite
@@ -79,7 +83,7 @@ abstract class SearchVariant
     {
         if (!$class) {
             if (self::$variants === null) {
-                $classes = ClassInfo::subclassesFor('SearchVariant');
+                $classes = ClassInfo::subclassesFor(static::class);
 
                 $concrete = array();
                 foreach ($classes as $variantclass) {

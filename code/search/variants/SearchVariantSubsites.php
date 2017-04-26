@@ -3,6 +3,14 @@
 namespace SilverStripe\FullTextSearch\Search\Variants;
 
 use SilverStripe\ORM\Queries\SQLSelect;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\Security\Permission;
+use SilverStripe\FullTextSearch\Search\SearchIntrospection;
+use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
+
+if (!class_exists('Subsite')) {
+    return;
+}
 
 class SearchVariantSubsites extends SearchVariant
 {
@@ -57,7 +65,7 @@ class SearchVariantSubsites extends SearchVariant
             'name' => '_subsite',
             'field' => '_subsite',
             'fullfield' => '_subsite',
-            'base' => ClassInfo::baseDataClass($class),
+            'base' => DataObject::getSchema()->baseDataClass($class),
             'origin' => $class,
             'type' => 'Int',
             'lookup_chain' => array(array('call' => 'variant', 'variant' => $self, 'method' => 'currentState'))
