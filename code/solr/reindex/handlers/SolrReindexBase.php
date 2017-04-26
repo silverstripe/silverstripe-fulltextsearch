@@ -5,6 +5,11 @@ namespace SilverStripe\FullTextSearch\Solr\Reindex\Handlers;
 use Psr\Log\LoggerInterface;
 use SilverStripe\FullTextSearch\Solr\Solr;
 use SilverStripe\FullTextSearch\Solr\SolrIndex;
+use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
+use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\ORM\DataList;
+use SilverStripe\ORM\DB;
 
 /**
  * Base class for re-indexing of solr content
@@ -17,7 +22,7 @@ abstract class SolrReindexBase implements SolrReindexHandler
             $this->processIndex($logger, $indexInstance, $batchSize, $taskName, $classes);
         }
     }
-    
+
     /**
      * Process index for a single SolrIndex instance
      *
@@ -163,7 +168,7 @@ abstract class SolrReindexBase implements SolrReindexHandler
 
         // This will slow down things a tiny bit, but it is done so that we don't timeout to the database during a reindex
         DB::query('SELECT 1');
-        
+
         $logger->info("Done");
     }
 
@@ -181,11 +186,11 @@ abstract class SolrReindexBase implements SolrReindexHandler
     protected function getRecordsInGroup(SolrIndex $indexInstance, $class, $groups, $group)
     {
         // Generate filtered list of local records
-        $baseClass = ClassInfo::baseDataClass($class);
+        $baseClass = DataObject::getSchema()->baseDataClass($class);
         $items = DataList::create($class)
             ->where(sprintf(
                 '"%s"."ID" %% \'%d\' = \'%d\'',
-                $baseClass,
+                DataObject::getSchema()->tableName($baseClass),
                 intval($groups),
                 intval($group)
             ))
