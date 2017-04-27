@@ -4,6 +4,7 @@ namespace SilverStripe\FullTextSearch\Solr\Services;
 
 use SilverStripe\Core\Config\Config;
 use SilverStripe\FullTextSearch\Solr\Solr;
+use Silverstripe\Core\ClassInfo;
 
 Solr::include_client_api();
 /**
@@ -21,7 +22,8 @@ class SolrService extends SolrService_Core
     protected function coreCommand($command, $core, $params = array())
     {
         $command = strtoupper($command);
-
+        //get the non-namespaced name of the Solr core, since backslashes not valid characters
+        $core = ClassInfo::shortName($core);
         $params = array_merge($params, array('action' => $command, 'wt' => 'json'));
         $params[$command == 'CREATE' ? 'name' : 'core'] = $core;
 
