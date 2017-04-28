@@ -59,6 +59,7 @@ class SolrReindexImmediateHandler extends SolrReindexBase
         // Build script
         $indexName = $indexInstance->getIndexName();
         $indexClass = get_class($indexInstance);
+        $class = addslashes($class);
         $scriptPath = sprintf("%s%sframework%scli-script.php", BASE_PATH, DIRECTORY_SEPARATOR, DIRECTORY_SEPARATOR);
         $scriptTask = "php {$scriptPath} dev/tasks/{$taskName}";
         $cmd = "{$scriptTask} index={$indexClass} class={$class} group={$group} groups={$groups} variantstate={$statevar}";
