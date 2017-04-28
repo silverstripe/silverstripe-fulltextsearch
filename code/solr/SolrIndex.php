@@ -35,6 +35,11 @@ abstract class SolrIndex extends SearchIndex
 
     protected $templatesPath = null;
 
+    private static $casting = [
+        'FieldDefinitions' => 'HTMLText',
+        'CopyFieldDefinitions' => 'HTMLText'
+    ];
+
     /**
      * List of boosted fields
      *
