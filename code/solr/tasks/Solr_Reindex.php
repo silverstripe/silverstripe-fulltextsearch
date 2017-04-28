@@ -25,7 +25,7 @@ use SilverStripe\FullTextSearch\Solr\SolrIndex;
  */
 class Solr_Reindex extends Solr_BuildTask
 {
-    private static $segment = 'Solr_Reindex';
+    private static $segment = 'SilverStripeFullTextSearchSolrTasksSolr_Reindex';
 
     protected $enabled = true;
 
@@ -44,11 +44,6 @@ class Solr_Reindex extends Solr_BuildTask
      */
     protected function getHandler()
     {
-
-        //@todo: this needs to determine the best class from a Factory implementation
-        //@todo: it was 'SolrReindexHandler' but that doesn't work on 4.0
-        //@todo left commented after a confusing merge conflict. Revisit if further investigation /testing is needed
-        //return Injector::inst()->get('SolrReindexImmediateHandler');
         return Injector::inst()->get(SolrReindexHandler::class);
     }
 
