@@ -24,8 +24,7 @@
         "monolog/monolog": "~1.15"
     },
     "require-dev": {
-        "silverstripe/cms": "4.0.x-dev",
-        "hafriedlander/silverstripe-phockito": "*"
+        "silverstripe/cms": "4.0.x-dev"
     },
     "extra": {
         "branch-alias": {

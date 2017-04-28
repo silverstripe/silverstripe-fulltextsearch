@@ -1,21 +1,23 @@
 <?php
+
 namespace SilverStripe\FullTextSearch\Search\Variants;
+
+use SilverStripe\ORM\DataObject;
+use SilverStripe\Core\ClassInfo;
+use SilverStripe\FullTextSearch\Search\SearchIntrospection;
+use SilverStripe\Versioned\Versioned;
+use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
 
 class SearchVariantVersioned extends SearchVariant
 {
-    public function appliesToEnvironment()
-    {
-        return class_exists('Versioned');
-    }
-
     public function appliesTo($class, $includeSubclasses)
     {
-        return SearchIntrospection::has_extension($class, 'Versioned', $includeSubclasses);
+        return SearchIntrospection::has_extension($class, Versioned::class, $includeSubclasses);
     }
 
     public function currentState()
     {
-        return Versioned::current_stage();
+        return Versioned::get_stage();
     }
     public function reindexStates()
     {
@@ -23,7 +25,7 @@ class SearchVariantVersioned extends SearchVariant
     }
     public function activateState($state)
     {
-        Versioned::reading_stage($state);
+        Versioned::set_stage($state);
     }
 
     public function alterDefinition($class, $index)
@@ -34,7 +36,7 @@ class SearchVariantVersioned extends SearchVariant
             'name' => '_versionedstage',
             'field' => '_versionedstage',
             'fullfield' => '_versionedstage',
-            'base' => ClassInfo::baseDataClass($class),
+            'base' => DataObject::getSchema()->baseDataClass($class),
             'origin' => $class,
             'type' => 'String',
             'lookup_chain' => array(array('call' => 'variant', 'variant' => $self, 'method' => 'currentState'))
@@ -43,7 +45,7 @@ class SearchVariantVersioned extends SearchVariant
 
     public function alterQuery($query, $index)
     {
-        $stage = Versioned::current_stage();
+        $stage = $this->currentState();
         $query->filter('_versionedstage', array($stage, SearchQuery::$missing));
     }
 
@@ -56,7 +58,7 @@ class SearchVariantVersioned extends SearchVariant
             $stage = 'Stage';
 
             if (preg_match('/^(.*)_Live$/', $table, $matches)) {
-                $class = $matches[1];
+                $class = DataObject::getSchema()->tableClass($matches[1]);
                 $stage = 'Live';
             }
 

@@ -3,23 +3,10 @@
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\FullTextSearch\Search\Indexes\SearchIndex_Recording;
 use SilverStripe\Dev\SapphireTest;
+use SilverStripe\FullTextSearch\Tests\SearchVariantSiteTreeSubsitesPolyhomeTest\SearchVariantSiteTreeSubsitesPolyhomeTest_Index;
+use SilverStripe\FullTextSearch\Tests\SearchVariantSiteTreeSubsitesPolyhomeTest\SearchVariantSiteTreeSubsitesPolyhomeTest_Item;
 
-class SearchVariantSiteTreeSubsitesPolyhomeTest_Item extends SiteTree
-{
-    // TODO: Currently theres a failure if you addClass a non-table class
-    private static $db = array(
-        'TestText' => 'Varchar'
-    );
-}
 
-class SearchVariantSiteTreeSubsitesPolyhomeTest_Index extends SearchIndex_Recording
-{
-    public function init()
-    {
-        $this->addClass('SearchVariantSiteTreeSubsitesPolyhomeTest_Item');
-        $this->addFilterField('TestText');
-    }
-}
 
 class SearchVariantSiteTreeSubsitesPolyhomeTest extends SapphireTest
 {

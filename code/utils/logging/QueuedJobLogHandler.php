@@ -1,11 +1,15 @@
 <?php
+
 namespace SilverStripe\FullTextSearch\Utils\Logging;
+
 use Monolog\Handler\AbstractProcessingHandler;
 use Monolog\Logger;
 
-if (!interface_exists('QueuedJob')) {
+if (!interface_exists('SilverStripe\QueuedJobs\Services\QueuedJob')) {
     return;
 }
+
+use SilverStripe\QueuedJobs\Services\QueuedJob;
 
 /**
  * Handler for logging events into QueuedJob message data

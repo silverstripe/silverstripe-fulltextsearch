@@ -6,12 +6,14 @@ use Exception;
 use InvalidArgumentException;
 use SilverStripe\View\ViewableData;
 use SilverStripe\ORM\DataObject;
-use SilverStripe\ORM\DataObjectSchema;
 use SilverStripe\Core\Object;
 use SilverStripe\Core\ClassInfo;
 use SilverStripe\FullTextSearch\Search\SearchIntrospection;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
 use SilverStripe\FullTextSearch\Utils\MultipleArrayIterator;
+use SilverStripe\ORM\Queries\SQLSelect;
+use SilverStripe\Core\Injector\Injector;
+
 /**
  * SearchIndex is the base index class. Each connector will provide a subclass of this that
  * provides search engine specific behavior.
@@ -76,7 +78,7 @@ abstract class SearchIndex extends ViewableData
         $sources = $this->getClasses();
 
         foreach ($sources as $source => $options) {
-            $sources[$source]['base'] = ClassInfo::baseDataClass($source);
+            $sources[$source]['base'] = DataObject::getSchema()->baseDataClass($source);
             $sources[$source]['lookup_chain'] = array();
         }
 
@@ -94,22 +96,24 @@ abstract class SearchIndex extends ViewableData
 
                     foreach (SearchIntrospection::hierarchy($source, $options['include_children']) as $dataclass) {
                         $singleton = singleton($dataclass);
+                        $schema = DataObject::getSchema();
+                        $className = $singleton->getClassName();
 
-                        if ($hasOne = $singleton->hasOne($lookup)) {
+                        if ($hasOne = $schema->hasOneComponent($className, $lookup)) {
                             $class = $hasOne;
                             $options['lookup_chain'][] = array(
                                 'call' => 'method', 'method' => $lookup,
                                 'through' => 'has_one', 'class' => $dataclass, 'otherclass' => $class, 'foreignkey' => "{$lookup}ID"
                             );
-                        } elseif ($hasMany = $singleton->hasMany($lookup)) {
+                        } elseif ($hasMany = $schema->hasManyComponent($className, $lookup)) {
                             $class = $hasMany;
                             $options['multi_valued'] = true;
                             $options['lookup_chain'][] = array(
                                 'call' => 'method', 'method' => $lookup,
-                                'through' => 'has_many', 'class' => $dataclass, 'otherclass' => $class, 'foreignkey' => $singleton->getRemoteJoinField($lookup, 'has_many')
+                                'through' => 'has_many', 'class' => $dataclass, 'otherclass' => $class, 'foreignkey' => $schema->getRemoteJoinField($className, $lookup, 'has_many')
                             );
-                        } elseif ($manyMany = $singleton->manyMany($lookup)) {
-                            $class = $manyMany[1];
+                        } elseif ($manyMany = $schema->manyManyComponent($className, $lookup)) {
+                            $class = $manyMany[2];
                             $options['multi_valued'] = true;
                             $options['lookup_chain'][] = array(
                                 'call' => 'method', 'method' => $lookup,
@@ -222,7 +226,7 @@ abstract class SearchIndex extends ViewableData
         }
 
         if (!DataObject::getSchema()->classHasTable($class)) {
-            throw new InvalidArgumentException('Can\'t add classes which don\'t have data tables (no $db or $has_one set on the class)');
+            throw new \InvalidArgumentException('Can\'t add classes which don\'t have data tables (no $db or $has_one set on the class)');
         }
 
         $options = array_merge(array(
@@ -299,13 +303,16 @@ abstract class SearchIndex extends ViewableData
         foreach ($this->getClasses() as $class => $options) {
             foreach (SearchIntrospection::hierarchy($class, $includeSubclasses, true) as $dataclass) {
                 $fields = DataObject::getSchema()->databaseFields($class);
-
                 foreach ($fields as $field => $type) {
                     if (preg_match('/^(\w+)\(/', $type, $match)) {
                         $type = $match[1];
                     }
                     list($type, $args) = Object::parse_class_spec($type);
-                    if (is_subclass_of($type, 'SilverStripe\ORM\FieldType\DBString')) {
+
+                    // Get class from shortName
+                    $object = Injector::inst()->get($type, false, ['Name' => 'test']);
+
+                    if (is_subclass_of(get_class($object), 'SilverStripe\ORM\FieldType\DBString')) {
                         $this->addFulltextField($field);
                     }
                 }
@@ -470,9 +477,8 @@ abstract class SearchIndex extends ViewableData
                     }
 
                     $object = $next;
-                }
-                // Otherwise, just call
-                else {
+                } else {
+                    // Otherwise, just call
                     if ($step['call'] == 'method') {
                         $method = $step['method'];
                         $object = $object->$method();
@@ -502,9 +508,10 @@ abstract class SearchIndex extends ViewableData
      * @param Exception $e
      * @throws Exception
      */
-    public static function warn($e) {
+    public static function warn($e)
+    {
         // Noisy errors during testing
-        if(class_exists('SapphireTest', false) && SapphireTest::is_running_test()) {
+        if (class_exists('SapphireTest', false) && SapphireTest::is_running_test()) {
             throw $e;
         }
         SS_Log::log($e, SS_Log::WARN);
@@ -529,7 +536,7 @@ abstract class SearchIndex extends ViewableData
         // First, if this object is directly contained in the index, add it
         foreach ($this->classes as $searchclass => $options) {
             if ($searchclass == $class || ($options['include_children'] && is_subclass_of($class, $searchclass))) {
-                $base = ClassInfo::baseDataClass($searchclass);
+                $base = DataObject::getSchema()->baseDataClass($searchclass);
                 $dirty[$base] = array();
                 foreach ($statefulids as $statefulid) {
                     $key = serialize($statefulid);
@@ -557,19 +564,25 @@ abstract class SearchIndex extends ViewableData
                 $ids = array($id);
 
                 foreach ($derivation['chain'] as $step) {
+                    // Use TableName for queries
+                    $tableName = DataObject::getSchema()->tableName($step['class']);
+
                     if ($step['through'] == 'has_one') {
-                        $sql = new SQLQuery('"ID"', '"'.$step['class'].'"', '"'.$step['foreignkey'].'" IN ('.implode(',', $ids).')');
+                        $sql = new SQLSelect('"ID"', '"'.$tableName.'"', '"'.$step['foreignkey'].'" IN ('.implode(',', $ids).')');
                         singleton($step['class'])->extend('augmentSQL', $sql);
 
                         $ids = $sql->execute()->column();
                     } elseif ($step['through'] == 'has_many') {
-                        $sql = new SQLQuery('"'.$step['class'].'"."ID"', '"'.$step['class'].'"', '"'.$step['otherclass'].'"."ID" IN ('.implode(',', $ids).')');
-                        $sql->addInnerJoin($step['otherclass'], '"'.$step['class'].'"."ID" = "'.$step['otherclass'].'"."'.$step['foreignkey'].'"');
+                        // Use TableName for queries
+                        $otherTableName = DataObject::getSchema()->tableName($step['otherclass']);
+
+                        $sql = new SQLSelect('"'.$tableName.'"."ID"', '"'.$tableName.'"', '"'.$otherTableName.'"."ID" IN ('.implode(',', $ids).')');
+                        $sql->addInnerJoin($otherTableName, '"'.$tableName.'"."ID" = "'.$otherTableName.'"."'.$step['foreignkey'].'"');
                         singleton($step['class'])->extend('augmentSQL', $sql);
 
                         $ids = $sql->execute()->column();
                     }
-                    
+
                     if (empty($ids)) {
                         break;
                     }
@@ -597,8 +610,8 @@ abstract class SearchIndex extends ViewableData
 
     /** !! These should be implemented by the full text search engine */
 
-    abstract public function add($object) ;
-    abstract public function delete($base, $id, $state) ;
+    abstract public function add($object);
+    abstract public function delete($base, $id, $state);
 
     abstract public function commit();
 

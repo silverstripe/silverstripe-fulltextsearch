@@ -1,8 +1,16 @@
 <?php
+
 namespace SilverStripe\FullTextSearch\Search\Processors;
-if (!interface_exists('QueuedJob')) {
+
+use SilverStripe\Core\Config\Config;
+use stdClass;
+
+if (!interface_exists('SilverStripe\QueuedJobs\Services\QueuedJob')) {
     return;
 }
+
+use SilverStripe\QueuedJobs\Services\QueuedJob;
+use SilverStripe\QueuedJobs\Services\QueuedJobService;
 
 class SearchUpdateQueuedJobProcessor extends SearchUpdateBatchedProcessor implements QueuedJob
 {
@@ -18,7 +26,7 @@ class SearchUpdateQueuedJobProcessor extends SearchUpdateBatchedProcessor implem
     public function triggerProcessing()
     {
         parent::triggerProcessing();
-        singleton('QueuedJobService')->queueJob($this);
+        singleton(QueuedJobService::class)->queueJob($this);
     }
 
     public function getTitle()

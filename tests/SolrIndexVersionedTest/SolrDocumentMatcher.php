@@ -1,14 +1,14 @@
 <?php
 
-namespace SilverStripe\FullTextSearch\Tests\SolrVersionedTest;
+namespace SilverStripe\FullTextSearch\Tests\SolrIndexVersionedTest;
 
-if (!class_exists('Phockito')) {
+if (!class_exists('\Phockito')) {
     return;
 }
 
-Phockito::include_hamcrest(false);
+\Phockito::include_hamcrest(false);
 
-class SolrDocumentMatcher extends Hamcrest_BaseMatcher
+class SolrDocumentMatcher extends \Hamcrest_BaseMatcher
 {
     protected $properties;
 
@@ -19,12 +19,12 @@ class SolrDocumentMatcher extends Hamcrest_BaseMatcher
 
     public function describeTo(\Hamcrest_Description $description)
     {
-        $description->appendText('Apache_Solr_Document with properties '.var_export($this->properties, true));
+        $description->appendText('\Apache_Solr_Document with properties '.var_export($this->properties, true));
     }
 
     public function matches($item)
     {
-        if (! ($item instanceof Apache_Solr_Document)) {
+        if (! ($item instanceof \Apache_Solr_Document)) {
             return false;
         }
 

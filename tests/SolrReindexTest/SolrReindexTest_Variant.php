@@ -4,6 +4,7 @@ namespace SilverStripe\FullTextSearch\Tests\SolrReindexTest;
 
 use SilverStripe\Dev\TestOnly;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
+use SilverStripe\ORM\DataObject;
 
 /**
  * Dummy variant that selects items with field Varient matching the current value
@@ -28,7 +29,7 @@ class SolrReindexTest_Variant extends SearchVariant implements TestOnly
 
         self::$current = 0;
         self::$variants = array(
-            'SolrReindexTest_Variant' => singleton('SolrReindexTest_Variant')
+            self::class => singleton(self::class)
         );
     }
 
@@ -79,7 +80,7 @@ class SolrReindexTest_Variant extends SearchVariant implements TestOnly
             'name' => '_testvariant',
             'field' => '_testvariant',
             'fullfield' => '_testvariant',
-            'base' => ClassInfo::baseDataClass($class),
+            'base' => DataObject::getSchema()->baseDataClass($class),
             'origin' => $class,
             'type' => 'Int',
             'lookup_chain' => array(array('call' => 'variant', 'variant' => $self, 'method' => 'currentState'))
@@ -94,8 +95,8 @@ class SolrReindexTest_Variant extends SearchVariant implements TestOnly
 
     public function appliesTo($class, $includeSubclasses)
     {
-        return $class === 'SolrReindexTest_Item' ||
-            ($includeSubclasses && is_subclass_of($class, 'SolrReindexTest_Item', true));
+        return $class === SolrReindexTest_Item::class ||
+            ($includeSubclasses && is_subclass_of($class, SolrReindexTest_Item::class, true));
     }
 
     public function appliesToEnvironment()

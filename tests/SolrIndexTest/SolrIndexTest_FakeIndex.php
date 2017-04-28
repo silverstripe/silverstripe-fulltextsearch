@@ -3,12 +3,13 @@
 namespace SilverStripe\FullTextSearch\Tests\SolrIndexTest;
 
 use SilverStripe\FullTextSearch\Solr\SolrIndex;
+use SilverStripe\FullTextSearch\Tests\SearchUpdaterTest\SearchUpdaterTest_Container;
 
 class SolrIndexTest_FakeIndex extends SolrIndex
 {
     public function init()
     {
-        $this->addClass('SearchUpdaterTest_Container');
+        $this->addClass(SearchUpdaterTest_Container::class);
 
         $this->addFilterField('Field1');
         $this->addFilterField('MyDate', 'Date');

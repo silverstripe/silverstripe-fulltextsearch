@@ -1,6 +1,8 @@
 <?php
+
 namespace SilverStripe\FullTextSearch\Solr\Reindex\Jobs;
-if (!interface_exists('QueuedJob')) {
+
+if (!interface_exists('SilverStripe\QueuedJobs\Services\QueuedJob')) {
     return;
 }
 

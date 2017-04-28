@@ -1,6 +1,13 @@
 <?php
 namespace SilverStripe\FullTextSearch\Search\Variants;
 
+use SilverStripe\ORM\Queries\SQLSelect;
+use SilverStripe\FullTextSearch\Search\SearchIntrospection;
+
+if (!class_exists('Subsite') || !class_exists('SubsitePolyhome')) {
+    return;
+}
+
 class SearchVariantSiteTreeSubsitesPolyhome extends SearchVariant
 {
     public function appliesToEnvironment()
@@ -49,7 +56,7 @@ class SearchVariantSiteTreeSubsitesPolyhome extends SearchVariant
             'name' => '_subsite',
             'field' => '_subsite',
             'fullfield' => '_subsite',
-            'base' => ClassInfo::baseDataClass($class),
+            'base' => DataObject::getSchema()->baseDataClass($class),
             'origin' => $class,
             'type' => 'Int',
             'lookup_chain' => array(array('call' => 'variant', 'variant' => $self, 'method' => 'currentState'))
@@ -78,7 +85,7 @@ class SearchVariantSiteTreeSubsitesPolyhome extends SearchVariant
             }
 
             if (self::$subsites === null) {
-                $query = new SQLQuery('ID', 'Subsite');
+                $query = new SQLSelect('ID', 'Subsite');
                 self::$subsites = array_merge(array('0'), $query->execute()->column());
             }
 

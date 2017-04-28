@@ -1,10 +1,23 @@
 <?php
 
+use SilverStripe\Core\Config\Config;
+use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\SapphireTest;
-
+use SilverStripe\ORM\DataObject;
+use SilverStripe\ORM\DB;
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
-use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_Variant;
+use SilverStripe\FullTextSearch\Solr\Reindex\Handlers\SolrReindexQueuedHandler;
 use SilverStripe\FullTextSearch\Solr\Reindex\Handlers\SolrReindexHandler;
+use SilverStripe\FullTextSearch\Solr\Services\Solr4Service;
+use SilverStripe\FullTextSearch\Solr\Reindex\Jobs\SolrReindexQueuedJob;
+use SilverStripe\FullTextSearch\Solr\Reindex\Jobs\SolrReindexGroupQueuedJob;
+use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_Variant;
+use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_Index;
+use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_Item;
+use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_RecordingLogger;
+use SilverStripe\FullTextSearch\Tests\SolrReindexQueuedTest\SolrReindexQueuedTest_Service;
+use SilverStripe\QueuedJobs\Services\QueuedJob;
+use SilverStripe\QueuedJobs\Services\QueuedJobService;
 
 /**
  * Additional tests of solr reindexing processes when run with queuedjobs
@@ -13,8 +26,8 @@ class SolrReindexQueuedTest extends SapphireTest
 {
     protected $usesDatabase = true;
 
-    protected $extraDataObjects = array(
-        'SolrReindexTest_Item'
+    protected static $extra_dataobjects = array(
+        SolrReindexTest_Item::class
     );
 
     /**
@@ -35,28 +48,23 @@ class SolrReindexQueuedTest extends SapphireTest
     {
         parent::setUp();
 
-        if (!class_exists('Phockito')) {
-            $this->skipTest = true;
-            return $this->markTestSkipped("These tests need the Phockito module installed to run");
-        }
-
-        if (!interface_exists('QueuedJob')) {
+        if (!interface_exists('SilverStripe\QueuedJobs\Services\QueuedJob')) {
             $this->skipTest = true;
             return $this->markTestSkipped("These tests need the QueuedJobs module installed to run");
         }
 
         // Set queued handler for reindex
-        Config::inst()->update('Injector', 'SolrReindexHandler', array(
-            'class' => 'SolrReindexQueuedHandler'
+        Config::modify()->set(Injector::class, SolrReindexHandler::class, array(
+            'class' => SolrReindexQueuedHandler::class
         ));
-        Injector::inst()->registerService(new SolrReindexQueuedHandler(), 'SolrReindexHandler');
+        Injector::inst()->registerService(new SolrReindexQueuedHandler(), SolrReindexHandler::class);
 
         // Set test variant
         SolrReindexTest_Variant::enable();
 
         // Set index list
-        $this->service = $this->getServiceMock();
-        $this->index = singleton('SolrReindexTest_Index');
+        $this->service = $this->serviceMock();
+        $this->index = singleton(SolrReindexTest_Index::class);
         $this->index->setService($this->service);
         FullTextSearch::force_index_list($this->index);
     }
@@ -69,7 +77,8 @@ class SolrReindexQueuedTest extends SapphireTest
     protected function createDummyData($number)
     {
         // Populate dataobjects. Use truncate to generate predictable IDs
-        DB::query('TRUNCATE "SolrReindexTest_Item"');
+        $tableName = DataObject::getSchema()->tableName(SolrReindexTest_Item::class);
+        DB::get_conn()->clearTable($tableName);
 
         // Note that we don't create any records in variant = 2, to represent a variant
         // that should be cleared without any re-indexes performed
@@ -88,9 +97,15 @@ class SolrReindexQueuedTest extends SapphireTest
      *
      * @return SolrService
      */
-    protected function getServiceMock()
+    protected function serviceMock()
     {
-        return Phockito::mock('Solr4Service');
+        // Setup mock
+        /** @var SilverStripe\FullTextSearch\Solr\Services\Solr4Service|ObjectProphecy $serviceMock */
+        $serviceMock = $this->getMockBuilder(Solr4Service::class)
+            ->setMethods(['deleteByQuery', 'addDocument'])
+            ->getMock();
+
+        return $serviceMock;
     }
 
     public function tearDown()
@@ -115,7 +130,7 @@ class SolrReindexQueuedTest extends SapphireTest
      */
     protected function getQueuedJobService()
     {
-        return singleton('SolrReindexQueuedTest_Service');
+        return Injector::inst()->get(SolrReindexQueuedTest_Service::class);
     }
 
     /**
@@ -125,6 +140,20 @@ class SolrReindexQueuedTest extends SapphireTest
     public function testReindexSegmentsGroups()
     {
         $this->createDummyData(18);
+
+        // Deletes are performed in the main task prior to individual groups being processed
+        // 18 records means 3 groups of 6 in each variant (6 total)
+        // Ensure correct call is made to Solr
+        $this->service->expects($this->exactly(2))
+            ->method('deleteByQuery')
+            ->withConsecutive(
+                [
+                    $this->equalTo('-(ClassHierarchy:' . SolrReindexTest_Item::class . ')')
+                ],
+                [
+                    $this->equalTo('+(ClassHierarchy:' . SolrReindexTest_Item::class . ') +(_testvariant:"2")')
+                ]
+            );
 
         // Create pre-existing jobs
         $this->getQueuedJobService()->queueJob(new SolrReindexQueuedJob());
@@ -141,7 +170,7 @@ class SolrReindexQueuedTest extends SapphireTest
 
         // Next job should be queue job
         $job = $this->getQueuedJobService()->getNextJob();
-        $this->assertInstanceOf('SolrReindexQueuedJob', $job);
+        $this->assertInstanceOf(SolrReindexQueuedJob::class, $job);
         $this->assertEquals(6, $job->getBatchSize());
 
         // Test that necessary items are created
@@ -149,28 +178,19 @@ class SolrReindexQueuedTest extends SapphireTest
         $job->setLogger($logger);
         $job->process();
 
-        // Deletes are performed in the main task prior to individual groups being processed
-        // 18 records means 3 groups of 6 in each variant (6 total)
-        Phockito::verify($this->service, 2)
-            ->deleteByQuery(\Hamcrest_Matchers::anything());
         $this->assertEquals(1, $logger->countMessages('Beginning init of reindex'));
         $this->assertEquals(6, $logger->countMessages('Queued Solr Reindex Group '));
-        $this->assertEquals(3, $logger->countMessages(' of SolrReindexTest_Item in {"SolrReindexTest_Variant":"0"}'));
-        $this->assertEquals(3, $logger->countMessages(' of SolrReindexTest_Item in {"SolrReindexTest_Variant":"1"}'));
+        $this->assertEquals(3, $logger->countMessages(' of ' . SolrReindexTest_Item::class . ' in {' . json_encode(SolrReindexTest_Variant::class) . ':"0"}'));
+        $this->assertEquals(3, $logger->countMessages(' of ' . SolrReindexTest_Item::class . ' in {' . json_encode(SolrReindexTest_Variant::class) . ':"1"}'));
         $this->assertEquals(1, $logger->countMessages('Completed init of reindex'));
 
-
         // Test that invalid classes are removed
-        $this->assertNotEmpty($logger->getMessages('Clearing obsolete classes from SolrReindexTest_Index'));
-        Phockito::verify($this->service, 1)
-            ->deleteByQuery('-(ClassHierarchy:SolrReindexTest_Item)');
+        $this->assertNotEmpty($logger->getMessages('Clearing obsolete classes from ' . SolrReindexTest_Index::class));
 
         // Test that valid classes in invalid variants are removed
         $this->assertNotEmpty($logger->getMessages(
-            'Clearing all records of type SolrReindexTest_Item in the current state: {"SolrReindexTest_Variant":"2"}'
+            'Clearing all records of type ' . SolrReindexTest_Item::class . ' in the current state: {"' . SolrReindexTest_Variant::class . '":"2"}'
         ));
-        Phockito::verify($this->service, 1)
-            ->deleteByQuery('+(ClassHierarchy:SolrReindexTest_Item) +(_testvariant:"2")');
     }
 
     /**
@@ -189,9 +209,9 @@ class SolrReindexQueuedTest extends SapphireTest
 
         // Check next job is a group queued job
         $job = $this->getQueuedJobService()->getNextJob();
-        $this->assertInstanceOf('SolrReindexGroupQueuedJob', $job);
+        $this->assertInstanceOf(SolrReindexGroupQueuedJob::class, $job);
         $this->assertEquals(
-            'Solr Reindex Group (1/3) of SolrReindexTest_Item in {"SolrReindexTest_Variant":"0"}',
+            'Solr Reindex Group (1/3) of ' . SolrReindexTest_Item::class . ' in {' . json_encode(SolrReindexTest_Variant::class) . ':"0"}',
             $job->getTitle()
         );
 
@@ -202,7 +222,7 @@ class SolrReindexQueuedTest extends SapphireTest
 
         // Check tasks completed (as per non-queuedjob version)
         $this->assertEquals(1, $logger->countMessages('Beginning reindex group'));
-        $this->assertEquals(1, $logger->countMessages('Adding SolrReindexTest_Item'));
+        $this->assertEquals(1, $logger->countMessages('Adding ' . SolrReindexTest_Item::class . ''));
         $this->assertEquals(1, $logger->countMessages('Queuing commit on all changes'));
         $this->assertEquals(1, $logger->countMessages('Completed reindex group'));
 
@@ -215,21 +235,5 @@ class SolrReindexQueuedTest extends SapphireTest
             // Each id should be % 3 == 0
             $this->assertEquals(0, $id % 3, "ID $id Should match pattern ID % 3 = 0");
         }
-    }
-}
-
-if (!class_exists('QueuedJobService')) {
-    return;
-}
-
-class SolrReindexQueuedTest_Service extends QueuedJobService implements TestOnly
-{
-    /**
-     * @return QueuedJob
-     */
-    public function getNextJob()
-    {
-        $job = $this->getNextPendingJob();
-        return $this->initialiseJob($job);
     }
 }

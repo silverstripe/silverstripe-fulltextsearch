@@ -1,7 +1,10 @@
 <?php
 
 namespace SilverStripe\FullTextSearch\Search\Updaters;
+
 use SilverStripe\ORM\DataExtension;
+use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
+use SilverStripe\ORM\DataObject;
 
 /**
  * Delete operations do not use database manipulations.
@@ -43,7 +46,7 @@ class SearchUpdater_ObjectHandler extends DataExtension
         $id = $this->owner->ID;
         $class = $this->owner->ClassName;
         $state = SearchVariant::current_state($class);
-        $base = ClassInfo::baseDataClass($class);
+        $base = DataObject::getSchema()->baseDataClass($class);
         $key = "$id:$base:".serialize($state);
 
         $statefulids = array(array(

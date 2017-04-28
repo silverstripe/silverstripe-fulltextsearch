@@ -2,8 +2,6 @@
 
 namespace SilverStripe\FullTextSearch\Search\Indexes;
 
-use SilverStripe\FullTextSearch\Search\Indexes\SearchIndex;
-
 /**
  * A search index that does nothing. Useful for testing
  */

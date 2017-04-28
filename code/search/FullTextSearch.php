@@ -1,11 +1,12 @@
 <?php
-
 namespace SilverStripe\FullTextSearch\Search;
 
-use ReflectionClass;
-use SilverStripe\Core\Config\Config;
 use SilverStripe\Core\ClassInfo;
-use SilverStripe\FullTextSearch\Solr\SearchIndex;
+use SilverStripe\Core\Config\Config;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\FullTextSearch\Search\Indexes\SearchIndex;
+use ReflectionClass;
+
 /**
  * Base class to manage active search indexes.
  */

@@ -1,11 +1,15 @@
 <?php
-namespace SilverStripe\FullTextSearch\Search\Indexes;
+
+namespace SilverStripe\FullTextSearch\Search\Queries;
+
+use SilverStripe\View\ViewableData;
+use stdClass;
+
 /**
  * Represents a search query
  *
  * API very much still in flux.
  */
-use SilverStripe\View\ViewableData;
 class SearchQuery extends ViewableData
 {
     public static $missing = null;

@@ -9,6 +9,7 @@ use SilverStripe\FullTextSearch\Solr\Stores\SolrConfigStore;
 
 class Solr_Configure extends Solr_BuildTask
 {
+    private static $segment = 'Solr_Configure';
     protected $enabled = true;
 
     public function run($request)
@@ -79,6 +80,8 @@ class Solr_Configure extends Solr_BuildTask
             return new SolrConfigStore_File($indexstore);
         } elseif ($mode == 'webdav') {
             return new SolrConfigStore_WebDAV($indexstore);
+        //@todo left commented after confusing merge conflict. Revisit if further testing is required
+        //} elseif (ClassInfo::exists($mode) && ClassInfo::classImplements($mode, 'SolrConfigStore')) {
         } elseif (ClassInfo::exists($mode) && ClassInfo::classImplements($mode, SolrConfigStore::class)) {
             return new $mode($indexstore);
         } else {
@@ -86,3 +89,4 @@ class Solr_Configure extends Solr_BuildTask
         }
     }
 }
+

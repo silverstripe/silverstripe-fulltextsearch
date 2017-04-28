@@ -1,5 +1,17 @@
 <?php
+
 namespace SilverStripe\FullTextSearch\Search\Variants;
+
+use SilverStripe\ORM\Queries\SQLSelect;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\Security\Permission;
+use SilverStripe\FullTextSearch\Search\SearchIntrospection;
+use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
+
+if (!class_exists('Subsite')) {
+    return;
+}
+
 class SearchVariantSubsites extends SearchVariant
 {
     public function appliesToEnvironment()
@@ -53,7 +65,7 @@ class SearchVariantSubsites extends SearchVariant
             'name' => '_subsite',
             'field' => '_subsite',
             'fullfield' => '_subsite',
-            'base' => ClassInfo::baseDataClass($class),
+            'base' => DataObject::getSchema()->baseDataClass($class),
             'origin' => $class,
             'type' => 'Int',
             'lookup_chain' => array(array('call' => 'variant', 'variant' => $self, 'method' => 'currentState'))
@@ -74,7 +86,7 @@ class SearchVariantSubsites extends SearchVariant
     public function extractManipulationWriteState(&$writes)
     {
         $self = get_class($this);
-        $query = new SQLQuery('"ID"', '"Subsite"');
+        $query = new SQLSelect('"ID"', '"Subsite"');
         $subsites = array_merge(array('0'), $query->execute()->column());
 
         foreach ($writes as $key => $write) {

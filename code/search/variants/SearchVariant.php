@@ -1,6 +1,12 @@
 <?php
+
 namespace SilverStripe\FullTextSearch\Search\Variants;
+
+use SilverStripe\ORM\DataObject;
 use SilverStripe\Core\ClassInfo;
+use SilverStripe\FullTextSearch\Utils\CombinationsArrayIterator;
+use ReflectionClass;
+
 /**
  * A Search Variant handles decorators and other situations where the items to reindex or search through are modified
  * from the default state - for instance, dealing with Versioned or Subsite
@@ -22,7 +28,10 @@ abstract class SearchVariant
      * Return false if there is something missing from the environment (probably a
      * not installed module) that means this variant can't apply to any class
      */
-    abstract public function appliesToEnvironment();
+    public function appliesToEnvironment()
+    {
+        return true;
+    }
 
     /**
      * Return true if this variant applies to the passed class & subclass
@@ -74,7 +83,7 @@ abstract class SearchVariant
     {
         if (!$class) {
             if (self::$variants === null) {
-                $classes = ClassInfo::subclassesFor('SearchVariant');
+                $classes = ClassInfo::subclassesFor(static::class);
 
                 $concrete = array();
                 foreach ($classes as $variantclass) {
