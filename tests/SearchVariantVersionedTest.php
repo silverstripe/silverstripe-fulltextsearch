@@ -2,8 +2,10 @@
 
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Core\Config\Config;
+use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
 use SilverStripe\FullTextSearch\Search\Indexes\SearchIndex_Recording;
+use SilverStripe\FullTextSearch\Search\Variants\SearchVariantVersioned;
 use SilverStripe\FullTextSearch\Tests\SearchVariantVersionedTest\SearchVariantVersionedTest_Index;
 use SilverStripe\FullTextSearch\Tests\SearchVariantVersionedTest\SearchVariantVersionedTest_Item;
 use SilverStripe\FullTextSearch\Tests\SearchVariantVersionedTest\SearchVariantVersionedTest_IndexNoStage;
@@ -90,7 +92,7 @@ class SearchVariantVersionedTest extends SapphireTest
 
         $this->assertCount(1, self::$index->deleted);
         $this->assertEquals(
-            'SiteTree',
+            SiteTree::class,
             self::$index->deleted[0]['base']
         );
         $this->assertEquals(
@@ -99,7 +101,7 @@ class SearchVariantVersionedTest extends SapphireTest
         );
         $this->assertEquals(
             'Live',
-            self::$index->deleted[0]['state']['SearchVariantVersioned']
+            self::$index->deleted[0]['state'][SearchVariantVersioned::class]
         );
     }
 
