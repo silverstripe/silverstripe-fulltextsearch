@@ -24,7 +24,8 @@
         "monolog/monolog": "~1.15"
     },
     "require-dev": {
-        "silverstripe/cms": "4.0.x-dev"
+        "silverstripe/cms": "4.0.x-dev",
+        "phpunit/phpunit": "*@stable"
     },
     "extra": {
         "branch-alias": {
