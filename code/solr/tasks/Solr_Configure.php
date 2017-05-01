@@ -9,7 +9,7 @@ use SilverStripe\FullTextSearch\Solr\Stores\SolrConfigStore;
 
 class Solr_Configure extends Solr_BuildTask
 {
-    private static $segment = 'SilverStripeFullTextSearchSolrTasksSolr_Configure';
+    private static $segment = 'Solr_Configure';
     protected $enabled = true;
 
     public function run($request)

@@ -25,7 +25,7 @@ use SilverStripe\FullTextSearch\Solr\SolrIndex;
  */
 class Solr_Reindex extends Solr_BuildTask
 {
-    private static $segment = 'SilverStripeFullTextSearchSolrTasksSolr_Reindex';
+    private static $segment = 'Solr_Reindex';
 
     protected $enabled = true;
 
@@ -115,8 +115,8 @@ class Solr_Reindex extends Solr_BuildTask
         }
 
         // If run at the top level, delegate to appropriate handler
-        $self = get_class($this);
-        $handler->triggerReindex($this->getLogger(), $this->config()->recordsPerRequest, $self, $class);
+        $taskName = $this::$segment ?: get_class($this);
+        $handler->triggerReindex($this->getLogger(), $this->config()->recordsPerRequest, $taskName, $class);
     }
 
     /**
