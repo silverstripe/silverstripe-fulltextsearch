@@ -1,5 +1,7 @@
 <?php
 
+use SilverStripe\Dev\SapphireTest;
+
 class SearchVariantSubsiteTest extends SapphireTest
 {
 
@@ -88,4 +90,3 @@ class SearchVariantSubsiteTest extends SapphireTest
     }
 
 }
-
