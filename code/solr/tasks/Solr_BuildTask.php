@@ -25,8 +25,6 @@ class Solr_BuildTask extends BuildTask
      */
     public function getLogger()
     {
-        //@todo left commented after a confusing merge conflict. Revisit if further testing is required
-        //return Injector::inst()->get('Logger');
         return Injector::inst()->get(LoggerInterface::class);
     }
 
@@ -45,8 +43,6 @@ class Solr_BuildTask extends BuildTask
      */
     protected function getLoggerFactory()
     {
-        //@todo left commented after a confusing merge conflict. Revisit if further testing is required
-        //return Injector::inst()->get('SearchLogFactory');
         return Injector::inst()->get(SearchLogFactory::class);
     }
 

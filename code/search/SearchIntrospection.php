@@ -36,7 +36,7 @@ class SearchIntrospection
     public static function hierarchy($class, $includeSubclasses = true, $dataOnly = false)
     {
         $key = "$class!" . ($includeSubclasses ? 'sc' : 'an') . '!' . ($dataOnly ? 'do' : 'al');
-        
+
         if (!isset(self::$hierarchy[$key])) {
             $classes = array_values(ClassInfo::ancestry($class));
             if ($includeSubclasses) {
@@ -48,14 +48,13 @@ class SearchIntrospection
                 array_splice($classes, 0, $idx+1);
             }
 
-//@todo find another way to determine if a dataobject does not have a table
-//            if ($dataOnly) {
-//                foreach ($classes as $i => $class) {
-//                    if (!DataObject::has_own_table($class)) {
-//                        unset($classes[$i]);
-//                    }
-//                }
-//            }
+           if ($dataOnly) {
+               foreach ($classes as $i => $class) {
+                   if (!DataObject::getSchema()->classHasTable($class)) {
+                       unset($classes[$i]);
+                   }
+               }
+           }
 
             self::$hierarchy[$key] = $classes;
         }
