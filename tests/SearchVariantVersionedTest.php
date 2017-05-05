@@ -2,8 +2,10 @@
 
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Core\Config\Config;
+use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
 use SilverStripe\FullTextSearch\Search\Indexes\SearchIndex_Recording;
+use SilverStripe\FullTextSearch\Search\Variants\SearchVariantVersioned;
 use SilverStripe\FullTextSearch\Tests\SearchVariantVersionedTest\SearchVariantVersionedTest_Index;
 use SilverStripe\FullTextSearch\Tests\SearchVariantVersionedTest\SearchVariantVersionedTest_Item;
 use SilverStripe\FullTextSearch\Tests\SearchVariantVersionedTest\SearchVariantVersionedTest_IndexNoStage;
@@ -79,6 +81,28 @@ class SearchVariantVersionedTest extends SapphireTest
         ));
         $added = self::$index->getAdded(array('ID', '_versionedstage'));
         $this->assertEquals($expected, $added);
+
+        // Test unpublish
+
+        self::$index->reset();
+
+        $item->deleteFromStage('Live');
+
+        SearchUpdater::flush_dirty_indexes();
+
+        $this->assertCount(1, self::$index->deleted);
+        $this->assertEquals(
+            SiteTree::class,
+            self::$index->deleted[0]['base']
+        );
+        $this->assertEquals(
+            $item->ID,
+            self::$index->deleted[0]['id']
+        );
+        $this->assertEquals(
+            'Live',
+            self::$index->deleted[0]['state'][SearchVariantVersioned::class]
+        );
     }
 
     public function testExcludeVariantState()

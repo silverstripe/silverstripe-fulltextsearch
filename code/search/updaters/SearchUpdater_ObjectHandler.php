@@ -4,7 +4,9 @@ namespace SilverStripe\FullTextSearch\Search\Updaters;
 
 use SilverStripe\ORM\DataExtension;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
+use SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater;
 use SilverStripe\ORM\DataObject;
+use SilverStripe\Core\ClassInfo;
 
 /**
  * Delete operations do not use database manipulations.
@@ -23,14 +25,26 @@ class SearchUpdater_ObjectHandler extends DataExtension
         }
 
         // Force SearchUpdater to mark this record as dirty
-        $manipulation = array(
-            $this->owner->ClassName => array(
+        // Note: Some extensions require entire hierarchy passed to augmentWrite()
+        $manipulation = array();
+        foreach (ClassInfo::ancestry($this->owner) as $class) {
+            if (!is_subclass_of($class, DataObject::class)) {
+                continue;
+            }
+
+            $tableName = DataObject::getSchema()->tableName($class);
+            $manipulation[$tableName] = array(
                 'fields' => array(),
                 'id' => $this->owner->ID,
-                'command' => 'update'
-            )
-        );
+                'class' => $class,
+                // Note: 'delete' command not actually handled by manipulations,
+                // but added so that SearchUpdater can detect the deletion
+                'command' => 'delete'
+            );
+        }
+
         $this->owner->extend('augmentWrite', $manipulation);
+
         SearchUpdater::handle_manipulation($manipulation);
     }
 
