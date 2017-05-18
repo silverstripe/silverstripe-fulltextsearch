@@ -3,6 +3,7 @@ namespace SilverStripe\FullTextSearch\Solr\Tasks;
 use ReflectionClass;
 use SilverStripe\Core\ClassInfo;
 use SilverStripe\Core\Injector\Injector;
+use SilverStripe\Dev\Debug;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
 use SilverStripe\ORM\DataList;
 use SilverStripe\FullTextSearch\Solr\Reindex\Handlers\SolrReindexHandler;

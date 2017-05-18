@@ -84,6 +84,7 @@ class SolrService extends SolrService_Core
     public function serviceForCore($core)
     {
         $klass = Config::inst()->get(get_called_class(), 'core_class');
-        return new $klass($this->_host, $this->_port, $this->_path.$core, $this->_httpTransport);
+        $coreName = ClassInfo::shortName($core);
+        return new $klass($this->_host, $this->_port, $this->_path . $coreName, $this->_httpTransport);
     }
 }
