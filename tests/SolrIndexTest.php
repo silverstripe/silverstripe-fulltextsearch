@@ -91,6 +91,26 @@ class SolrIndexTest extends SapphireTest
         $this->assertEquals($dataOtherContainer['class'], 'SearchUpdaterTest_ManyMany');
     }
 
+    public function testFieldDataAmbiguousManyManyInherited()
+    {
+        $index = new SolrIndexTest_AmbiguousRelationInheritedIndex();
+        $data = $index->fieldData('ManyManyObjects.Field1');
+
+        $this->assertArrayHasKey('SearchUpdaterTest_Container_ManyManyObjects_Field1', $data);
+        $this->assertArrayHasKey('SearchUpdaterTest_OtherContainer_ManyManyObjects_Field1', $data);
+        $this->assertArrayNotHasKey('SearchUpdaterTest_ExtendedContainer_ManyManyObjects_Field1', $data);
+
+        $dataContainer = $data['SearchUpdaterTest_Container_ManyManyObjects_Field1'];
+        $this->assertEquals($dataContainer['origin'], 'SearchUpdaterTest_Container');
+        $this->assertEquals($dataContainer['base'], 'SearchUpdaterTest_Container');
+        $this->assertEquals($dataContainer['class'], 'SearchUpdaterTest_ManyMany');
+
+        $dataOtherContainer = $data['SearchUpdaterTest_OtherContainer_ManyManyObjects_Field1'];
+        $this->assertEquals($dataOtherContainer['origin'], 'SearchUpdaterTest_OtherContainer');
+        $this->assertEquals($dataOtherContainer['base'], 'SearchUpdaterTest_OtherContainer');
+        $this->assertEquals($dataOtherContainer['class'], 'SearchUpdaterTest_ManyMany');
+    }
+
     /**
      * Test boosting on SearchQuery
      */
@@ -410,6 +430,27 @@ class SolrIndexTest_AmbiguousRelationIndex extends SolrIndex
     {
         $this->addClass('SearchUpdaterTest_Container');
         $this->addClass('SearchUpdaterTest_OtherContainer');
+
+        // These relationships exist on both classes
+        $this->addFilterField('HasManyObjects.Field1');
+        $this->addFilterField('ManyManyObjects.Field1');
+    }
+}
+
+class SolrIndexTest_AmbiguousRelationInheritedIndex extends SolrIndex
+{
+    protected function getStoredDefault()
+    {
+        // Override isDev defaulting to stored
+        return 'false';
+    }
+
+    public function init()
+    {
+        $this->addClass('SearchUpdaterTest_Container');
+        // this one has not the relation defined in it's class but is rather inherited from parent
+        // note that even if we do not include it's parent class the fields will be properly added
+        $this->addClass('SearchUpdaterTest_ExtendedContainer');
 
         // These relationships exist on both classes
         $this->addFilterField('HasManyObjects.Field1');

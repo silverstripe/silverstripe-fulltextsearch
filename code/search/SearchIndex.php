@@ -51,7 +51,7 @@ abstract class SearchIndex extends ViewableData
      * @param string $source
      * @return string
      */
-    private function getSourceName($source)
+    protected function getSourceName($source)
     {
         $source = explode(self::config()->get('class_delimiter'), $source);
 
@@ -78,6 +78,9 @@ abstract class SearchIndex extends ViewableData
     /**
      * Examines the classes this index is built on to try and find defined fields in the class hierarchy for those classes.
      * Looks for db and viewable-data fields, although can't nessecarily find type for viewable-data fields.
+     * If multiple classes have a relation with the same name all of these will be included in the search index
+     * Note that only classes that have the relations uninherited (defined in them) will be listed
+     * this is because inherited relations do not need to be processed by index explicitly
      */
     public function fieldData($field, $forceType = null, $extraOptions = array())
     {
@@ -604,7 +607,7 @@ abstract class SearchIndex extends ViewableData
 
                         $ids = $sql->execute()->column();
                     }
-                    
+
                     if (empty($ids)) {
                         break;
                     }

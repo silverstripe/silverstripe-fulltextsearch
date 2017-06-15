@@ -35,6 +35,16 @@ class SearchUpdaterTest_OtherContainer extends DataObject
     );
 }
 
+/**
+ * Used to test inherited ambiguous relationships.
+ */
+class SearchUpdaterTest_ExtendedContainer extends SearchUpdaterTest_OtherContainer
+{
+    private static $db = array(
+        'SomeField' => 'Varchar',
+    );
+}
+
 class SearchUpdaterTest_HasOne extends DataObject
 {
     private static $db = array(
@@ -56,7 +66,7 @@ class SearchUpdaterTest_HasMany extends DataObject
 
     private static $has_one = array(
         'HasManyContainer' => 'SearchUpdaterTest_Container',
-        'HasManyOtherContainer' => 'SearchUpdaterTest_OtherContainer'
+        'HasManyOtherContainer' => 'SearchUpdaterTest_OtherContainer',
     );
 }
 
@@ -69,7 +79,7 @@ class SearchUpdaterTest_ManyMany extends DataObject
 
     private static $belongs_many_many = array(
         'ManyManyContainer' => 'SearchUpdaterTest_Container',
-        'ManyManyOtherContainer' => 'SearchUpdaterTest_OtherContainer'
+        'ManyManyOtherContainer' => 'SearchUpdaterTest_OtherContainer',
     );
 }
 
