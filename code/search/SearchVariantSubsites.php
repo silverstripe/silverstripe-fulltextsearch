@@ -60,9 +60,21 @@ class SearchVariantSubsites extends SearchVariant
         ));
     }
 
-
+    /**
+     * This field has been altered to allow a user to obtain search results for a particular subsite
+     * When attempting to do this in project code, SearchVariantSubsites kicks and overwrites any filter you've applied
+     * This fix prevents the module from doing this if a filter is applied on the index or the query, or if a field is
+     * being excluded specifically before being executed.
+     *
+     * A pull request has been raised for this issue. Once accepted this forked module can be deleted and the parent
+     * project should be used instead.
+     */
     public function alterQuery($query, $index)
     {
+        if ($this->isFieldFiltered('_subsite', $query)) {
+            return;
+        }
+
         $subsite = Subsite::currentSubsiteID();
         $query->filter('_subsite', array($subsite, SearchQuery::$missing));
     }
@@ -108,5 +120,20 @@ class SearchVariantSubsites extends SearchVariant
             }
             $writes[$key]['statefulids'] = $next;
         }
+    }
+
+    /**
+     * Determine if a field with a certain name is filtered by the search query or on the index
+     * This is the equivalent of saying "show me the results that do ONLY contain this value"
+     * @param $field string name of the field being filtered
+     * @param $query SearchQuery currently being executed
+     * @param $index SearchIndex which specifies a filter field
+     * @return bool true if $field is being filtered, false if it is not being filtered
+     */
+    protected function isFieldFiltered($field, $query)
+    {
+        $queryHasFilter = !empty($query->require[$field]);
+
+        return $queryHasFilter;
     }
 }

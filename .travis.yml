@@ -1,4 +1,4 @@
-# See https://github.com/silverstripe-labs/silverstripe-travis-support for setup details
+# See https://github.com/silverstripe/silverstripe-travis-support for setup details
 
 language: php
 
@@ -7,10 +7,9 @@ sudo: false
 php:
   - 5.4
   - 5.5
-  - 5.6
 
 env:
-  - DB=MYSQL CORE_RELEASE=3.2
+  - DB=MYSQL CORE_RELEASE=3.5
 
 matrix:
   include:
@@ -22,10 +21,12 @@ matrix:
       env: DB=MYSQL CORE_RELEASE=3.3 SUBSITES=1
     - php: 5.6
       env: DB=MYSQL CORE_RELEASE=3.3 QUEUEDJOBS=1
+    - php: 7.1
+      env: DB=MYSQL CORE_RELEASE=3.6
 
 before_script:
   - composer self-update || true
-  - git clone git://github.com/silverstripe-labs/silverstripe-travis-support.git ~/travis-support
+  - git clone git://github.com/silverstripe/silverstripe-travis-support.git ~/travis-support
   - "if [ \"$SUBSITES\" = \"\" -a \"$QUEUEDJOBS\" = \"\" ]; then php ~/travis-support/travis_setup.php --source `pwd` --target ~/builds/ss; fi"
   - "if [ \"$SUBSITES\" = \"1\" ]; then php ~/travis-support/travis_setup.php --source `pwd` --target ~/builds/ss --require silverstripe/subsites; fi"
   - "if [ \"$QUEUEDJOBS\" = \"1\" ]; then php ~/travis-support/travis_setup.php --source `pwd` --target ~/builds/ss --require silverstripe/queuedjobs; fi"
