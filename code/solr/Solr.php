@@ -240,6 +240,10 @@ class Solr_Configure extends Solr_BuildTask
                     ->error("Failure: " . $e->getMessage());
             }
         }
+
+        if (isset($e)) {
+            exit(1);
+        }
     }
 
     /**
