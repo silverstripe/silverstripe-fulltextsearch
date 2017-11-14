@@ -227,6 +227,8 @@ class Solr_Configure extends Solr_BuildTask
     {
         parent::run($request);
 
+        $this->extend('updateBeforeSolrConfigureTask', $request);
+
         // Find the IndexStore handler, which will handle uploading config files to Solr
         $store = $this->getSolrConfigStore();
         $indexes = Solr::get_indexes();
@@ -244,6 +246,8 @@ class Solr_Configure extends Solr_BuildTask
         if (isset($e)) {
             exit(1);
         }
+
+        $this->extend('updateAfterSolrConfigureTask', $request);
     }
 
     /**
@@ -346,10 +350,14 @@ class Solr_Reindex extends Solr_BuildTask
     {
         parent::run($request);
 
+        $this->extend('updateBeforeSolrReindexTask', $request);
+
         // Reset state
         $originalState = SearchVariant::current_state();
         $this->doReindex($request);
         SearchVariant::activate_state($originalState);
+
+        $this->extend('updateAfterSolrReindexTask', $request);
     }
 
     /**
