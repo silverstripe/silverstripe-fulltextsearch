@@ -1,7 +1,8 @@
 {
     "name": "silverstripe/fulltextsearch",
     "description": "Adds support for Fulltext Search engines like Sphinx and Solr to SilverStripe CMS",
-    "type": "silverstripe-module",
+    "type": "silverstripe-vendormodule",
+    "license": "BSD-3-Clause",
     "keywords": [
         "silverstripe",
         "sphinx",
@@ -20,12 +21,13 @@
         }
     ],
     "require": {
-        "silverstripe/framework": "4.0.x-dev",
+        "silverstripe/framework": "^4.0",
         "monolog/monolog": "~1.15"
     },
     "require-dev": {
-        "silverstripe/cms": "4.0.x-dev",
-        "phpunit/phpunit": "*@stable"
+        "silverstripe/cms": "^4.0",
+        "phpunit/phpunit": "^5.7",
+        "squizlabs/php_codesniffer": "^3.0"
     },
     "extra": {
         "branch-alias": {
@@ -36,5 +38,5 @@
         "silverstripe/fulltextsearch-localsolr": "Adds a ready-to-use local Solr server for initial development"
     },
     "minimum-stability": "dev",
-    "license": "BSD-3-Clause"
+    "prefer-stable": "true"
 }
