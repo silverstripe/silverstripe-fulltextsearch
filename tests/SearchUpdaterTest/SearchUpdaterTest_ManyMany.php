@@ -3,7 +3,6 @@
 namespace SilverStripe\FullTextSearch\Tests\SearchUpdaterTest;
 
 use SilverStripe\ORM\DataObject;
-use SilverStripe\FullTextSearch\Tests\SearchUpdaterTest\SearchUpdaterTest_Container;
 
 class SearchUpdaterTest_ManyMany extends DataObject
 {
@@ -15,6 +14,7 @@ class SearchUpdaterTest_ManyMany extends DataObject
     private static $table_name = 'SearchUpdaterTest_ManyMany';
 
     private static $belongs_many_many = array(
-        'ManyManyContainer' => SearchUpdaterTest_Container::class
+        'ManyManyContainer' => SearchUpdaterTest_Container::class,
+        'ManyManyOtherContainer' => SearchUpdaterTest_OtherContainer::class,
     );
 }

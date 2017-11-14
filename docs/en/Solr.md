@@ -203,6 +203,20 @@ To allow searches on words containing numeric tokens, you'll need to update your
 
 Update your index to point to your overloaded template using the method described above.
 
+#### Searching for macrons and other Unicode characters
+
+The “ASCIIFoldingFilterFactory” filter converts alphabetic, numeric, and symbolic Unicode characters which are not in the Basic Latin Unicode block (the first 127 ASCII characters) to their ASCII equivalents, if one exists. 
+
+Find the fields in your overloaded `types.ss` that you want to enable this behaviour in. EG:
+
+    <fieldType name="htmltext" class="solr.TextField" ... >
+
+Add the following to both its index analyzer and query analyzer records.
+
+    <filter class="solr.ASCIIFoldingFilterFactory"/>
+
+Update your index to point to your overloaded template using the method described above.
+
 ### Spell Checking ("Did you mean...")
 
 Solr has various spell checking strategies (see the ["SpellCheckComponent" docs](http://wiki.apache.org/solr/SpellCheckComponent)), all of which are configured through `solrconfig.xml`.

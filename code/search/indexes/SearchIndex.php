@@ -51,6 +51,27 @@ abstract class SearchIndex extends ViewableData
      */
     private static $hide_ancestor;
 
+    /**
+     * Used to separate class name and relation name in the sources array
+     * this string must not be present in class name
+     * @var string
+     * @config
+     */
+    private static $class_delimiter = '_|_';
+
+    /**
+     * This is used to clean the source name from suffix
+     * suffixes are needed to support multiple relations with the same name on different page types
+     * @param string $source
+     * @return string
+     */
+    protected function getSourceName($source)
+    {
+        $source = explode(self::config()->get('class_delimiter'), $source);
+
+        return $source[0];
+    }
+
     public function __construct()
     {
         parent::__construct();
@@ -71,6 +92,9 @@ abstract class SearchIndex extends ViewableData
     /**
      * Examines the classes this index is built on to try and find defined fields in the class hierarchy for those classes.
      * Looks for db and viewable-data fields, although can't nessecarily find type for viewable-data fields.
+     * If multiple classes have a relation with the same name all of these will be included in the search index
+     * Note that only classes that have the relations uninherited (defined in them) will be listed
+     * this is because inherited relations do not need to be processed by index explicitly
      */
     public function fieldData($field, $forceType = null, $extraOptions = array())
     {
@@ -91,21 +115,37 @@ abstract class SearchIndex extends ViewableData
             foreach ($lookups as $lookup) {
                 $next = array();
 
-                foreach ($sources as $source => $options) {
-                    $class = null;
+                foreach ($sources as $source => $baseOptions) {
+                    $source = $this->getSourceName($source);
 
-                    foreach (SearchIntrospection::hierarchy($source, $options['include_children']) as $dataclass) {
+                    foreach (SearchIntrospection::hierarchy($source, $baseOptions['include_children']) as $dataclass) {
+                        $class = null;
+                        $options = $baseOptions;
                         $singleton = singleton($dataclass);
                         $schema = DataObject::getSchema();
                         $className = $singleton->getClassName();
 
                         if ($hasOne = $schema->hasOneComponent($className, $lookup)) {
+                            // we only want to include base class for relation, omit classes that inherited the relation
+                            $relationList = Config::inst()->get($dataclass, 'has_one', Config::UNINHERITED);
+                            $relationList = (!is_null($relationList)) ? $relationList : [];
+                            if (!array_key_exists($lookup, $relationList)) {
+                                continue;
+                            }
+
                             $class = $hasOne;
                             $options['lookup_chain'][] = array(
                                 'call' => 'method', 'method' => $lookup,
                                 'through' => 'has_one', 'class' => $dataclass, 'otherclass' => $class, 'foreignkey' => "{$lookup}ID"
                             );
                         } elseif ($hasMany = $schema->hasManyComponent($className, $lookup)) {
+                            // we only want to include base class for relation, omit classes that inherited the relation
+                            $relationList = Config::inst()->get($dataclass, 'has_many', Config::UNINHERITED);
+                            $relationList = (!is_null($relationList)) ? $relationList : [];
+                            if (!array_key_exists($lookup, $relationList)) {
+                                continue;
+                            }
+
                             $class = $hasMany;
                             $options['multi_valued'] = true;
                             $options['lookup_chain'][] = array(
@@ -113,6 +153,13 @@ abstract class SearchIndex extends ViewableData
                                 'through' => 'has_many', 'class' => $dataclass, 'otherclass' => $class, 'foreignkey' => $schema->getRemoteJoinField($className, $lookup, 'has_many')
                             );
                         } elseif ($manyMany = $schema->manyManyComponent($className, $lookup)) {
+                            // we only want to include base class for relation, omit classes that inherited the relation
+                            $relationList = Config::inst()->get($dataclass, 'many_many', Config::UNINHERITED);
+                            $relationList = (!is_null($relationList)) ? $relationList : [];
+                            if (!array_key_exists($lookup, $relationList)) {
+                                continue;
+                            }
+
                             $class = $manyMany[2];
                             $options['multi_valued'] = true;
                             $options['lookup_chain'][] = array(
@@ -125,8 +172,10 @@ abstract class SearchIndex extends ViewableData
                             if (!isset($options['origin'])) {
                                 $options['origin'] = $dataclass;
                             }
-                            $next[$class] = $options;
-                            continue 2;
+
+                            // we add suffix here to prevent the relation to be overwritten by other instances
+                            // all sources lookups must clean the source name before reading it via getSourceName()
+                            $next[$class . self::config()->get('class_delimiter') . $dataclass] = $options;
                         }
                     }
                 }
@@ -139,6 +188,7 @@ abstract class SearchIndex extends ViewableData
         }
 
         foreach ($sources as $class => $options) {
+            $class = $this->getSourceName($class);
             $dataclasses = SearchIntrospection::hierarchy($class, $options['include_children']);
 
             while (count($dataclasses)) {

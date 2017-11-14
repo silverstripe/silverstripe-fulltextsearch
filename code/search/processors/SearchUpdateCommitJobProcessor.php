@@ -21,7 +21,7 @@ class SearchUpdateCommitJobProcessor implements QueuedJob
 {
     /**
      * The QueuedJob queue to use when processing commits
-     * 
+     *
      * @config
      * @var int
      */
@@ -60,12 +60,12 @@ class SearchUpdateCommitJobProcessor implements QueuedJob
      *
      * @var array
      */
-    public static $dirty_indexes = true;
+    public static $dirty_indexes = array();
 
     /**
      * If solrindex::commit has already been performed, but additional commits are necessary,
      * how long do we wait before attempting to touch the index again?
-     * 
+     *
      * {@see http://stackoverflow.com/questions/7512945/how-to-fix-exceeded-limit-of-maxwarmingsearchers}
      *
      * @var int
@@ -167,7 +167,7 @@ class SearchUpdateCommitJobProcessor implements QueuedJob
             return;
         }
 
-        
+
         // If any commit has run, but some (or all) indexes are un-comitted, we must re-schedule this task.
         // This could occur if we completed a searchupdate job in a prior request, as well as in
         // the current request

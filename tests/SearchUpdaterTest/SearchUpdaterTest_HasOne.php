@@ -15,6 +15,7 @@ class SearchUpdaterTest_HasOne extends DataObject
     private static $table_name = 'SearchUpdaterTest_HasOne';
 
     private static $has_many = array(
-        'HasManyContainers' => SearchUpdaterTest_Container::class
+        'HasManyContainers' => SearchUpdaterTest_Container::class,
+        'HasManyOtherContainer' => SearchUpdaterTest_OtherContainer::class,
     );
 }
