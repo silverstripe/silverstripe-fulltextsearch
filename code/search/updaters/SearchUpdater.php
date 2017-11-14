@@ -26,7 +26,7 @@ use ReflectionClass;
  * TODO: The way we bind in is awful hacky.
  */
 
-class SearchUpdater extends Object
+class SearchUpdater
 {
     /**
      * Replace the database object with a subclass that captures all manipulations and passes them to us
