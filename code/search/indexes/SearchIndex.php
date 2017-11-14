@@ -499,7 +499,10 @@ abstract class SearchIndex extends ViewableData
      */
     protected function _getFieldValue($object, $field)
     {
-        set_error_handler(create_function('$no, $str', 'throw new Exception("HTML Parse Error: ".$str);'), E_ALL);
+        $errorHandler = function ($no, $str) {
+            throw new Exception('HTML Parse Error: ' . $str);
+        };
+        set_error_handler($errorHandler, E_ALL);
 
         try {
             foreach ($field['lookup_chain'] as $step) {
