@@ -10,7 +10,7 @@ abstract class SearchUpdateProcessor
 {
     /**
      * List of dirty records to process in format
-     * 
+     *
      * array(
      *   '$BaseClass' => array(
      *     '$State Key' => array(
@@ -62,7 +62,7 @@ abstract class SearchUpdateProcessor
     
     /**
      * Generates the list of indexes to process for the dirty items
-     * 
+     *
      * @return array
      */
     protected function prepareIndexes()
@@ -112,7 +112,7 @@ abstract class SearchUpdateProcessor
     
     /**
      * Commits the specified index to the Solr service
-     * 
+     *
      * @param SolrIndex $index Index object
      * @return bool Flag indicating success
      */
@@ -123,7 +123,7 @@ abstract class SearchUpdateProcessor
     
     /**
      * Gets the record data source to process
-     * 
+     *
      * @return array
      */
     protected function getSource()
@@ -133,7 +133,7 @@ abstract class SearchUpdateProcessor
 
     /**
      * Process all indexes, returning true if successful
-     * 
+     *
      * @return bool Flag indicating success
      */
     public function process()

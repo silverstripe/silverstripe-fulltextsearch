@@ -9,11 +9,13 @@ if (!class_exists('SQLite3Database')) {
     return;
 }
 
-class SearchManipulateCapture_SQLite3Database extends SQLite3Database {
+class SearchManipulateCapture_SQLite3Database extends SQLite3Database
+{
 
     public $isManipulationCapture = true;
 
-    public function manipulate($manipulation) {
+    public function manipulate($manipulation)
+    {
         $res = parent::manipulate($manipulation);
         SearchUpdater::handle_manipulation($manipulation);
         return $res;

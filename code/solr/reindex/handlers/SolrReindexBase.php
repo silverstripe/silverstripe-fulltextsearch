@@ -34,7 +34,11 @@ abstract class SolrReindexBase implements SolrReindexHandler
      * @param string $classes
      */
     protected function processIndex(
-        LoggerInterface $logger, SolrIndex $indexInstance, $batchSize, $taskName, $classes = null
+        LoggerInterface $logger,
+        SolrIndex $indexInstance,
+        $batchSize,
+        $taskName,
+        $classes = null
     ) {
         // Filter classes for this index
         $indexClasses = $this->getClassesForIndex($indexInstance, $classes);
@@ -87,8 +91,13 @@ abstract class SolrReindexBase implements SolrReindexHandler
      * @param string $taskName
      */
     protected function processVariant(
-        LoggerInterface $logger, SolrIndex $indexInstance, $state,
-        $class, $includeSubclasses, $batchSize, $taskName
+        LoggerInterface $logger,
+        SolrIndex $indexInstance,
+        $state,
+        $class,
+        $includeSubclasses,
+        $batchSize,
+        $taskName
     ) {
         // Set state
         SearchVariant::activate_state($state);
@@ -127,7 +136,13 @@ abstract class SolrReindexBase implements SolrReindexHandler
      * @param string $taskName Name of task script to run
      */
     abstract protected function processGroup(
-        LoggerInterface $logger, SolrIndex $indexInstance, $state, $class, $groups, $group, $taskName
+        LoggerInterface $logger,
+        SolrIndex $indexInstance,
+        $state,
+        $class,
+        $groups,
+        $group,
+        $taskName
     );
 
     /**
@@ -144,7 +159,12 @@ abstract class SolrReindexBase implements SolrReindexHandler
      * @param int $group
      */
     public function runGroup(
-        LoggerInterface $logger, SolrIndex $indexInstance, $state, $class, $groups, $group
+        LoggerInterface $logger,
+        SolrIndex $indexInstance,
+        $state,
+        $class,
+        $groups,
+        $group
     ) {
         // Set time limit and state
         Environment::increaseTimeLimitTo();

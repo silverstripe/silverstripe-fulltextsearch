@@ -11,7 +11,7 @@ use SilverStripe\Dev\SapphireTest;
 class Solr4ServiceTest extends SapphireTest
 {
     /**
-     * 
+     *
      * @return Solr4ServiceTest_RecordingService
      */
     protected function getMockService()

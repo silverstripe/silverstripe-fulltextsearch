@@ -1,5 +1,7 @@
 <?php
 
+namespace SilverStripe\FullTextSearch\Tests;
+
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\FullTextSearch\Tests\SolrIndexSubsitesTest\SolrIndexSubsitesTest_Index;
 
@@ -10,7 +12,8 @@ if (class_exists('\Phockito')) {
 /**
  * Subsite specific solr testing
  */
-class SolrIndexSubsitesTest extends SapphireTest {
+class SolrIndexSubsitesTest extends SapphireTest
+{
     // @todo
     // protected static $fixture_file = 'SolrIndexSubsitesTest/SolrIndexSubsitesTest.yml';
 
@@ -80,15 +83,15 @@ class SolrIndexSubsitesTest extends SapphireTest {
         $variants = array();
 
         // Check subsite
-        if(class_exists('Subsite') && DataObject::getSchema()->hasOneComponent($object->getClassName(), 'Subsite')) {
+        if (class_exists('Subsite') && DataObject::getSchema()->hasOneComponent($object->getClassName(), 'Subsite')) {
             $variants[] = '"SearchVariantSubsites":"' . $subsiteID. '"';
         }
 
         // Check versioned
-        if($stage) {
+        if ($stage) {
             $variants[] = '"SearchVariantVersioned":"' . $stage . '"';
         }
-        return $id.'-'.$class.'-{'.implode(',',$variants).'}';
+        return $id.'-'.$class.'-{'.implode(',', $variants).'}';
     }
 
     public function testPublishing()
@@ -127,10 +130,10 @@ class SolrIndexSubsitesTest extends SapphireTest {
         ));
         \Phockito::verify($serviceMock)->addDocument($doc1);
         \Phockito::verify($serviceMock)->addDocument($doc2);
-
     }
 
-    public function testCorrectSubsiteIDOnPageWrite() {
+    public function testCorrectSubsiteIDOnPageWrite()
+    {
         $mockWrites = array(
             '3367:SiteTree:a:1:{s:22:"SearchVariantVersioned";s:4:"Live";}' => array(
                 'base' => 'SiteTree',
@@ -169,7 +172,7 @@ class SolrIndexSubsitesTest extends SapphireTest {
         $variant = new SearchVariantSubsites();
         $tmpMockWrites = $mockWrites;
         $variant->extractManipulationWriteState($tmpMockWrites);
-        foreach($tmpMockWrites as $mockWrite) {
+        foreach ($tmpMockWrites as $mockWrite) {
             $this->assertCount(1, $mockWrite['statefulids']);
             $statefulIDs = array_shift($mockWrite['statefulids']);
             $this->assertEquals(0, $statefulIDs['state']['SearchVariantSubsites']);
@@ -180,14 +183,15 @@ class SolrIndexSubsitesTest extends SapphireTest {
         $tmpMockWrites['3367:SiteTree:a:1:{s:22:"SearchVariantVersioned";s:4:"Live";}']['fields']['SiteTree:SubsiteID'] = $subsite->ID;
 
         $variant->extractManipulationWriteState($tmpMockWrites);
-        foreach($tmpMockWrites as $mockWrite) {
+        foreach ($tmpMockWrites as $mockWrite) {
             $this->assertCount(1, $mockWrite['statefulids']);
             $statefulIDs = array_shift($mockWrite['statefulids']);
             $this->assertEquals($subsite->ID, $statefulIDs['state']['SearchVariantSubsites']);
         }
     }
 
-    public function testCorrectSubsiteIDOnFileWrite() {
+    public function testCorrectSubsiteIDOnFileWrite()
+    {
         $subsiteIDs = array('0') + $this->allFixtureIDs('Subsite');
         $mockWrites = array(
             '35910:File:a:0:{}' => array(
@@ -217,7 +221,7 @@ class SolrIndexSubsitesTest extends SapphireTest {
         $variant = new SearchVariantSubsites();
         $tmpMockWrites = $mockWrites;
         $variant->extractManipulationWriteState($tmpMockWrites);
-        foreach($tmpMockWrites as $mockWrite) {
+        foreach ($tmpMockWrites as $mockWrite) {
             $this->assertCount(count($subsiteIDs), $mockWrite['statefulids']);
             foreach ($mockWrite['statefulids'] as $statefulIDs) {
                 $this->assertTrue(
@@ -232,11 +236,10 @@ class SolrIndexSubsitesTest extends SapphireTest {
         $tmpMockWrites['35910:File:a:0:{}']['fields']['File:SubsiteID'] = $subsite->ID;
 
         $variant->extractManipulationWriteState($tmpMockWrites);
-        foreach($tmpMockWrites as $mockWrite) {
+        foreach ($tmpMockWrites as $mockWrite) {
             $this->assertCount(1, $mockWrite['statefulids']);
             $statefulIDs = array_shift($mockWrite['statefulids']);
             $this->assertEquals($subsite->ID, $statefulIDs['state']['SearchVariantSubsites']);
         }
     }
-
 }

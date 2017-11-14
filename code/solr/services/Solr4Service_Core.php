@@ -25,8 +25,12 @@ class Solr4Service_Core extends SolrService_Core
      * @inheritdoc
      * @see Solr4Service_Core::addDocuments
      */
-    public function addDocument(\Apache_Solr_Document $document, $allowDups = false,
-        $overwritePending = true, $overwriteCommitted = true, $commitWithin = 0
+    public function addDocument(
+        \Apache_Solr_Document $document,
+        $allowDups = false,
+        $overwritePending = true,
+        $overwriteCommitted = true,
+        $commitWithin = 0
     ) {
         return $this->addDocuments(array($document), $allowDups, $overwritePending, $overwriteCommitted, $commitWithin);
     }
@@ -35,8 +39,12 @@ class Solr4Service_Core extends SolrService_Core
      * Solr 4.0 compat http://wiki.apache.org/solr/UpdateXmlMessages#Optional_attributes_for_.22add.22
      * Remove allowDups, overwritePending and overwriteComitted
      */
-    public function addDocuments($documents, $allowDups = false, $overwritePending = true,
-        $overwriteCommitted = true, $commitWithin = 0
+    public function addDocuments(
+        $documents,
+        $allowDups = false,
+        $overwritePending = true,
+        $overwriteCommitted = true,
+        $commitWithin = 0
     ) {
         $overwriteVal = $allowDups ? 'false' : 'true';
         $commitWithin = (int) $commitWithin;

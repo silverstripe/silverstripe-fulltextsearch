@@ -21,7 +21,11 @@ class SolrReindexImmediateHandler extends SolrReindexBase
     }
 
     protected function processIndex(
-        LoggerInterface $logger, SolrIndex $indexInstance, $batchSize, $taskName, $classes = null
+        LoggerInterface $logger,
+        SolrIndex $indexInstance,
+        $batchSize,
+        $taskName,
+        $classes = null
     ) {
         parent::processIndex($logger, $indexInstance, $batchSize, $taskName, $classes);
 
@@ -46,7 +50,13 @@ class SolrReindexImmediateHandler extends SolrReindexBase
      * @param string $taskName Name of task script to run
      */
     protected function processGroup(
-        LoggerInterface $logger, SolrIndex $indexInstance, $state, $class, $groups, $group, $taskName
+        LoggerInterface $logger,
+        SolrIndex $indexInstance,
+        $state,
+        $class,
+        $groups,
+        $group,
+        $taskName
     ) {
         // Build state
         $statevar = json_encode($state);

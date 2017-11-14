@@ -1,16 +1,18 @@
 <?php
 
-use SilverStripe\Dev\SapphireTest;
-use SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater;
+namespace SilverStripe\FullTextSearch\Tests;
+
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Core\Injector\Injector;
+use SilverStripe\Dev\SapphireTest;
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
+use SilverStripe\FullTextSearch\Search\Processors\SearchUpdateProcessor;
+use SilverStripe\FullTextSearch\Search\Processors\SearchUpdateImmediateProcessor;
+use SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater;
 use SilverStripe\FullTextSearch\Tests\SearchUpdaterTest\SearchUpdaterTest_Container;
 use SilverStripe\FullTextSearch\Tests\SearchUpdaterTest\SearchUpdaterTest_HasOne;
 use SilverStripe\FullTextSearch\Tests\SearchUpdaterTest\SearchUpdaterTest_HasMany;
 use SilverStripe\FullTextSearch\Tests\SearchUpdaterTest\SearchUpdaterTest_Index;
-use SilverStripe\FullTextSearch\Search\Processors\SearchUpdateProcessor;
-use SilverStripe\FullTextSearch\Search\Processors\SearchUpdateImmediateProcessor;
 
 class SearchUpdaterTest extends SapphireTest
 {
@@ -74,7 +76,9 @@ class SearchUpdaterTest extends SapphireTest
 
         $added = self::$index->getAdded(array('ID'));
         // Some databases don't output $added in a consistent order; that's okay
-        usort($added, function ($a, $b) {return $a['ID']-$b['ID']; });
+        usort($added, function ($a, $b) {
+            return $a['ID']-$b['ID'];
+        });
 
         $this->assertEquals($added, array(
             array('ID' => $container1->ID),
@@ -93,7 +97,9 @@ class SearchUpdaterTest extends SapphireTest
         $added = self::$index->getAdded(array('ID'));
 
         // Some databases don't output $added in a consistent order; that's okay
-        usort($added, function ($a, $b) {return $a['ID']-$b['ID']; });
+        usort($added, function ($a, $b) {
+            return $a['ID']-$b['ID'];
+        });
 
         $this->assertEquals($added, array(
             array('ID' => $container1->ID),

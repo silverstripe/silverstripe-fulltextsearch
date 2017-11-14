@@ -9,7 +9,8 @@ use SilverStripe\Versioned\Versioned;
 /**
  * Non-sitetree versioned dataobject
  */
-class SolrIndexVersionedTest_Object extends DataObject implements TestOnly {
+class SolrIndexVersionedTest_Object extends DataObject implements TestOnly
+{
 
     private static $table_name = 'SolrIndexVersionedTest_Object';
 

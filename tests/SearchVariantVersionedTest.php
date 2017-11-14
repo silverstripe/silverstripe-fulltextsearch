@@ -1,8 +1,10 @@
 <?php
 
-use SilverStripe\Dev\SapphireTest;
+namespace SilverStripe\FullTextSearch\Tests;
+
 use SilverStripe\Core\Config\Config;
 use SilverStripe\CMS\Model\SiteTree;
+use SilverStripe\Dev\SapphireTest;
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
 use SilverStripe\FullTextSearch\Search\Indexes\SearchIndex_Recording;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariantVersioned;

@@ -1,5 +1,6 @@
 <?php
 namespace SilverStripe\FullTextSearch\Solr\Tasks;
+
 use ReflectionClass;
 use SilverStripe\Core\ClassInfo;
 use SilverStripe\Core\Injector\Injector;
@@ -74,7 +75,7 @@ class Solr_Reindex extends Solr_BuildTask
         // this is for when index names do not match the class name (this can be done by overloading getIndexName() on
         // indexes
         if ($index && !ClassInfo::exists($index)) {
-            foreach(ClassInfo::subclassesFor(SolrIndex::class) as $solrIndexClass) {
+            foreach (ClassInfo::subclassesFor(SolrIndex::class) as $solrIndexClass) {
                 $reflection = new ReflectionClass($solrIndexClass);
                 //skip over abstract classes
                 if (!$reflection->isInstantiable()) {

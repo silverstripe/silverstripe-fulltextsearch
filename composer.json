@@ -29,6 +29,12 @@
         "phpunit/phpunit": "^5.7",
         "squizlabs/php_codesniffer": "^3.0"
     },
+    "autoload": {
+        "psr-4": {
+            "SilverStripe\\FullTextSearch\\": "code/",
+            "SilverStripe\\FullTextSearch\\Tests\\": "tests/"
+        }
+    },
     "extra": {
         "branch-alias": {
             "dev-master": "3.x-dev"
@@ -38,5 +44,5 @@
         "silverstripe/fulltextsearch-localsolr": "Adds a ready-to-use local Solr server for initial development"
     },
     "minimum-stability": "dev",
-    "prefer-stable": "true"
+    "prefer-stable": true
 }

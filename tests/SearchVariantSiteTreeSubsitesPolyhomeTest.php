@@ -1,12 +1,12 @@
 <?php
 
+namespace SilverStripe\FullTextSearch\Tests;
+
 use SilverStripe\CMS\Model\SiteTree;
-use SilverStripe\FullTextSearch\Search\Indexes\SearchIndex_Recording;
 use SilverStripe\Dev\SapphireTest;
+use SilverStripe\FullTextSearch\Search\Indexes\SearchIndex_Recording;
 use SilverStripe\FullTextSearch\Tests\SearchVariantSiteTreeSubsitesPolyhomeTest\SearchVariantSiteTreeSubsitesPolyhomeTest_Index;
 use SilverStripe\FullTextSearch\Tests\SearchVariantSiteTreeSubsitesPolyhomeTest\SearchVariantSiteTreeSubsitesPolyhomeTest_Item;
-
-
 
 class SearchVariantSiteTreeSubsitesPolyhomeTest extends SapphireTest
 {

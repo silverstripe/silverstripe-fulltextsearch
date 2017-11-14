@@ -1,5 +1,7 @@
 <?php
 
+namespace SilverStripe\FullTextSearch\Tests;
+
 use SilverStripe\Dev\SapphireTest;
 
 class SearchVariantSubsiteTest extends SapphireTest
@@ -86,7 +88,5 @@ class SearchVariantSubsiteTest extends SapphireTest
         //subsite filter has been modified with our arbitrary test value. The second value is not set
         //this proves that the query has not been altered by the variant
         $this->assertEquals(2, $query->require['_subsite'][0]);
-
     }
-
 }

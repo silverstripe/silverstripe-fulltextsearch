@@ -1,5 +1,6 @@
 <?php
 namespace SilverStripe\FullTextSearch\Solr\Stores;
+
 /**
  * Class SolrConfigStore
  *
@@ -30,7 +31,3 @@ interface SolrConfigStore
      */
     public function instanceDir($index);
 }
-
-
-
-

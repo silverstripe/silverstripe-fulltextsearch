@@ -2,7 +2,6 @@
 
 namespace SilverStripe\FullTextSearch\Solr\Stores;
 
-
 /**
  * Class SolrConfigStore_File
  *

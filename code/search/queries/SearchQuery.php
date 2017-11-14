@@ -56,7 +56,7 @@ class SearchQuery extends ViewableData
      * Similar to {@link search()}, but uses stemming and other similarity algorithms
      * to find the searched terms. For example, a term "fishing" would also likely find results
      * containing "fish" or "fisher". Depends on search implementation.
-     * 
+     *
      * @param  String $text See {@link search()}
      * @param  array $fields See {@link search()}
      * @param  array $boost See {@link search()}
@@ -74,7 +74,7 @@ class SearchQuery extends ViewableData
     /**
      * Similar to {@link search()}, but typically used to further narrow down
      * based on other facets which don't influence the field relevancy.
-     * 
+     *
      * @param  String $field Composite name of the field
      * @param  Mixed $values Scalar value, array of values, or an instance of SearchQuery_Range
      */
@@ -87,7 +87,7 @@ class SearchQuery extends ViewableData
 
     /**
      * Excludes results which match these criteria, inverse of {@link filter()}.
-     * 
+     *
      * @param  String $field
      * @param  mixed $values
      */
@@ -124,5 +124,3 @@ class SearchQuery extends ViewableData
         return "Search Query\n";
     }
 }
-
-

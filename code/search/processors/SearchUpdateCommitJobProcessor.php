@@ -266,7 +266,7 @@ class SearchUpdateCommitJobProcessor implements QueuedJob
         $this->indexes = $jobData->indexes;
     }
 
-    public function addMessage($message, $severity='INFO')
+    public function addMessage($message, $severity = 'INFO')
     {
         $severity = strtoupper($severity);
         $this->messages[] = '[' . date('Y-m-d H:i:s') . "][$severity] $message";

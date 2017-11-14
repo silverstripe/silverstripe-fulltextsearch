@@ -1,5 +1,6 @@
 <?php
 namespace SilverStripe\FullTextSearch\Solr\Tasks;
+
 use Exception;
 use SilverStripe\Core\ClassInfo;
 use SilverStripe\FullTextSearch\Solr\Solr;

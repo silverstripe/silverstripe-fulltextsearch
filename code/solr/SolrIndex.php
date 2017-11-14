@@ -1,6 +1,7 @@
 <?php
 
 namespace SilverStripe\FullTextSearch\Solr;
+
 Solr::include_client_api();
 
 use SilverStripe\Control\Director;
@@ -109,11 +110,11 @@ abstract class SolrIndex extends SearchIndex
     {
         $name = get_class($this);
 
-        if(defined('SS_SOLR_INDEX_PREFIX')) {
+        if (defined('SS_SOLR_INDEX_PREFIX')) {
             $name = SS_SOLR_INDEX_PREFIX . ''. $name;
         }
 
-        if(defined('SS_SOLR_INDEX_SUFFIX')) {
+        if (defined('SS_SOLR_INDEX_SUFFIX')) {
             $name = $name . '' . SS_SOLR_INDEX_SUFFIX;
         }
 
@@ -493,10 +494,11 @@ abstract class SolrIndex extends SearchIndex
      * @param array|string $base Class or list of base classes
      * @return bool
      */
-    protected function classIs($class, $base) {
-        if(is_array($base)) {
-            foreach($base as $nextBase) {
-                if($this->classIs($class, $nextBase)) {
+    protected function classIs($class, $base)
+    {
+        if (is_array($base)) {
+            foreach ($base as $nextBase) {
+                if ($this->classIs($class, $nextBase)) {
                     return true;
                 }
             }
@@ -510,7 +512,7 @@ abstract class SolrIndex extends SearchIndex
     protected function _addField($doc, $object, $field)
     {
         $class = get_class($object);
-        if(!$this->classIs($class, $field['origin'])) {
+        if (!$this->classIs($class, $field['origin'])) {
             return;
         }
 

@@ -1,5 +1,7 @@
 <?php
 
+namespace SilverStripe\FullTextSearch\Tests;
+
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\SapphireTest;

@@ -152,7 +152,7 @@ abstract class SearchVariant
      *
      * SearchVariant::call(...) ==== SearchVariant::with()->call(...);
      */
-    public static function call($method, &$a1=null, &$a2=null, &$a3=null, &$a4=null, &$a5=null, &$a6=null, &$a7=null)
+    public static function call($method, &$a1 = null, &$a2 = null, &$a3 = null, &$a4 = null, &$a5 = null, &$a6 = null, &$a7 = null)
     {
         return self::with()->call($method, $a1, $a2, $a3, $a4, $a5, $a6, $a7);
     }
@@ -219,9 +219,10 @@ abstract class SearchVariant
      * @param string $name Field name
      * @param array $field Field spec
      */
-    protected function addFilterField($index, $name, $field) {
+    protected function addFilterField($index, $name, $field)
+    {
         // If field already exists, make sure to merge origin / base fields
-        if(isset($index->filterFields[$name])) {
+        if (isset($index->filterFields[$name])) {
             $field['base'] = $this->mergeClasses(
                 $index->filterFields[$name]['base'],
                 $field['base']
@@ -244,21 +245,21 @@ abstract class SearchVariant
      * @param array|string $right Right class(es)
      * @return array|string List of classes, or single class
      */
-    protected function mergeClasses($left, $right) {
+    protected function mergeClasses($left, $right)
+    {
         // Merge together and remove dupes
-        if(!is_array($left)) {
+        if (!is_array($left)) {
             $left = array($left);
         }
-        if(!is_array($right)) {
+        if (!is_array($right)) {
             $right = array($right);
         }
         $merged = array_values(array_unique(array_merge($left, $right)));
 
         // If there is only one item, return it as a single string
-        if(count($merged) === 1) {
+        if (count($merged) === 1) {
             return reset($merged);
         }
         return $merged;
     }
 }
-

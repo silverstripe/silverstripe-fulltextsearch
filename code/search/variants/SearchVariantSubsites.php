@@ -109,12 +109,10 @@ class SearchVariantSubsites extends SearchVariant
 
             if (isset($write['fields']['SiteTree:SubsiteID'])) {
                 $subsitesForWrite = array($write['fields']['SiteTree:SubsiteID']);
-            }
-            // files in subsite 0 should be in all subsites as they are global
+            } // files in subsite 0 should be in all subsites as they are global
             elseif (isset($write['fields']['File:SubsiteID']) && intval($write['fields']['File:SubsiteID']) !== 0) {
                 $subsitesForWrite = array($write['fields']['File:SubsiteID']);
-            }
-            else {
+            } else {
                 $subsitesForWrite = $subsites;
             }
 

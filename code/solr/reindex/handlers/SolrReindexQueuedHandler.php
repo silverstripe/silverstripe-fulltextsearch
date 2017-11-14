@@ -85,12 +85,22 @@ class SolrReindexQueuedHandler extends SolrReindexBase
     }
 
     protected function processGroup(
-        LoggerInterface $logger, SolrIndex $indexInstance, $state, $class, $groups, $group, $taskName
+        LoggerInterface $logger,
+        SolrIndex $indexInstance,
+        $state,
+        $class,
+        $groups,
+        $group,
+        $taskName
     ) {
         // Trigger another job for this group
         $job = Injector::inst()->create(
             SolrReindexGroupQueuedJob::class,
-            get_class($indexInstance), $state, $class, $groups, $group
+            get_class($indexInstance),
+            $state,
+            $class,
+            $groups,
+            $group
         );
         $this
             ->getQueuedJobService()
@@ -101,7 +111,12 @@ class SolrReindexQueuedHandler extends SolrReindexBase
     }
 
     public function runGroup(
-        LoggerInterface $logger, SolrIndex $indexInstance, $state, $class, $groups, $group
+        LoggerInterface $logger,
+        SolrIndex $indexInstance,
+        $state,
+        $class,
+        $groups,
+        $group
     ) {
         parent::runGroup($logger, $indexInstance, $state, $class, $groups, $group);
 

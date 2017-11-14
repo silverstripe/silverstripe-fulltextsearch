@@ -90,7 +90,7 @@ class SearchUpdateQueuedJobProcessor extends SearchUpdateBatchedProcessor implem
         $this->currentBatch = $jobData->currentBatch;
     }
 
-    public function addMessage($message, $severity='INFO')
+    public function addMessage($message, $severity = 'INFO')
     {
         $severity = strtoupper($severity);
         $this->messages[] = '[' . date('Y-m-d H:i:s') . "][$severity] $message";

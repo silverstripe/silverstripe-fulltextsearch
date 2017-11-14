@@ -1,5 +1,7 @@
 <?php
 
+namespace SilverStripe\FullTextSearch\Tests;
+
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\ORM\DataObject;
@@ -81,7 +83,7 @@ class SolrIndexVersionedTest extends SapphireTest
         // Prevent subsites from breaking tests
         // TODO: Subsites currently isn't migrated. This needs to be fixed when subsites is fixed.
         $subsites = '';
-        if(class_exists('Subsite') && DataObject::getSchema()->hasOneComponent($object->getClassName(), 'Subsite')) {
+        if (class_exists('Subsite') && DataObject::getSchema()->hasOneComponent($object->getClassName(), 'Subsite')) {
             $subsites = '"SearchVariantSubsites":"0",';
         }
         return $id.'-'.$class.'-{'.$subsites. json_encode(SearchVariantVersioned::class) . ':"'.$stage.'"}';

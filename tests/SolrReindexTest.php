@@ -1,5 +1,7 @@
 <?php
 
+namespace SilverStripe\FullTextSearch\Tests;
+
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
 use SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater;

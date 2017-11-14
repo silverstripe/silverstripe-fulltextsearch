@@ -12,7 +12,13 @@ use SilverStripe\FullTextSearch\Solr\SolrIndex;
 class SolrReindexTest_TestHandler extends SolrReindexBase
 {
     public function processGroup(
-        LoggerInterface $logger, SolrIndex $indexInstance, $state, $class, $groups, $group, $taskName
+        LoggerInterface $logger,
+        SolrIndex $indexInstance,
+        $state,
+        $class,
+        $groups,
+        $group,
+        $taskName
     ) {
         $indexName = $indexInstance->getIndexName();
         $stateName = json_encode($state);

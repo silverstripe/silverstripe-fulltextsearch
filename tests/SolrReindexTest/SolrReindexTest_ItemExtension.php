@@ -20,7 +20,7 @@ class SolrReindexTest_ItemExtension extends DataExtension implements TestOnly
      * @param SQLSelect $query
      * @param DataQuery $dataQuery
      */
-    public function augmentSQL(SQLSelect $query, DataQuery $dataQuery = NULL)
+    public function augmentSQL(SQLSelect $query, DataQuery $dataQuery = null)
     {
         $variant = SolrReindexTest_Variant::get_current();
         if ($variant !== null && !$query->filtersOnID()) {

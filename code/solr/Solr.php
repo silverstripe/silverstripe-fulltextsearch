@@ -121,7 +121,10 @@ class Solr
 
         if (!self::$service_singleton) {
             self::$service_singleton = Object::create(
-                $options['service'], $options['host'], $options['port'], $options['path']
+                $options['service'],
+                $options['host'],
+                $options['port'],
+                $options['path']
             );
         }
 

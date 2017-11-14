@@ -16,4 +16,3 @@ class Solr4ServiceTest_RecordingService extends Solr4Service_Core
         return $url;
     }
 }
-

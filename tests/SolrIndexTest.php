@@ -1,5 +1,8 @@
 <?php
 
+namespace SilverStripe\FullTextSearch\Tests;
+
+use SilverStripe\Core\Config\Config;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Core\Kernel;
 use SilverStripe\Dev\SapphireTest;
@@ -8,14 +11,13 @@ use SilverStripe\FullTextSearch\Tests\SolrIndexTest\SolrIndexTest_AmbiguousRelat
 use SilverStripe\FullTextSearch\Tests\SolrIndexTest\SolrIndexTest_FakeIndex;
 use SilverStripe\FullTextSearch\Tests\SolrIndexTest\SolrIndexTest_FakeIndex2;
 use SilverStripe\FullTextSearch\Tests\SolrIndexTest\SolrIndexTest_BoostedIndex;
-use SilverStripe\FullTextSearch\Solr\Services\Solr3Service;
 use SilverStripe\FullTextSearch\Tests\SearchUpdaterTest\SearchUpdaterTest_Container;
 use SilverStripe\FullTextSearch\Tests\SearchUpdaterTest\SearchUpdaterTest_HasOne;
 use SilverStripe\FullTextSearch\Tests\SearchUpdaterTest\SearchUpdaterTest_HasMany;
 use SilverStripe\FullTextSearch\Tests\SearchUpdaterTest\SearchUpdaterTest_ManyMany;
 use SilverStripe\FullTextSearch\Tests\SearchUpdaterTest\SearchUpdaterTest_OtherContainer;
-use SilverStripe\Core\Config\Config;
 use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
+use SilverStripe\FullTextSearch\Solr\Services\Solr3Service;
 
 class SolrIndexTest extends SapphireTest
 {
@@ -181,7 +183,8 @@ class SolrIndexTest extends SapphireTest
 
         $serviceMock->expects($this->exactly(2))
             ->method('search')
-            ->withConsecutive([
+            ->withConsecutive(
+                [
                     $this->equalTo('+(Field1:term^1.5 OR HasOneObject_Field1:term^3)'),
                     $this->anything(),
                     $this->anything(),
