@@ -3,7 +3,6 @@
 namespace SilverStripe\FullTextSearch\Solr;
 
 use SilverStripe\Control\Director;
-use SilverStripe\Core\Object;
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
 use SilverStripe\FullTextSearch\Solr\Services\Solr4Service;
 use SilverStripe\FullTextSearch\Solr\Services\Solr3Service;
