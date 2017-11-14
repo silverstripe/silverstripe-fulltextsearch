@@ -2,8 +2,8 @@
 
 namespace SilverStripe\FullTextSearch\Search\Updaters;
 
+use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Core\Injector\Injector;
-use SilverStripe\Core\Object;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\DB;
@@ -28,6 +28,16 @@ use ReflectionClass;
 
 class SearchUpdater
 {
+    use Configurable;
+
+    /**
+     * Whether to register the shutdown function to flush. Can be disabled for example in unit testing.
+     *
+     * @config
+     * @var bool
+     */
+    private static $flush_on_shutdown = true;
+
     /**
      * Replace the database object with a subclass that captures all manipulations and passes them to us
      */
@@ -174,11 +184,7 @@ class SearchUpdater
         }
 
         // If we do have some work to do register the shutdown function to actually do the work
-
-        // Don't do it if we're testing - there's no database connection outside the test methods, so we'd
-        // just get errors
-
-        if (self::$processor && !self::$registered && !SapphireTest::is_running_test()) {
+        if (self::$processor && !self::$registered && self::config()->get('flush_on_shutdown')) {
             register_shutdown_function(array(SearchUpdater::class, "flush_dirty_indexes"));
             self::$registered = true;
         }

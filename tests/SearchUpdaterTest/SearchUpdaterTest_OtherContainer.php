@@ -9,6 +9,8 @@ use SilverStripe\ORM\DataObject;
  */
 class SearchUpdaterTest_OtherContainer extends DataObject
 {
+    private static $table_name = 'SearchUpdaterTest_OtherContainer';
+
     private static $has_many = [
         'HasManyObjects' => SearchUpdaterTest_HasMany::class,
     ];

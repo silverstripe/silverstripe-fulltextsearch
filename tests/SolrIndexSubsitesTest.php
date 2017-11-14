@@ -11,8 +11,8 @@ if (class_exists('\Phockito')) {
  * Subsite specific solr testing
  */
 class SolrIndexSubsitesTest extends SapphireTest {
-
-    public static $fixture_file = 'SolrIndexSubsitesTest/SolrIndexSubsitesTest.yml';
+    // @todo
+    // protected static $fixture_file = 'SolrIndexSubsitesTest/SolrIndexSubsitesTest.yml';
 
     /**
      * @var SolrIndexSubsitesTest_Index
@@ -21,28 +21,21 @@ class SolrIndexSubsitesTest extends SapphireTest {
 
     protected $server = null;
 
-    public function setUp()
+    protected function setUp()
     {
+        parent::setUp();
+
         // Prevent parent::setUp() crashing on db build
         if (!class_exists('Subsite')) {
             $this->skipTest = true;
             $this->markTestSkipped("These tests need the Subsite module installed to run");
         }
 
-        parent::setUp();
-
         $this->server = $_SERVER;
 
         if (!class_exists('\Phockito')) {
             $this->skipTest = true;
             $this->markTestSkipped("These tests need the \Phockito module installed to run");
-            return;
-        }
-
-        // Check versioned available
-        if (!class_exists('Subsite')) {
-            $this->skipTest = true;
-            $this->markTestSkipped('The subsite module is not installed');
             return;
         }
 
@@ -60,9 +53,9 @@ class SolrIndexSubsitesTest extends SapphireTest {
         SearchUpdater::clear_dirty_indexes();
     }
 
-    public function tearDown()
+    protected function tearDown()
     {
-        if($this->server) {
+        if ($this->server) {
             $_SERVER = $this->server;
             $this->server = null;
         }

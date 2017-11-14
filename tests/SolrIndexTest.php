@@ -1,5 +1,7 @@
 <?php
 
+use SilverStripe\Core\Injector\Injector;
+use SilverStripe\Core\Kernel;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\FullTextSearch\Tests\SolrIndexTest\SolrIndexTest_AmbiguousRelationIndex;
 use SilverStripe\FullTextSearch\Tests\SolrIndexTest\SolrIndexTest_AmbiguousRelationInheritedIndex;
@@ -13,9 +15,7 @@ use SilverStripe\FullTextSearch\Tests\SearchUpdaterTest\SearchUpdaterTest_HasMan
 use SilverStripe\FullTextSearch\Tests\SearchUpdaterTest\SearchUpdaterTest_ManyMany;
 use SilverStripe\FullTextSearch\Tests\SearchUpdaterTest\SearchUpdaterTest_OtherContainer;
 use SilverStripe\Core\Config\Config;
-use SilverStripe\Control\Director;
 use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
-
 
 class SolrIndexTest extends SapphireTest
 {
@@ -58,15 +58,15 @@ class SolrIndexTest extends SapphireTest
         $index = new SolrIndexTest_AmbiguousRelationIndex();
         $data = $index->fieldData('HasManyObjects.Field1');
 
-        $this->assertArrayHasKey('SearchUpdaterTest_Container_HasManyObjects_Field1', $data);
-        $this->assertArrayHasKey('SearchUpdaterTest_OtherContainer_HasManyObjects_Field1', $data);
+        $this->assertArrayHasKey(SearchUpdaterTest_Container::class . '_HasManyObjects_Field1', $data);
+        $this->assertArrayHasKey(SearchUpdaterTest_OtherContainer::class . '_HasManyObjects_Field1', $data);
 
-        $dataContainer = $data['SearchUpdaterTest_Container_HasManyObjects_Field1'];
+        $dataContainer = $data[SearchUpdaterTest_Container::class . '_HasManyObjects_Field1'];
         $this->assertEquals(SearchUpdaterTest_Container::class, $dataContainer['origin']);
         $this->assertEquals(SearchUpdaterTest_Container::class, $dataContainer['base']);
         $this->assertEquals(SearchUpdaterTest_HasMany::class, $dataContainer['class']);
 
-        $dataOtherContainer = $data['SearchUpdaterTest_OtherContainer_HasManyObjects_Field1'];
+        $dataOtherContainer = $data[SearchUpdaterTest_OtherContainer::class . '_HasManyObjects_Field1'];
         $this->assertEquals(SearchUpdaterTest_OtherContainer::class, $dataOtherContainer['origin']);
         $this->assertEquals(SearchUpdaterTest_OtherContainer::class, $dataOtherContainer['base']);
         $this->assertEquals(SearchUpdaterTest_HasMany::class, $dataOtherContainer['class']);
@@ -77,15 +77,15 @@ class SolrIndexTest extends SapphireTest
         $index = new SolrIndexTest_AmbiguousRelationIndex();
         $data = $index->fieldData('ManyManyObjects.Field1');
 
-        $this->assertArrayHasKey('SearchUpdaterTest_Container_ManyManyObjects_Field1', $data);
-        $this->assertArrayHasKey('SearchUpdaterTest_OtherContainer_ManyManyObjects_Field1', $data);
+        $this->assertArrayHasKey(SearchUpdaterTest_Container::class . '_ManyManyObjects_Field1', $data);
+        $this->assertArrayHasKey(SearchUpdaterTest_OtherContainer::class . '_ManyManyObjects_Field1', $data);
 
-        $dataContainer = $data['SearchUpdaterTest_Container_ManyManyObjects_Field1'];
+        $dataContainer = $data[SearchUpdaterTest_Container::class . '_ManyManyObjects_Field1'];
         $this->assertEquals(SearchUpdaterTest_Container::class, $dataContainer['origin']);
         $this->assertEquals(SearchUpdaterTest_Container::class, $dataContainer['base']);
         $this->assertEquals(SearchUpdaterTest_ManyMany::class, $dataContainer['class']);
 
-        $dataOtherContainer = $data['SearchUpdaterTest_OtherContainer_ManyManyObjects_Field1'];
+        $dataOtherContainer = $data[SearchUpdaterTest_OtherContainer::class . '_ManyManyObjects_Field1'];
         $this->assertEquals(SearchUpdaterTest_OtherContainer::class, $dataOtherContainer['origin']);
         $this->assertEquals(SearchUpdaterTest_OtherContainer::class, $dataOtherContainer['base']);
         $this->assertEquals(SearchUpdaterTest_ManyMany::class, $dataOtherContainer['class']);
@@ -96,16 +96,16 @@ class SolrIndexTest extends SapphireTest
         $index = new SolrIndexTest_AmbiguousRelationInheritedIndex();
         $data = $index->fieldData('ManyManyObjects.Field1');
 
-        $this->assertArrayHasKey('SearchUpdaterTest_Container_ManyManyObjects_Field1', $data);
-        $this->assertArrayHasKey('SearchUpdaterTest_OtherContainer_ManyManyObjects_Field1', $data);
-        $this->assertArrayNotHasKey('SearchUpdaterTest_ExtendedContainer_ManyManyObjects_Field1', $data);
+        $this->assertArrayHasKey(SearchUpdaterTest_Container::class . '_ManyManyObjects_Field1', $data);
+        $this->assertArrayHasKey(SearchUpdaterTest_OtherContainer::class . '_ManyManyObjects_Field1', $data);
+        $this->assertArrayNotHasKey(SearchUpdaterTest_ExtendedContainer::class . '_ManyManyObjects_Field1', $data);
 
-        $dataContainer = $data['SearchUpdaterTest_Container_ManyManyObjects_Field1'];
+        $dataContainer = $data[SearchUpdaterTest_Container::class . '_ManyManyObjects_Field1'];
         $this->assertEquals(SearchUpdaterTest_Container::class, $dataContainer['origin']);
         $this->assertEquals(SearchUpdaterTest_Container::class, $dataContainer['base']);
         $this->assertEquals(SearchUpdaterTest_ManyMany::class, $dataContainer['class']);
 
-        $dataOtherContainer = $data['SearchUpdaterTest_OtherContainer_ManyManyObjects_Field1'];
+        $dataOtherContainer = $data[SearchUpdaterTest_OtherContainer::class . '_ManyManyObjects_Field1'];
         $this->assertEquals(SearchUpdaterTest_OtherContainer::class, $dataOtherContainer['origin']);
         $this->assertEquals(SearchUpdaterTest_OtherContainer::class, $dataOtherContainer['base']);
         $this->assertEquals(SearchUpdaterTest_ManyMany::class, $dataOtherContainer['class']);
@@ -248,8 +248,7 @@ class SolrIndexTest extends SapphireTest
 
     public function testAddFieldExtraOptions()
     {
-        Config::nest();
-        Director::set_environment_type('live');
+        Injector::inst()->get(Kernel::class)->setEnvironment('live');
 
         $index = new SolrIndexTest_FakeIndex();
 
@@ -261,8 +260,6 @@ class SolrIndexTest extends SapphireTest
         $defs = simplexml_load_string('<fields>' . $index->getFieldDefinitions() . '</fields>');
         $defField1 = $defs->xpath('field[@name="' . SearchUpdaterTest_Container::class . '_Field1"]');
         $this->assertEquals((string)$defField1[0]['stored'], 'true');
-
-        Config::unnest();
     }
 
     public function testAddAnalyzer()

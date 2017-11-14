@@ -3,6 +3,7 @@
 namespace SilverStripe\FullTextSearch\Solr\Reindex\Handlers;
 
 use Psr\Log\LoggerInterface;
+use SilverStripe\Core\Environment;
 use SilverStripe\FullTextSearch\Solr\Solr;
 use SilverStripe\FullTextSearch\Solr\SolrIndex;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
@@ -146,7 +147,7 @@ abstract class SolrReindexBase implements SolrReindexHandler
         LoggerInterface $logger, SolrIndex $indexInstance, $state, $class, $groups, $group
     ) {
         // Set time limit and state
-        increase_time_limit_to();
+        Environment::increaseTimeLimitTo();
         SearchVariant::activate_state($state);
         $logger->info("Adding $class");
 

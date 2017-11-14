@@ -6,8 +6,8 @@ use Exception;
 use InvalidArgumentException;
 use SilverStripe\View\ViewableData;
 use SilverStripe\ORM\DataObject;
-use SilverStripe\Core\Object;
 use SilverStripe\Core\ClassInfo;
+use SilverStripe\Core\Config\Config;
 use SilverStripe\FullTextSearch\Search\SearchIntrospection;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
 use SilverStripe\FullTextSearch\Utils\MultipleArrayIterator;
@@ -160,11 +160,15 @@ abstract class SearchIndex extends ViewableData
                                 continue;
                             }
 
-                            $class = $manyMany[2];
+                            $class = $manyMany['childClass'];
                             $options['multi_valued'] = true;
                             $options['lookup_chain'][] = array(
-                                'call' => 'method', 'method' => $lookup,
-                                'through' => 'many_many', 'class' => $dataclass, 'otherclass' => $class, 'details' => $manyMany
+                                'call' => 'method',
+                                'method' => $lookup,
+                                'through' => 'many_many',
+                                'class' => $dataclass,
+                                'otherclass' => $class,
+                                'details' => $manyMany,
                             );
                         }
 
@@ -357,7 +361,7 @@ abstract class SearchIndex extends ViewableData
                     if (preg_match('/^(\w+)\(/', $type, $match)) {
                         $type = $match[1];
                     }
-                    list($type, $args) = Object::parse_class_spec($type);
+                    list($type, $args) = ClassInfo::parse_class_spec($type);
 
                     // Get class from shortName
                     $object = Injector::inst()->get($type, false, ['Name' => 'test']);

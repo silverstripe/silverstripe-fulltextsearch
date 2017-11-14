@@ -18,8 +18,10 @@ class SearchUpdaterTest extends SapphireTest
 
     private static $index = null;
 
-    public function setUp()
+    protected function setUp()
     {
+        Config::modify()->set(SearchUpdater::class, 'flush_on_shutdown', false);
+
         parent::setUp();
 
         if (self::$index === null) {

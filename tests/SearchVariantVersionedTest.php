@@ -24,8 +24,10 @@ class SearchVariantVersionedTest extends SapphireTest
         SearchVariantVersionedTest_Item::class
     );
 
-    public function setUp()
+    protected function setUp()
     {
+        Config::modify()->set(SearchUpdater::class, 'flush_on_shutdown', false);
+
         parent::setUp();
 
         if (self::$index === null) {
@@ -34,7 +36,7 @@ class SearchVariantVersionedTest extends SapphireTest
 
         SearchUpdater::bind_manipulation_capture();
 
-        Config::modify()->set('Injector', SearchUpdateProcessor::class, array(
+        Config::modify()->set(Injector::class, SearchUpdateProcessor::class, array(
             'class' => SearchUpdateImmediateProcessor::class
         ));
 

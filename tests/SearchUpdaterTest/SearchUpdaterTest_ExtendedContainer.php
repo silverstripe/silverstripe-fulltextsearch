@@ -7,7 +7,9 @@ namespace SilverStripe\FullTextSearch\Tests\SearchUpdaterTest;
  */
 class SearchUpdaterTest_ExtendedContainer extends SearchUpdaterTest_OtherContainer
 {
-    private static $db = array(
+    private static $table_name = 'SearchUpdaterTest_ExtendedContainer';
+
+    private static $db = [
         'SomeField' => 'Varchar',
-    );
+    ];
 }

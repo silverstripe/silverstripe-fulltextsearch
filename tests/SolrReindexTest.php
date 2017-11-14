@@ -2,6 +2,7 @@
 
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
+use SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
 use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_Variant;
 use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_Index;
@@ -38,14 +39,17 @@ class SolrReindexTest extends SapphireTest
      */
     protected $service = null;
 
-    public function setUp()
+    protected function setUp()
     {
+        Config::modify()->set(SearchUpdater::class, 'flush_on_shutdown', false);
+
         parent::setUp();
 
         // Set test handler for reindex
-        Config::modify()->set('Injector', SolrReindexHandler::class, array(
+        Config::modify()->set(Injector::class, SolrReindexHandler::class, array(
             'class' => SolrReindexTest_TestHandler::class
         ));
+
         Injector::inst()->registerService(new SolrReindexTest_TestHandler(), SolrReindexHandler::class);
 
         // Set test variant
@@ -55,6 +59,7 @@ class SolrReindexTest extends SapphireTest
         $this->service = $this->getServiceMock();
         $this->index = singleton(SolrReindexTest_Index::class);
         $this->index->setService($this->service);
+
         FullTextSearch::force_index_list($this->index);
     }
 
