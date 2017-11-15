@@ -4,15 +4,16 @@ namespace SilverStripe\FullTextSearch\Search\Indexes;
 
 use Exception;
 use InvalidArgumentException;
-use SilverStripe\View\ViewableData;
-use SilverStripe\ORM\DataObject;
 use SilverStripe\Core\ClassInfo;
 use SilverStripe\Core\Config\Config;
+use SilverStripe\Core\Injector\Injector;
 use SilverStripe\FullTextSearch\Search\SearchIntrospection;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
 use SilverStripe\FullTextSearch\Utils\MultipleArrayIterator;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\ORM\FieldType\DBString;
 use SilverStripe\ORM\Queries\SQLSelect;
-use SilverStripe\Core\Injector\Injector;
+use SilverStripe\View\ViewableData;
 
 /**
  * SearchIndex is the base index class. Each connector will provide a subclass of this that
@@ -366,7 +367,7 @@ abstract class SearchIndex extends ViewableData
                     // Get class from shortName
                     $object = Injector::inst()->get($type, false, ['Name' => 'test']);
 
-                    if (is_subclass_of(get_class($object), 'SilverStripe\ORM\FieldType\DBString')) {
+                    if ($object instanceof DBString) {
                         $this->addFulltextField($field);
                     }
                 }
