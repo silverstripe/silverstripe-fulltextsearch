@@ -3,6 +3,9 @@
 namespace SilverStripe\FullTextSearch\Solr;
 
 use SilverStripe\Control\Director;
+use SilverStripe\Core\Injector\Injector;
+use SilverStripe\Core\Manifest\Module;
+use SilverStripe\Core\Manifest\ModuleLoader;
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
 use SilverStripe\FullTextSearch\Solr\Services\Solr4Service;
 use SilverStripe\FullTextSearch\Solr\Services\Solr3Service;
@@ -79,18 +82,22 @@ class Solr
         // Build some by-version defaults
         $version = isset(self::$solr_options['version']) ? self::$solr_options['version'] : $defaults['version'];
 
+        /** @var Module $module */
+        $module = ModuleLoader::getModule('silverstripe/fulltextsearch');
+        $modulePath = $module->getPath();
+
         if (version_compare($version, '4', '>=')) {
-            $versionDefaults = array(
-                'service' => Solr4Service::class,
-                'extraspath' => Director::baseFolder().'/fulltextsearch/conf/solr/4/extras/',
-                'templatespath' => Director::baseFolder().'/fulltextsearch/conf/solr/4/templates/',
-            );
+            $versionDefaults = [
+                'service'       => Solr4Service::class,
+                'extraspath'    => $modulePath . '/conf/solr/4/extras/',
+                'templatespath' => $modulePath . '/conf/solr/4/templates/',
+            ];
         } else {
-            $versionDefaults = array(
-                'service' => Solr3Service::class,
-                'extraspath' => Director::baseFolder().'/fulltextsearch/conf/solr/3/extras/',
-                'templatespath' => Director::baseFolder().'/fulltextsearch/conf/solr/3/templates/',
-            );
+            $versionDefaults = [
+                'service'       => Solr3Service::class,
+                'extraspath'    => $modulePath . '/conf/solr/3/extras/',
+                'templatespath' => $modulePath . '/conf/solr/3/templates/',
+            ];
         }
 
         return (self::$merged_solr_options = array_merge($defaults, $versionDefaults, self::$solr_options));
@@ -119,7 +126,7 @@ class Solr
         $options = self::solr_options();
 
         if (!self::$service_singleton) {
-            self::$service_singleton = Object::create(
+            self::$service_singleton = Injector::inst()->create(
                 $options['service'],
                 $options['host'],
                 $options['port'],

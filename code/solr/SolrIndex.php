@@ -82,7 +82,8 @@ abstract class SolrIndex extends SearchIndex
     public function getTemplatesPath()
     {
         $globalOptions = Solr::solr_options();
-        return $this->templatesPath ? $this->templatesPath : $globalOptions['templatespath'];
+        $path = $this->templatesPath ? $this->templatesPath : $globalOptions['templatespath'];
+        return rtrim($path, '/');
     }
 
     /**
