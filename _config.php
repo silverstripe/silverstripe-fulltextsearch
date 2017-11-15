@@ -1,6 +1,7 @@
 <?php
 
-global $databaseConfig;
-if (isset($databaseConfig['type'])) SearchUpdater::bind_manipulation_capture();
+use SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater;
 
-Deprecation::notification_version('1.0.0', 'fulltextsearch');
+if (isset($databaseConfig['type'])) {
+    SearchUpdater::bind_manipulation_capture();
+}

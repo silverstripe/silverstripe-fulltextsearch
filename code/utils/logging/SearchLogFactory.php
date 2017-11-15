@@ -1,5 +1,7 @@
 <?php
 
+namespace SilverStripe\FullTextSearch\Utils\Logging;
+
 use Psr\Log;
 
 interface SearchLogFactory

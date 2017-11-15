@@ -1,9 +1,13 @@
 <?php
 
+namespace SilverStripe\FullTextSearch\Utils\Logging;
+
 use Monolog\Formatter\FormatterInterface;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\HandlerInterface;
 use Monolog\Logger;
+use SilverStripe\Control\Director;
+use SilverStripe\Core\Injector\Injector;
 
 /**
  * Provides logging based on monolog
@@ -97,7 +101,7 @@ class MonologFactory implements SearchLogFactory
     protected function getJobHandler($job)
     {
         return Injector::inst()->createWithArgs(
-            'QueuedJobLogHandler',
+            'SilverStripe\FullTextSearch\Utils\Logging\QueuedJobLogHandler',
             array($job, Logger::INFO)
         );
     }

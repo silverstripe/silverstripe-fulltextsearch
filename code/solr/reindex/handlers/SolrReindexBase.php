@@ -1,6 +1,16 @@
 <?php
 
+namespace SilverStripe\FullTextSearch\Solr\Reindex\Handlers;
+
 use Psr\Log\LoggerInterface;
+use SilverStripe\Core\Environment;
+use SilverStripe\FullTextSearch\Solr\Solr;
+use SilverStripe\FullTextSearch\Solr\SolrIndex;
+use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
+use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\ORM\DataList;
+use SilverStripe\ORM\DB;
 
 /**
  * Base class for re-indexing of solr content
@@ -13,7 +23,7 @@ abstract class SolrReindexBase implements SolrReindexHandler
             $this->processIndex($logger, $indexInstance, $batchSize, $taskName, $classes);
         }
     }
-    
+
     /**
      * Process index for a single SolrIndex instance
      *
@@ -24,7 +34,11 @@ abstract class SolrReindexBase implements SolrReindexHandler
      * @param string $classes
      */
     protected function processIndex(
-        LoggerInterface $logger, SolrIndex $indexInstance, $batchSize, $taskName, $classes = null
+        LoggerInterface $logger,
+        SolrIndex $indexInstance,
+        $batchSize,
+        $taskName,
+        $classes = null
     ) {
         // Filter classes for this index
         $indexClasses = $this->getClassesForIndex($indexInstance, $classes);
@@ -77,8 +91,13 @@ abstract class SolrReindexBase implements SolrReindexHandler
      * @param string $taskName
      */
     protected function processVariant(
-        LoggerInterface $logger, SolrIndex $indexInstance, $state,
-        $class, $includeSubclasses, $batchSize, $taskName
+        LoggerInterface $logger,
+        SolrIndex $indexInstance,
+        $state,
+        $class,
+        $includeSubclasses,
+        $batchSize,
+        $taskName
     ) {
         // Set state
         SearchVariant::activate_state($state);
@@ -117,7 +136,13 @@ abstract class SolrReindexBase implements SolrReindexHandler
      * @param string $taskName Name of task script to run
      */
     abstract protected function processGroup(
-        LoggerInterface $logger, SolrIndex $indexInstance, $state, $class, $groups, $group, $taskName
+        LoggerInterface $logger,
+        SolrIndex $indexInstance,
+        $state,
+        $class,
+        $groups,
+        $group,
+        $taskName
     );
 
     /**
@@ -134,10 +159,15 @@ abstract class SolrReindexBase implements SolrReindexHandler
      * @param int $group
      */
     public function runGroup(
-        LoggerInterface $logger, SolrIndex $indexInstance, $state, $class, $groups, $group
+        LoggerInterface $logger,
+        SolrIndex $indexInstance,
+        $state,
+        $class,
+        $groups,
+        $group
     ) {
         // Set time limit and state
-        increase_time_limit_to();
+        Environment::increaseTimeLimitTo();
         SearchVariant::activate_state($state);
         $logger->info("Adding $class");
 
@@ -159,7 +189,7 @@ abstract class SolrReindexBase implements SolrReindexHandler
 
         // This will slow down things a tiny bit, but it is done so that we don't timeout to the database during a reindex
         DB::query('SELECT 1');
-        
+
         $logger->info("Done");
     }
 
@@ -177,11 +207,11 @@ abstract class SolrReindexBase implements SolrReindexHandler
     protected function getRecordsInGroup(SolrIndex $indexInstance, $class, $groups, $group)
     {
         // Generate filtered list of local records
-        $baseClass = ClassInfo::baseDataClass($class);
+        $baseClass = DataObject::getSchema()->baseDataClass($class);
         $items = DataList::create($class)
             ->where(sprintf(
                 '"%s"."ID" %% \'%d\' = \'%d\'',
-                $baseClass,
+                DataObject::getSchema()->tableName($baseClass),
                 intval($groups),
                 intval($group)
             ))

@@ -1,15 +1,21 @@
 <?php
 
-if (class_exists('Phockito')) {
-    Phockito::include_hamcrest(false);
+namespace SilverStripe\FullTextSearch\Tests;
+
+use SilverStripe\Dev\SapphireTest;
+use SilverStripe\FullTextSearch\Tests\SolrIndexSubsitesTest\SolrIndexSubsitesTest_Index;
+
+if (class_exists('\Phockito')) {
+    \Phockito::include_hamcrest(false);
 }
 
 /**
  * Subsite specific solr testing
  */
-class SolrIndexSubsitesTest extends SapphireTest {
-
-    public static $fixture_file = 'SolrIndexSubsitesTest.yml';
+class SolrIndexSubsitesTest extends SapphireTest
+{
+    // @todo
+    // protected static $fixture_file = 'SolrIndexSubsitesTest/SolrIndexSubsitesTest.yml';
 
     /**
      * @var SolrIndexSubsitesTest_Index
@@ -18,27 +24,21 @@ class SolrIndexSubsitesTest extends SapphireTest {
 
     protected $server = null;
 
-    public function setUp()
+    protected function setUp()
     {
+        parent::setUp();
+
         // Prevent parent::setUp() crashing on db build
         if (!class_exists('Subsite')) {
             $this->skipTest = true;
+            $this->markTestSkipped("These tests need the Subsite module installed to run");
         }
-
-        parent::setUp();
 
         $this->server = $_SERVER;
 
-        if (!class_exists('Phockito')) {
+        if (!class_exists('\Phockito')) {
             $this->skipTest = true;
-            $this->markTestSkipped("These tests need the Phockito module installed to run");
-            return;
-        }
-
-        // Check versioned available
-        if (!class_exists('Subsite')) {
-            $this->skipTest = true;
-            $this->markTestSkipped('The subsite module is not installed');
+            $this->markTestSkipped("These tests need the \Phockito module installed to run");
             return;
         }
 
@@ -48,7 +48,7 @@ class SolrIndexSubsitesTest extends SapphireTest {
 
         SearchUpdater::bind_manipulation_capture();
 
-        Config::inst()->update('Injector', 'SearchUpdateProcessor', array(
+        Config::modify()->set('Injector', 'SearchUpdateProcessor', array(
             'class' => 'SearchUpdateImmediateProcessor'
         ));
 
@@ -56,9 +56,9 @@ class SolrIndexSubsitesTest extends SapphireTest {
         SearchUpdater::clear_dirty_indexes();
     }
 
-    public function tearDown()
+    protected function tearDown()
     {
-        if($this->server) {
+        if ($this->server) {
             $_SERVER = $this->server;
             $this->server = null;
         }
@@ -67,7 +67,7 @@ class SolrIndexSubsitesTest extends SapphireTest {
 
     protected function getServiceMock()
     {
-        return Phockito::mock('Solr4Service');
+        return \Phockito::mock('Solr4Service');
     }
 
     /**
@@ -79,19 +79,19 @@ class SolrIndexSubsitesTest extends SapphireTest {
     protected function getExpectedDocumentId($object, $subsiteID, $stage = null)
     {
         $id = $object->ID;
-        $class = ClassInfo::baseDataClass($object);
+        $class = DataObject::getSchema()->baseDataClass($object);
         $variants = array();
 
         // Check subsite
-        if(class_exists('Subsite') && $object->hasOne('Subsite')) {
+        if (class_exists('Subsite') && DataObject::getSchema()->hasOneComponent($object->getClassName(), 'Subsite')) {
             $variants[] = '"SearchVariantSubsites":"' . $subsiteID. '"';
         }
 
         // Check versioned
-        if($stage) {
+        if ($stage) {
             $variants[] = '"SearchVariantVersioned":"' . $stage . '"';
         }
-        return $id.'-'.$class.'-{'.implode(',',$variants).'}';
+        return $id.'-'.$class.'-{'.implode(',', $variants).'}';
     }
 
     public function testPublishing()
@@ -105,7 +105,7 @@ class SolrIndexSubsitesTest extends SapphireTest {
         // Add records to first subsite
         Versioned::reading_stage('Stage');
         $_SERVER['HTTP_HOST'] = 'www.subsite1.com';
-        Phockito::reset($serviceMock);
+        \Phockito::reset($serviceMock);
         $file = new File();
         $file->Title = 'My File';
         $file->SubsiteID = $subsite1->ID;
@@ -128,12 +128,12 @@ class SolrIndexSubsitesTest extends SapphireTest {
             'File_Title' => 'My File',
             '_subsite' => $subsite1->ID
         ));
-        Phockito::verify($serviceMock)->addDocument($doc1);
-        Phockito::verify($serviceMock)->addDocument($doc2);
-
+        \Phockito::verify($serviceMock)->addDocument($doc1);
+        \Phockito::verify($serviceMock)->addDocument($doc2);
     }
 
-    public function testCorrectSubsiteIDOnPageWrite() {
+    public function testCorrectSubsiteIDOnPageWrite()
+    {
         $mockWrites = array(
             '3367:SiteTree:a:1:{s:22:"SearchVariantVersioned";s:4:"Live";}' => array(
                 'base' => 'SiteTree',
@@ -172,7 +172,7 @@ class SolrIndexSubsitesTest extends SapphireTest {
         $variant = new SearchVariantSubsites();
         $tmpMockWrites = $mockWrites;
         $variant->extractManipulationWriteState($tmpMockWrites);
-        foreach($tmpMockWrites as $mockWrite) {
+        foreach ($tmpMockWrites as $mockWrite) {
             $this->assertCount(1, $mockWrite['statefulids']);
             $statefulIDs = array_shift($mockWrite['statefulids']);
             $this->assertEquals(0, $statefulIDs['state']['SearchVariantSubsites']);
@@ -183,14 +183,15 @@ class SolrIndexSubsitesTest extends SapphireTest {
         $tmpMockWrites['3367:SiteTree:a:1:{s:22:"SearchVariantVersioned";s:4:"Live";}']['fields']['SiteTree:SubsiteID'] = $subsite->ID;
 
         $variant->extractManipulationWriteState($tmpMockWrites);
-        foreach($tmpMockWrites as $mockWrite) {
+        foreach ($tmpMockWrites as $mockWrite) {
             $this->assertCount(1, $mockWrite['statefulids']);
             $statefulIDs = array_shift($mockWrite['statefulids']);
             $this->assertEquals($subsite->ID, $statefulIDs['state']['SearchVariantSubsites']);
         }
     }
 
-    public function testCorrectSubsiteIDOnFileWrite() {
+    public function testCorrectSubsiteIDOnFileWrite()
+    {
         $subsiteIDs = array('0') + $this->allFixtureIDs('Subsite');
         $mockWrites = array(
             '35910:File:a:0:{}' => array(
@@ -220,7 +221,7 @@ class SolrIndexSubsitesTest extends SapphireTest {
         $variant = new SearchVariantSubsites();
         $tmpMockWrites = $mockWrites;
         $variant->extractManipulationWriteState($tmpMockWrites);
-        foreach($tmpMockWrites as $mockWrite) {
+        foreach ($tmpMockWrites as $mockWrite) {
             $this->assertCount(count($subsiteIDs), $mockWrite['statefulids']);
             foreach ($mockWrite['statefulids'] as $statefulIDs) {
                 $this->assertTrue(
@@ -235,21 +236,10 @@ class SolrIndexSubsitesTest extends SapphireTest {
         $tmpMockWrites['35910:File:a:0:{}']['fields']['File:SubsiteID'] = $subsite->ID;
 
         $variant->extractManipulationWriteState($tmpMockWrites);
-        foreach($tmpMockWrites as $mockWrite) {
+        foreach ($tmpMockWrites as $mockWrite) {
             $this->assertCount(1, $mockWrite['statefulids']);
             $statefulIDs = array_shift($mockWrite['statefulids']);
             $this->assertEquals($subsite->ID, $statefulIDs['state']['SearchVariantSubsites']);
         }
-    }
-
-}
-
-class SolrIndexSubsitesTest_Index extends SolrIndex
-{
-    public function init()
-    {
-        $this->addClass('File');
-        $this->addClass('SiteTree');
-        $this->addAllFulltextFields();
     }
 }

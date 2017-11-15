@@ -1,5 +1,9 @@
 <?php
 
+namespace SilverStripe\FullTextSearch\Utils;
+
+use Iterator;
+
 class CombinationsArrayIterator implements Iterator
 {
     protected $arrays;

@@ -1,12 +1,17 @@
 <?php
 
+namespace SilverStripe\FullTextSearch\Tests;
+
+use SilverStripe\FullTextSearch\Tests\Solr4ServiceTest\Solr4ServiceTest_RecordingService;
+use SilverStripe\Dev\SapphireTest;
+
 /**
  * Test solr 4.0 compatibility
  */
 class Solr4ServiceTest extends SapphireTest
 {
     /**
-     * 
+     *
      * @return Solr4ServiceTest_RecordingService
      */
     protected function getMockService()
@@ -16,7 +21,7 @@ class Solr4ServiceTest extends SapphireTest
     
     protected function getMockDocument($id)
     {
-        $document = new Apache_Solr_Document();
+        $document = new \Apache_Solr_Document();
         $document->setField('id', $id);
         $document->setField('title', "Item $id");
         return $document;
@@ -56,18 +61,5 @@ class Solr4ServiceTest extends SapphireTest
             '<add overwrite="false"><doc><field name="id">E</field><field name="title">Item E</field></doc><doc><field name="id">F</field><field name="title">Item F</field></doc></add>',
             $sent
         );
-    }
-}
-
-class Solr4ServiceTest_RecordingService extends Solr4Service_Core
-{
-    protected function _sendRawPost($url, $rawPost, $timeout = false, $contentType = 'text/xml; charset=UTF-8')
-    {
-        return $rawPost;
-    }
-    
-    protected function _sendRawGet($url, $timeout = false)
-    {
-        return $url;
     }
 }

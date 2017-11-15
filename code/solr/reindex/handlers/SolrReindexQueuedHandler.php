@@ -1,10 +1,24 @@
 <?php
 
-use Psr\Log\LoggerInterface;
+namespace SilverStripe\FullTextSearch\Solr\Reindex\Handlers;
 
-if (!interface_exists('QueuedJob')) {
+use Psr\Log\LoggerInterface;
+use SilverStripe\FullTextSearch\Solr\SolrIndex;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\ORM\DB;
+use SilverStripe\Core\Convert;
+use SilverStripe\Core\Injector\Injector;
+use SilverStripe\FullTextSearch\Solr\Reindex\Jobs\SolrReindexQueuedJob;
+use SilverStripe\FullTextSearch\Solr\Reindex\Jobs\SolrReindexGroupQueuedJob;
+use SilverStripe\FullTextSearch\Search\Processors\SearchUpdateCommitJobProcessor;
+
+if (!interface_exists('SilverStripe\QueuedJobs\Services\QueuedJob')) {
     return;
 }
+
+use SilverStripe\QueuedJobs\Services\QueuedJob;
+use SilverStripe\QueuedJobs\Services\QueuedJobService;
+use SilverStripe\QueuedJobs\DataObjects\QueuedJobDescriptor;
 
 /**
  * Represents a queued task to start the reindex job
@@ -16,7 +30,7 @@ class SolrReindexQueuedHandler extends SolrReindexBase
      */
     protected function getQueuedJobService()
     {
-        return singleton('QueuedJobService');
+        return singleton(QueuedJobService::class);
     }
 
     /**
@@ -30,7 +44,7 @@ class SolrReindexQueuedHandler extends SolrReindexBase
         $clearable = array(
             // Paused jobs need to be discarded
             QueuedJob::STATUS_PAUSED,
-            
+
             // These types would be automatically started
             QueuedJob::STATUS_NEW,
             QueuedJob::STATUS_WAIT,
@@ -40,27 +54,28 @@ class SolrReindexQueuedHandler extends SolrReindexBase
             QueuedJob::STATUS_RUN
         );
         DB::query(sprintf(
-            'UPDATE "QueuedJobDescriptor" '
+            'UPDATE "%s" '
                 . ' SET "JobStatus" = \'%s\''
                 . ' WHERE "JobStatus" IN (\'%s\')'
                 . ' AND "Implementation" = \'%s\'',
+            Convert::raw2sql(DataObject::getSchema()->tableName(QueuedJobDescriptor::class)),
             Convert::raw2sql(QueuedJob::STATUS_CANCELLED),
             implode("','", Convert::raw2sql($clearable)),
             Convert::raw2sql($type)
         ));
-        return DB::affectedRows();
+        return DB::affected_rows();
     }
 
     public function triggerReindex(LoggerInterface $logger, $batchSize, $taskName, $classes = null)
     {
         // Cancel existing jobs
-        $queues = $this->cancelExistingJobs('SolrReindexQueuedJob');
-        $groups = $this->cancelExistingJobs('SolrReindexGroupQueuedJob');
+        $queues = $this->cancelExistingJobs(SolrReindexQueuedJob::class);
+        $groups = $this->cancelExistingJobs(SolrReindexGroupQueuedJob::class);
         $logger->info("Cancelled {$queues} re-index tasks and {$groups} re-index groups");
 
         // Although this class is used as a service (singleton) it may also be instantiated
         // as a queuedjob
-        $job = Injector::inst()->create('SolrReindexQueuedJob', $batchSize, $taskName, $classes);
+        $job = Injector::inst()->create(SolrReindexQueuedJob::class, $batchSize, $taskName, $classes);
         $this
             ->getQueuedJobService()
             ->queueJob($job);
@@ -70,23 +85,38 @@ class SolrReindexQueuedHandler extends SolrReindexBase
     }
 
     protected function processGroup(
-        LoggerInterface $logger, SolrIndex $indexInstance, $state, $class, $groups, $group, $taskName
+        LoggerInterface $logger,
+        SolrIndex $indexInstance,
+        $state,
+        $class,
+        $groups,
+        $group,
+        $taskName
     ) {
         // Trigger another job for this group
         $job = Injector::inst()->create(
-            'SolrReindexGroupQueuedJob',
-            get_class($indexInstance), $state, $class, $groups, $group
+            SolrReindexGroupQueuedJob::class,
+            get_class($indexInstance),
+            $state,
+            $class,
+            $groups,
+            $group
         );
         $this
             ->getQueuedJobService()
             ->queueJob($job);
-        
+
         $title = $job->getTitle();
         $logger->info("Queued {$title}");
     }
 
     public function runGroup(
-        LoggerInterface $logger, SolrIndex $indexInstance, $state, $class, $groups, $group
+        LoggerInterface $logger,
+        SolrIndex $indexInstance,
+        $state,
+        $class,
+        $groups,
+        $group
     ) {
         parent::runGroup($logger, $indexInstance, $state, $class, $groups, $group);
 

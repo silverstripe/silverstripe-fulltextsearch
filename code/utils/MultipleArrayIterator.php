@@ -1,4 +1,7 @@
 <?php
+namespace SilverStripe\FullTextSearch\Utils;
+
+use Iterator;
 
 class MultipleArrayIterator implements Iterator
 {

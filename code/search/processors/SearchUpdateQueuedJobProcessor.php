@@ -1,8 +1,16 @@
 <?php
 
-if (!interface_exists('QueuedJob')) {
+namespace SilverStripe\FullTextSearch\Search\Processors;
+
+use SilverStripe\Core\Config\Config;
+use stdClass;
+
+if (!interface_exists('SilverStripe\QueuedJobs\Services\QueuedJob')) {
     return;
 }
+
+use SilverStripe\QueuedJobs\Services\QueuedJob;
+use SilverStripe\QueuedJobs\Services\QueuedJobService;
 
 class SearchUpdateQueuedJobProcessor extends SearchUpdateBatchedProcessor implements QueuedJob
 {
@@ -18,7 +26,7 @@ class SearchUpdateQueuedJobProcessor extends SearchUpdateBatchedProcessor implem
     public function triggerProcessing()
     {
         parent::triggerProcessing();
-        singleton('QueuedJobService')->queueJob($this);
+        singleton(QueuedJobService::class)->queueJob($this);
     }
 
     public function getTitle()
@@ -82,7 +90,7 @@ class SearchUpdateQueuedJobProcessor extends SearchUpdateBatchedProcessor implem
         $this->currentBatch = $jobData->currentBatch;
     }
 
-    public function addMessage($message, $severity='INFO')
+    public function addMessage($message, $severity = 'INFO')
     {
         $severity = strtoupper($severity);
         $this->messages[] = '[' . date('Y-m-d H:i:s') . "][$severity] $message";

@@ -1,4 +1,5 @@
 <?php
+namespace SilverStripe\FullTextSearch\Utils;
 
 class WebDAV
 {

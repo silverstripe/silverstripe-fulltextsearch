@@ -1,8 +1,22 @@
 <?php
 
-if (class_exists('Phockito')) {
-    Phockito::include_hamcrest(false);
-}
+namespace SilverStripe\FullTextSearch\Tests;
+
+use SilverStripe\Dev\SapphireTest;
+use SilverStripe\Core\Config\Config;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\FullTextSearch\Search\FullTextSearch;
+use SilverStripe\FullTextSearch\Search\SearchIntrospection;
+use SilverStripe\FullTextSearch\Search\Indexes\SearchIndex_Recording;
+use SilverStripe\FullTextSearch\Solr\Services\Solr3Service;
+use SilverStripe\FullTextSearch\Tests\SearchVariantVersionedTest\SearchVariantVersionedTest_Item;
+use SilverStripe\FullTextSearch\Tests\SolrIndexVersionedTest\SolrIndexVersionedTest_Object;
+use SilverStripe\FullTextSearch\Tests\SolrIndexVersionedTest\SolrVersionedTest_Index;
+use SilverStripe\FullTextSearch\Search\Processors\SearchUpdateProcessor;
+use SilverStripe\FullTextSearch\Search\Processors\SearchUpdateImmediateProcessor;
+use SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater;
+use SilverStripe\FullTextSearch\Search\Variants\SearchVariantVersioned;
+use SilverStripe\Versioned\Versioned;
 
 class SolrIndexVersionedTest extends SapphireTest
 {
@@ -10,43 +24,32 @@ class SolrIndexVersionedTest extends SapphireTest
 
     protected static $index = null;
 
-    protected $extraDataObjects = array(
-        'SearchVariantVersionedTest_Item',
-        'SolrIndexVersionedTest_Object',
+    protected static $extra_dataobjects = array(
+        SearchVariantVersionedTest_Item::class,
+        SolrIndexVersionedTest_Object::class
     );
 
-    public function setUp()
+    protected function setUp()
     {
+        Config::modify()->set(SearchUpdater::class, 'flush_on_shutdown', false);
+
         parent::setUp();
 
-        if (!class_exists('Phockito')) {
-            $this->skipTest = true;
-            $this->markTestSkipped("These tests need the Phockito module installed to run");
-            return;
-        }
-
-        // Check versioned available
-        if (!class_exists('Versioned')) {
-            $this->skipTest = true;
-            $this->markTestSkipped('The versioned decorator is not installed');
-            return;
-        }
-
         if (self::$index === null) {
-            self::$index = singleton('SolrVersionedTest_Index');
+            self::$index = singleton(SolrVersionedTest_Index::class);
         }
 
         SearchUpdater::bind_manipulation_capture();
 
-        Config::inst()->update('Injector', 'SearchUpdateProcessor', array(
-            'class' => 'SearchUpdateImmediateProcessor'
+        Config::modify()->set(Injector::class, SearchUpdateProcessor::class, array(
+            'class' => SearchUpdateImmediateProcessor::class
         ));
 
         FullTextSearch::force_index_list(self::$index);
         SearchUpdater::clear_dirty_indexes();
 
         $this->oldMode = Versioned::get_reading_mode();
-        Versioned::reading_stage('Stage');
+        Versioned::set_stage('Stage');
     }
 
     public function tearDown()
@@ -55,9 +58,17 @@ class SolrIndexVersionedTest extends SapphireTest
         parent::tearDown();
     }
 
-    protected function getServiceMock()
+    protected function getServiceMock($setMethods = array())
     {
-        return Phockito::mock('Solr3Service');
+        // Setup mock
+        /** @var SilverStripe\FullTextSearch\Solr\Services\Solr3Service|ObjectProphecy $serviceMock */
+        $serviceMock = $this->getMockBuilder(Solr3Service::class)
+            ->setMethods($setMethods)
+            ->getMock();
+
+        self::$index->setService($serviceMock);
+
+        return $serviceMock;
     }
 
     /**
@@ -68,166 +79,164 @@ class SolrIndexVersionedTest extends SapphireTest
     protected function getExpectedDocumentId($object, $stage)
     {
         $id = $object->ID;
-        $class = ClassInfo::baseDataClass($object);
+        $class = DataObject::getSchema()->baseDataClass($object);
         // Prevent subsites from breaking tests
+        // TODO: Subsites currently isn't migrated. This needs to be fixed when subsites is fixed.
         $subsites = '';
-        if(class_exists('Subsite') && $object->hasOne('Subsite')) {
+        if (class_exists('Subsite') && DataObject::getSchema()->hasOneComponent($object->getClassName(), 'Subsite')) {
             $subsites = '"SearchVariantSubsites":"0",';
         }
-        return $id.'-'.$class.'-{'.$subsites.'"SearchVariantVersioned":"'.$stage.'"}';
+        return $id.'-'.$class.'-{'.$subsites. json_encode(SearchVariantVersioned::class) . ':"'.$stage.'"}';
+    }
+
+    /**
+     * @param string $class
+     * @param DataObject $object Item being added
+     * @param string $value Value for class
+     * @param string $stage Stage updated
+     * @return Apache_Solr_Document
+     */
+    protected function getSolrDocument($class, $object, $value, $stage)
+    {
+        $doc = new \Apache_Solr_Document();
+        $doc->setField('_documentid', $this->getExpectedDocumentId($object, $stage));
+        $doc->setField('ClassName', $class);
+        $doc->setField(DataObject::getSchema()->baseDataClass($class) . '_TestText', $value);
+        $doc->setField('_versionedstage', $stage);
+        $doc->setField('ID', $object->ID);
+        $doc->setField('ClassHierarchy', SearchIntrospection::hierarchy($class));
+        $doc->setFieldBoost('ID', false);
+        $doc->setFieldBoost('ClassHierarchy', false);
+
+        return $doc;
     }
 
     public function testPublishing()
     {
-
-        // Setup mocks
-        $serviceMock = $this->getServiceMock();
-        self::$index->setService($serviceMock);
-
         // Check that write updates Stage
-        Versioned::reading_stage('Stage');
-        Phockito::reset($serviceMock);
+        Versioned::set_stage('Stage');
+
         $item = new SearchVariantVersionedTest_Item(array('TestText' => 'Foo'));
         $item->write();
         $object = new SolrIndexVersionedTest_Object(array('TestText' => 'Bar'));
         $object->write();
+
+        $doc1 = $this->getSolrDocument(SearchVariantVersionedTest_Item::class, $item, 'Foo', 'Stage');
+        $doc2 = $this->getSolrDocument(SolrIndexVersionedTest_Object::class, $object, 'Bar', 'Stage');
+
+        // Ensure correct call is made to Solr
+        $this->getServiceMock(['addDocument', 'commit'])
+            ->expects($this->exactly(2))
+            ->method('addDocument')
+            ->withConsecutive(
+                [
+                    $this->equalTo($doc1),
+                    $this->anything(),
+                    $this->anything(),
+                    $this->anything(),
+                    $this->anything()
+                ],
+                [
+                    $this->equalTo($doc2),
+                    $this->anything(),
+                    $this->anything(),
+                    $this->anything(),
+                    $this->anything()
+                ]
+            );
+
         SearchUpdater::flush_dirty_indexes();
-        $doc1 = new SolrDocumentMatcher(array(
-            '_documentid' => $this->getExpectedDocumentId($item, 'Stage'),
-            'ClassName' => 'SearchVariantVersionedTest_Item',
-            'SearchVariantVersionedTest_Item_TestText' => 'Foo',
-            '_versionedstage' => 'Stage'
-        ));
-        $doc2 = new SolrDocumentMatcher(array(
-            '_documentid' => $this->getExpectedDocumentId($object, 'Stage'),
-            'ClassName' => 'SolrIndexVersionedTest_Object',
-            'SolrIndexVersionedTest_Object_TestText' => 'Bar',
-            '_versionedstage' => 'Stage'
-        ));
-        Phockito::verify($serviceMock)->addDocument($doc1);
-        Phockito::verify($serviceMock)->addDocument($doc2);
+
 
         // Check that write updates Live
-        Versioned::reading_stage('Stage');
-        Phockito::reset($serviceMock);
+        Versioned::set_stage('Stage');
+
         $item = new SearchVariantVersionedTest_Item(array('TestText' => 'Foo'));
         $item->write();
-        $item->publish('Stage', 'Live');
+        $item->copyVersionToStage('Stage', 'Live');
+
         $object = new SolrIndexVersionedTest_Object(array('TestText' => 'Bar'));
         $object->write();
-        $object->publish('Stage', 'Live');
+        $object->copyVersionToStage('Stage', 'Live');
+
+        $doc1 = $this->getSolrDocument(SearchVariantVersionedTest_Item::class, $item, 'Foo', 'Stage');
+        $doc2 = $this->getSolrDocument(SearchVariantVersionedTest_Item::class, $item, 'Foo', 'Live');
+        $doc3 = $this->getSolrDocument(SolrIndexVersionedTest_Object::class, $object, 'Bar', 'Stage');
+        $doc4 = $this->getSolrDocument(SolrIndexVersionedTest_Object::class, $object, 'Bar', 'Live');
+
+        // Ensure correct call is made to Solr
+        $this->getServiceMock(['addDocument', 'commit'])
+            ->expects($this->exactly(4))
+            ->method('addDocument')
+            ->withConsecutive(
+                [
+                    $this->equalTo($doc1),
+                    $this->anything(),
+                    $this->anything(),
+                    $this->anything(),
+                    $this->anything()
+                ],
+                [
+                    $this->equalTo($doc2),
+                    $this->anything(),
+                    $this->anything(),
+                    $this->anything(),
+                    $this->anything()
+                ],
+                [
+                    $this->equalTo($doc3),
+                    $this->anything(),
+                    $this->anything(),
+                    $this->anything(),
+                    $this->anything()
+                ],
+                [
+                    $this->equalTo($doc4),
+                    $this->anything(),
+                    $this->anything(),
+                    $this->anything(),
+                    $this->anything()
+                ]
+            );
+
         SearchUpdater::flush_dirty_indexes();
-        $doc = new SolrDocumentMatcher(array(
-            '_documentid' => $this->getExpectedDocumentId($item, 'Live'),
-            'ClassName' => 'SearchVariantVersionedTest_Item',
-            'SearchVariantVersionedTest_Item_TestText' => 'Foo',
-            '_versionedstage' => 'Live'
-        ));
-        $doc2 = new SolrDocumentMatcher(array(
-            '_documentid' => $this->getExpectedDocumentId($object, 'Live'),
-            'ClassName' => 'SolrIndexVersionedTest_Object',
-            'SolrIndexVersionedTest_Object_TestText' => 'Bar',
-            '_versionedstage' => 'Live'
-        ));
-        Phockito::verify($serviceMock)->addDocument($doc);
-        Phockito::verify($serviceMock)->addDocument($doc2);
     }
 
     public function testDelete()
     {
-        // Setup mocks
-        $serviceMock = $this->getServiceMock();
-        self::$index->setService($serviceMock);
-
         // Delete the live record (not the stage)
-        Versioned::reading_stage('Stage');
-        Phockito::reset($serviceMock);
+        Versioned::set_stage('Stage');
+
         $item = new SearchVariantVersionedTest_Item(array('TestText' => 'Too'));
         $item->write();
-        $item->publish('Stage', 'Live');
-        Versioned::reading_stage('Live');
+        $item->copyVersionToStage('Stage', 'Live');
+        Versioned::set_stage('Live');
         $id = clone $item;
         $item->delete();
+
+        // Check that only the 'Live' version is deleted
+        $this->getServiceMock(['addDocument', 'commit', 'deleteById'])
+            ->expects($this->exactly(1))
+            ->method('deleteById')
+            ->with($this->equalTo($this->getExpectedDocumentId($id, 'Live')));
+
         SearchUpdater::flush_dirty_indexes();
-        Phockito::verify($serviceMock, 1)
-            ->deleteById($this->getExpectedDocumentId($id, 'Live'));
-        Phockito::verify($serviceMock, 0)
-            ->deleteById($this->getExpectedDocumentId($id, 'Stage'));
 
         // Delete the stage record
-        Versioned::reading_stage('Stage');
-        Phockito::reset($serviceMock);
+        Versioned::set_stage('Stage');
+
         $item = new SearchVariantVersionedTest_Item(array('TestText' => 'Too'));
         $item->write();
-        $item->publish('Stage', 'Live');
+        $item->copyVersionToStage('Stage', 'Live');
         $id = clone $item;
         $item->delete();
+
+        // Check that only the 'Stage' version is deleted
+        $this->getServiceMock(['addDocument', 'commit', 'deleteById'])
+            ->expects($this->exactly(1))
+            ->method('deleteById')
+            ->with($this->equalTo($this->getExpectedDocumentId($id, 'Stage')));
+
         SearchUpdater::flush_dirty_indexes();
-        Phockito::verify($serviceMock, 1)
-            ->deleteById($this->getExpectedDocumentId($id, 'Stage'));
-        Phockito::verify($serviceMock, 0)
-            ->deleteById($this->getExpectedDocumentId($id, 'Live'));
-    }
-}
-
-
-class SolrVersionedTest_Index extends SolrIndex
-{
-    public function init()
-    {
-        $this->addClass('SearchVariantVersionedTest_Item');
-        $this->addClass('SolrIndexVersionedTest_Object');
-        $this->addFilterField('TestText');
-        $this->addFulltextField('Content');
-    }
-}
-
-/**
- * Non-sitetree versioned dataobject
- */
-class SolrIndexVersionedTest_Object extends DataObject implements TestOnly {
-
-    private static $extensions = array(
-        'Versioned'
-    );
-
-    private static $db = array(
-        'Title' => 'Varchar',
-        'Content' => 'Text',
-        'TestText' => 'Varchar',
-    );
-}
-
-if (!class_exists('Phockito')) {
-    return;
-}
-
-class SolrDocumentMatcher extends Hamcrest_BaseMatcher
-{
-    protected $properties;
-
-    public function __construct($properties)
-    {
-        $this->properties = $properties;
-    }
-
-    public function describeTo(\Hamcrest_Description $description)
-    {
-        $description->appendText('Apache_Solr_Document with properties '.var_export($this->properties, true));
-    }
-
-    public function matches($item)
-    {
-        if (! ($item instanceof Apache_Solr_Document)) {
-            return false;
-        }
-
-        foreach ($this->properties as $key => $value) {
-            if ($item->{$key} != $value) {
-                return false;
-            }
-        }
-
-        return true;
     }
 }

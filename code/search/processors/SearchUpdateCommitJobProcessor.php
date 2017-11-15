@@ -1,8 +1,21 @@
 <?php
 
-if (!interface_exists('QueuedJob')) {
+namespace SilverStripe\FullTextSearch\Search\Processors;
+
+use SilverStripe\FullTextSearch\Search\FullTextSearch;
+use SilverStripe\Core\Config\Config;
+use SilverStripe\Core\Injector\Injector;
+use SilverStripe\ORM\FieldType\DBDatetime;
+use DateTime;
+use DateInterval;
+use stdClass;
+
+if (!interface_exists('SilverStripe\QueuedJobs\Services\QueuedJob')) {
     return;
 }
+
+use SilverStripe\QueuedJobs\Services\QueuedJob;
+use SilverStripe\QueuedJobs\Services\QueuedJobService;
 
 class SearchUpdateCommitJobProcessor implements QueuedJob
 {
@@ -81,7 +94,7 @@ class SearchUpdateCommitJobProcessor implements QueuedJob
     public static function queue($dirty = true, $startAfter = null)
     {
         $commit = Injector::inst()->create(__CLASS__);
-        $id = singleton('QueuedJobService')->queueJob($commit, $startAfter);
+        $id = singleton(QueuedJobService::class)->queueJob($commit, $startAfter);
 
         if ($dirty) {
             $indexes = FullTextSearch::get_indexes();
@@ -159,7 +172,7 @@ class SearchUpdateCommitJobProcessor implements QueuedJob
         // This could occur if we completed a searchupdate job in a prior request, as well as in
         // the current request
         $cooldown = Config::inst()->get(__CLASS__, 'cooldown');
-        $now = new DateTime(SS_Datetime::now()->getValue());
+        $now = new DateTime(DBDatetime::now()->getValue());
         $now->add(new DateInterval('PT'.$cooldown.'S'));
         $runat = $now->Format('Y-m-d H:i:s');
 
@@ -253,7 +266,7 @@ class SearchUpdateCommitJobProcessor implements QueuedJob
         $this->indexes = $jobData->indexes;
     }
 
-    public function addMessage($message, $severity='INFO')
+    public function addMessage($message, $severity = 'INFO')
     {
         $severity = strtoupper($severity);
         $this->messages[] = '[' . date('Y-m-d H:i:s') . "][$severity] $message";

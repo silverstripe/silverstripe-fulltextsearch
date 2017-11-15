@@ -1,5 +1,20 @@
 <?php
 
+namespace SilverStripe\FullTextSearch\Tests;
+
+use SilverStripe\Core\Config\Config;
+use SilverStripe\CMS\Model\SiteTree;
+use SilverStripe\Dev\SapphireTest;
+use SilverStripe\FullTextSearch\Search\FullTextSearch;
+use SilverStripe\FullTextSearch\Search\Indexes\SearchIndex_Recording;
+use SilverStripe\FullTextSearch\Search\Variants\SearchVariantVersioned;
+use SilverStripe\FullTextSearch\Tests\SearchVariantVersionedTest\SearchVariantVersionedTest_Index;
+use SilverStripe\FullTextSearch\Tests\SearchVariantVersionedTest\SearchVariantVersionedTest_Item;
+use SilverStripe\FullTextSearch\Tests\SearchVariantVersionedTest\SearchVariantVersionedTest_IndexNoStage;
+use SilverStripe\FullTextSearch\Search\Processors\SearchUpdateProcessor;
+use SilverStripe\FullTextSearch\Search\Processors\SearchUpdateImmediateProcessor;
+use SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater;
+
 class SearchVariantVersionedTest extends SapphireTest
 {
     /**
@@ -7,27 +22,24 @@ class SearchVariantVersionedTest extends SapphireTest
      */
     private static $index = null;
 
-    protected $extraDataObjects = array(
-        'SearchVariantVersionedTest_Item'
+    protected static $extra_dataobjects = array(
+        SearchVariantVersionedTest_Item::class
     );
 
-    public function setUp()
+    protected function setUp()
     {
+        Config::modify()->set(SearchUpdater::class, 'flush_on_shutdown', false);
+
         parent::setUp();
 
-        // Check versioned available
-        if (!class_exists('Versioned')) {
-            return $this->markTestSkipped('The versioned decorator is not installed');
-        }
-
         if (self::$index === null) {
-            self::$index = singleton('SearchVariantVersionedTest_Index');
+            self::$index = singleton(SearchVariantVersionedTest_Index::class);
         }
 
         SearchUpdater::bind_manipulation_capture();
 
-        Config::inst()->update('Injector', 'SearchUpdateProcessor', array(
-            'class' => 'SearchUpdateImmediateProcessor'
+        Config::modify()->set(Injector::class, SearchUpdateProcessor::class, array(
+            'class' => SearchUpdateImmediateProcessor::class
         ));
 
         FullTextSearch::force_index_list(self::$index);
@@ -42,20 +54,21 @@ class SearchVariantVersionedTest extends SapphireTest
         $item->write();
 
         SearchUpdater::flush_dirty_indexes();
-        $this->assertEquals(self::$index->getAdded(array('ID', '_versionedstage')), array(
+        $this->assertEquals(array(
             array('ID' => $item->ID, '_versionedstage' => 'Stage')
-        ));
+        ), self::$index->getAdded(array('ID', '_versionedstage')));
 
         // Check that publish updates Live
 
         self::$index->reset();
 
-        $item->publish("Stage", "Live");
+        $item->copyVersionToStage('Stage', 'Live');
 
         SearchUpdater::flush_dirty_indexes();
-        $this->assertEquals(self::$index->getAdded(array('ID', '_versionedstage')), array(
+        $this->assertEquals(array(
+            array('ID' => $item->ID, '_versionedstage' => 'Stage'),
             array('ID' => $item->ID, '_versionedstage' => 'Live')
-        ));
+        ), self::$index->getAdded(array('ID', '_versionedstage')));
 
         // Just update a SiteTree field, and check it updates Stage
 
@@ -83,7 +96,7 @@ class SearchVariantVersionedTest extends SapphireTest
 
         $this->assertCount(1, self::$index->deleted);
         $this->assertEquals(
-            'SiteTree',
+            SiteTree::class,
             self::$index->deleted[0]['base']
         );
         $this->assertEquals(
@@ -92,54 +105,29 @@ class SearchVariantVersionedTest extends SapphireTest
         );
         $this->assertEquals(
             'Live',
-            self::$index->deleted[0]['state']['SearchVariantVersioned']
+            self::$index->deleted[0]['state'][SearchVariantVersioned::class]
         );
     }
 
     public function testExcludeVariantState()
     {
-        $index = singleton('SearchVariantVersionedTest_IndexNoStage');
+        $index = singleton(SearchVariantVersionedTest_IndexNoStage::class);
         FullTextSearch::force_index_list($index);
 
         // Check that write doesn't update stage
         $item = new SearchVariantVersionedTest_Item(array('TestText' => 'Foo'));
         $item->write();
         SearchUpdater::flush_dirty_indexes();
-        $this->assertEquals($index->getAdded(array('ID', '_versionedstage')), array());
+        $this->assertEquals(array(), $index->getAdded(array('ID', '_versionedstage')));
 
         // Check that publish updates Live
         $index->reset();
-        $item->publish("Stage", "Live");
+
+        $item->copyVersionToStage('Stage', 'Live');
+
         SearchUpdater::flush_dirty_indexes();
-        $this->assertEquals($index->getAdded(array('ID', '_versionedstage')), array(
+        $this->assertEquals(array(
             array('ID' => $item->ID, '_versionedstage' => 'Live')
-        ));
-    }
-}
-
-class SearchVariantVersionedTest_Item extends SiteTree implements TestOnly
-{
-    // TODO: Currently theres a failure if you addClass a non-table class
-    private static $db = array(
-        'TestText' => 'Varchar'
-    );
-}
-
-class SearchVariantVersionedTest_Index extends SearchIndex_Recording
-{
-    public function init()
-    {
-        $this->addClass('SearchVariantVersionedTest_Item');
-        $this->addFilterField('TestText');
-    }
-}
-
-class SearchVariantVersionedTest_IndexNoStage extends SearchIndex_Recording
-{
-    public function init()
-    {
-        $this->addClass('SearchVariantVersionedTest_Item');
-        $this->addFilterField('TestText');
-        $this->excludeVariantState(array('SearchVariantVersioned' => 'Stage'));
+        ), $index->getAdded(array('ID', '_versionedstage')));
     }
 }

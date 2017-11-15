@@ -1,99 +1,18 @@
 <?php
 
-class SearchUpdaterTest_Container extends DataObject
-{
-    private static $db = array(
-        'Field1' => 'Varchar',
-        'Field2' => 'Varchar',
-        'MyDate' => 'Date',
-    );
+namespace SilverStripe\FullTextSearch\Tests;
 
-    private static $has_one = array(
-        'HasOneObject' => 'SearchUpdaterTest_HasOne'
-    );
-
-    private static $has_many = array(
-        'HasManyObjects' => 'SearchUpdaterTest_HasMany'
-    );
-
-    private static $many_many = array(
-        'ManyManyObjects' => 'SearchUpdaterTest_ManyMany'
-    );
-}
-
-/**
- * Used to test ambiguous relationships.
- */
-class SearchUpdaterTest_OtherContainer extends DataObject
-{
-    private static $has_many = array(
-        'HasManyObjects' => 'SearchUpdaterTest_HasMany'
-    );
-
-    private static $many_many = array(
-        'ManyManyObjects' => 'SearchUpdaterTest_ManyMany'
-    );
-}
-
-/**
- * Used to test inherited ambiguous relationships.
- */
-class SearchUpdaterTest_ExtendedContainer extends SearchUpdaterTest_OtherContainer
-{
-    private static $db = array(
-        'SomeField' => 'Varchar',
-    );
-}
-
-class SearchUpdaterTest_HasOne extends DataObject
-{
-    private static $db = array(
-        'Field1' => 'Varchar',
-        'Field2' => 'Varchar'
-    );
-
-    private static $has_many = array(
-        'HasManyContainers' => 'SearchUpdaterTest_Container'
-    );
-}
-
-class SearchUpdaterTest_HasMany extends DataObject
-{
-    private static $db = array(
-        'Field1' => 'Varchar',
-        'Field2' => 'Varchar'
-    );
-
-    private static $has_one = array(
-        'HasManyContainer' => 'SearchUpdaterTest_Container',
-        'HasManyOtherContainer' => 'SearchUpdaterTest_OtherContainer',
-    );
-}
-
-class SearchUpdaterTest_ManyMany extends DataObject
-{
-    private static $db = array(
-        'Field1' => 'Varchar',
-        'Field2' => 'Varchar'
-    );
-
-    private static $belongs_many_many = array(
-        'ManyManyContainer' => 'SearchUpdaterTest_Container',
-        'ManyManyOtherContainer' => 'SearchUpdaterTest_OtherContainer',
-    );
-}
-
-class SearchUpdaterTest_Index extends SearchIndex_Recording
-{
-    public function init()
-    {
-        $this->addClass('SearchUpdaterTest_Container');
-
-        $this->addFilterField('Field1');
-        $this->addFilterField('HasOneObject.Field1');
-        $this->addFilterField('HasManyObjects.Field1');
-    }
-}
+use SilverStripe\Core\Config\Config;
+use SilverStripe\Core\Injector\Injector;
+use SilverStripe\Dev\SapphireTest;
+use SilverStripe\FullTextSearch\Search\FullTextSearch;
+use SilverStripe\FullTextSearch\Search\Processors\SearchUpdateProcessor;
+use SilverStripe\FullTextSearch\Search\Processors\SearchUpdateImmediateProcessor;
+use SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater;
+use SilverStripe\FullTextSearch\Tests\SearchUpdaterTest\SearchUpdaterTest_Container;
+use SilverStripe\FullTextSearch\Tests\SearchUpdaterTest\SearchUpdaterTest_HasOne;
+use SilverStripe\FullTextSearch\Tests\SearchUpdaterTest\SearchUpdaterTest_HasMany;
+use SilverStripe\FullTextSearch\Tests\SearchUpdaterTest\SearchUpdaterTest_Index;
 
 class SearchUpdaterTest extends SapphireTest
 {
@@ -101,20 +20,22 @@ class SearchUpdaterTest extends SapphireTest
 
     private static $index = null;
 
-    public function setUp()
+    protected function setUp()
     {
+        Config::modify()->set(SearchUpdater::class, 'flush_on_shutdown', false);
+
         parent::setUp();
 
         if (self::$index === null) {
-            self::$index = singleton(get_class($this).'_Index');
+            self::$index = SearchUpdaterTest_Index::singleton();
         } else {
             self::$index->reset();
         }
 
         SearchUpdater::bind_manipulation_capture();
 
-        Config::inst()->update('Injector', 'SearchUpdateProcessor', array(
-            'class' => 'SearchUpdateImmediateProcessor'
+        Config::modify()->set(Injector::class, SearchUpdateProcessor::class, array(
+            'class' => SearchUpdateImmediateProcessor::class
         ));
 
         FullTextSearch::force_index_list(self::$index);
@@ -153,10 +74,11 @@ class SearchUpdaterTest extends SapphireTest
         // Check the default "writing a document updates the document"
         SearchUpdater::flush_dirty_indexes();
 
-
         $added = self::$index->getAdded(array('ID'));
         // Some databases don't output $added in a consistent order; that's okay
-        usort($added, function ($a, $b) {return $a['ID']-$b['ID']; });
+        usort($added, function ($a, $b) {
+            return $a['ID']-$b['ID'];
+        });
 
         $this->assertEquals($added, array(
             array('ID' => $container1->ID),
@@ -173,8 +95,11 @@ class SearchUpdaterTest extends SapphireTest
 
         SearchUpdater::flush_dirty_indexes();
         $added = self::$index->getAdded(array('ID'));
+
         // Some databases don't output $added in a consistent order; that's okay
-        usort($added, function ($a, $b) {return $a['ID']-$b['ID']; });
+        usort($added, function ($a, $b) {
+            return $a['ID']-$b['ID'];
+        });
 
         $this->assertEquals($added, array(
             array('ID' => $container1->ID),

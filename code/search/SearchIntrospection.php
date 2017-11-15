@@ -1,4 +1,8 @@
 <?php
+namespace SilverStripe\FullTextSearch\Search;
+
+use SilverStripe\Core\ClassInfo;
+use SilverStripe\ORM\DataObject;
 
 /**
  * Some additional introspection tools that are used often by the fulltext search code
@@ -34,21 +38,21 @@ class SearchIntrospection
     public static function hierarchy($class, $includeSubclasses = true, $dataOnly = false)
     {
         $key = "$class!" . ($includeSubclasses ? 'sc' : 'an') . '!' . ($dataOnly ? 'do' : 'al');
-        
+
         if (!isset(self::$hierarchy[$key])) {
             $classes = array_values(ClassInfo::ancestry($class));
             if ($includeSubclasses) {
                 $classes = array_unique(array_merge($classes, array_values(ClassInfo::subclassesFor($class))));
             }
 
-            $idx = array_search('DataObject', $classes);
+            $idx = array_search('SilverStripe\ORM\DataObject', $classes);
             if ($idx !== false) {
                 array_splice($classes, 0, $idx+1);
             }
 
             if ($dataOnly) {
                 foreach ($classes as $i => $class) {
-                    if (!DataObject::has_own_table($class)) {
+                    if (!DataObject::getSchema()->classHasTable($class)) {
                         unset($classes[$i]);
                     }
                 }

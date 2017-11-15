@@ -1,6 +1,12 @@
 <?php
 
+namespace SilverStripe\FullTextSearch\Solr\Reindex\Handlers;
+
 use Psr\Log\LoggerInterface;
+use SilverStripe\Control\Director;
+use SilverStripe\FullTextSearch\Solr\Solr;
+use SilverStripe\FullTextSearch\Solr\SolrIndex;
+use SilverStripe\ORM\DB;
 
 /**
  * Invokes an immediate reindex
@@ -15,7 +21,11 @@ class SolrReindexImmediateHandler extends SolrReindexBase
     }
 
     protected function processIndex(
-        LoggerInterface $logger, SolrIndex $indexInstance, $batchSize, $taskName, $classes = null
+        LoggerInterface $logger,
+        SolrIndex $indexInstance,
+        $batchSize,
+        $taskName,
+        $classes = null
     ) {
         parent::processIndex($logger, $indexInstance, $batchSize, $taskName, $classes);
 
@@ -40,7 +50,13 @@ class SolrReindexImmediateHandler extends SolrReindexBase
      * @param string $taskName Name of task script to run
      */
     protected function processGroup(
-        LoggerInterface $logger, SolrIndex $indexInstance, $state, $class, $groups, $group, $taskName
+        LoggerInterface $logger,
+        SolrIndex $indexInstance,
+        $state,
+        $class,
+        $groups,
+        $group,
+        $taskName
     ) {
         // Build state
         $statevar = json_encode($state);
@@ -53,9 +69,12 @@ class SolrReindexImmediateHandler extends SolrReindexBase
         // Build script
         $indexName = $indexInstance->getIndexName();
         $indexClass = get_class($indexInstance);
+        $indexClassEscaped = addslashes($indexClass);
+        $class = addslashes($class);
         $scriptPath = sprintf("%s%sframework%scli-script.php", BASE_PATH, DIRECTORY_SEPARATOR, DIRECTORY_SEPARATOR);
         $scriptTask = "php {$scriptPath} dev/tasks/{$taskName}";
-        $cmd = "{$scriptTask} index={$indexClass} class={$class} group={$group} groups={$groups} variantstate={$statevar}";
+
+        $cmd = "{$scriptTask} index={$indexClassEscaped} class={$class} group={$group} groups={$groups} variantstate={$statevar}";
         $cmd .= " verbose=1 2>&1";
         $logger->info("Running '$cmd'");
 

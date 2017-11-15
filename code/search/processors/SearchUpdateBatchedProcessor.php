@@ -1,5 +1,9 @@
 <?php
 
+namespace SilverStripe\FullTextSearch\Search\Processors;
+
+use SilverStripe\Core\Config\Config;
+
 /**
  * Provides batching of search updates
  */
@@ -22,7 +26,7 @@ abstract class SearchUpdateBatchedProcessor extends SearchUpdateProcessor
     
     /**
      * List of indexes successfully comitted in the current batch
-     * 
+     *
      * @var array
      */
     protected $completedIndexes;
@@ -39,7 +43,7 @@ abstract class SearchUpdateBatchedProcessor extends SearchUpdateProcessor
     /**
      * Up to this number of additional ids can be added to any batch in order to reduce the number
      * of batches
-     * 
+     *
      * @config
      * @var int
      */
@@ -55,7 +59,7 @@ abstract class SearchUpdateBatchedProcessor extends SearchUpdateProcessor
     
     /**
      * Set the current batch index
-     * 
+     *
      * @param int $batch Index of the batch
      */
     protected function setBatch($batch)
@@ -72,7 +76,7 @@ abstract class SearchUpdateBatchedProcessor extends SearchUpdateProcessor
     
     /**
      * Process the current queue
-     * 
+     *
      * @return boolean
      */
     public function process()
@@ -97,7 +101,7 @@ abstract class SearchUpdateBatchedProcessor extends SearchUpdateProcessor
     
     /**
      * Segments batches acording to the specified rules
-     * 
+     *
      * @param array $source Source input
      * @return array Batches
      */

@@ -1,6 +1,21 @@
 <?php
 
+namespace SilverStripe\FullTextSearch\Solr;
+
 Solr::include_client_api();
+
+use SilverStripe\Control\Director;
+use SilverStripe\FulltextSearch\Search\Indexes\SearchIndex;
+use SilverStripe\FullTextSearch\Solr\Services\SolrService;
+use SilverStripe\FulltextSearch\Search\Queries\SearchQuery;
+use SilverStripe\FullTextSearch\Search\Queries\SearchQuery_Range;
+use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
+use SilverStripe\FulltextSearch\Search\SearchIntrospection;
+use SilverStripe\ORM\ArrayList;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\ORM\FieldType\DBField;
+use SilverStripe\ORM\PaginatedList;
+use SilverStripe\View\ArrayData;
 
 abstract class SolrIndex extends SearchIndex
 {
@@ -31,6 +46,11 @@ abstract class SolrIndex extends SearchIndex
     protected $extrasPath = null;
 
     protected $templatesPath = null;
+
+    private static $casting = [
+        'FieldDefinitions' => 'HTMLText',
+        'CopyFieldDefinitions' => 'HTMLText'
+    ];
 
     /**
      * List of boosted fields
@@ -90,11 +110,11 @@ abstract class SolrIndex extends SearchIndex
     {
         $name = get_class($this);
 
-        if(defined('SS_SOLR_INDEX_PREFIX')) {
+        if (defined('SS_SOLR_INDEX_PREFIX')) {
             $name = SS_SOLR_INDEX_PREFIX . ''. $name;
         }
 
-        if(defined('SS_SOLR_INDEX_SUFFIX')) {
+        if (defined('SS_SOLR_INDEX_SUFFIX')) {
             $name = $name . '' . SS_SOLR_INDEX_SUFFIX;
         }
 
@@ -311,7 +331,7 @@ abstract class SolrIndex extends SearchIndex
     public function setFieldBoosting($field, $level)
     {
         if (!isset($this->fulltextFields[$field])) {
-            throw new InvalidArgumentException("No fulltext field $field exists on ".$this->getIndexName());
+            throw new \InvalidArgumentException("No fulltext field $field exists on ".$this->getIndexName());
         }
         if ($level === null) {
             unset($this->boostedFields[$field]);
@@ -474,10 +494,11 @@ abstract class SolrIndex extends SearchIndex
      * @param array|string $base Class or list of base classes
      * @return bool
      */
-    protected function classIs($class, $base) {
-        if(is_array($base)) {
-            foreach($base as $nextBase) {
-                if($this->classIs($class, $nextBase)) {
+    protected function classIs($class, $base)
+    {
+        if (is_array($base)) {
+            foreach ($base as $nextBase) {
+                if ($this->classIs($class, $nextBase)) {
                     return true;
                 }
             }
@@ -491,7 +512,7 @@ abstract class SolrIndex extends SearchIndex
     protected function _addField($doc, $object, $field)
     {
         $class = get_class($object);
-        if(!$this->classIs($class, $field['origin'])) {
+        if (!$this->classIs($class, $field['origin'])) {
             return;
         }
 
@@ -530,7 +551,10 @@ abstract class SolrIndex extends SearchIndex
                 return;
             }
 
-            $doc->setField($field['name'], $value);
+            // Only index fields that are not null
+            if ($value !== null) {
+                $doc->setField($field['name'], $value);
+            }
         }
     }
 
@@ -538,7 +562,7 @@ abstract class SolrIndex extends SearchIndex
     {
         $includeSubs = $options['include_children'];
 
-        $doc = new Apache_Solr_Document();
+        $doc = new \Apache_Solr_Document();
 
         // Always present fields
 
@@ -575,7 +599,7 @@ abstract class SolrIndex extends SearchIndex
 
         foreach ($this->getClasses() as $searchclass => $options) {
             if ($searchclass == $class || ($options['include_children'] && is_subclass_of($class, $searchclass))) {
-                $base = ClassInfo::baseDataClass($searchclass);
+                $base = DataObject::getSchema()->baseDataClass($searchclass);
                 $docs[] = $this->_addAs($object, $base, $options);
             }
         }
@@ -740,7 +764,7 @@ abstract class SolrIndex extends SearchIndex
             $offset,
             $limit,
             $params,
-            Apache_Solr_Service::METHOD_POST
+            \Apache_Solr_Service::METHOD_POST
         );
 
         $results = new ArrayList();
