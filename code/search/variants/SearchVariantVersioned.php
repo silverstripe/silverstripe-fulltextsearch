@@ -21,7 +21,7 @@ class SearchVariantVersioned extends SearchVariant
     }
     public function reindexStates()
     {
-        return array('Stage', 'Live');
+        return [Versioned::DRAFT, Versioned::LIVE];
     }
     public function activateState($state)
     {
@@ -30,23 +30,29 @@ class SearchVariantVersioned extends SearchVariant
 
     public function alterDefinition($class, $index)
     {
-        $self = get_class($this);
-
-        $this->addFilterField($index, '_versionedstage', array(
+        $this->addFilterField($index, '_versionedstage', [
             'name' => '_versionedstage',
             'field' => '_versionedstage',
             'fullfield' => '_versionedstage',
             'base' => DataObject::getSchema()->baseDataClass($class),
             'origin' => $class,
             'type' => 'String',
-            'lookup_chain' => array(array('call' => 'variant', 'variant' => $self, 'method' => 'currentState'))
-        ));
+            'lookup_chain' => [
+                [
+                    'call' => 'variant',
+                    'variant' => get_class($this),
+                    'method' => 'currentState'
+                ]
+            ]
+        ]);
     }
 
     public function alterQuery($query, $index)
     {
-        $stage = $this->currentState();
-        $query->filter('_versionedstage', array($stage, SearchQuery::$missing));
+        $query->filter('_versionedstage', [
+            $this->currentState(),
+            SearchQuery::$missing
+        ]);
     }
 
     public function extractManipulationState(&$manipulation)
@@ -55,11 +61,11 @@ class SearchVariantVersioned extends SearchVariant
 
         foreach ($manipulation as $table => $details) {
             $class = $details['class'];
-            $stage = 'Stage';
+            $stage = Versioned::DRAFT;
 
-            if (preg_match('/^(.*)_Live$/', $table, $matches)) {
+            if (preg_match('/^(.*)_' . Versioned::LIVE . '$/', $table, $matches)) {
                 $class = DataObject::getSchema()->tableClass($matches[1]);
-                $stage = 'Live';
+                $stage = Versioned::LIVE;
             }
 
             if (ClassInfo::exists($class) && $this->appliesTo($class, false)) {
@@ -80,7 +86,7 @@ class SearchVariantVersioned extends SearchVariant
             $self = get_class($this);
 
             foreach ($ids as $i => $statefulid) {
-                $ids[$i]['state'][$self] = $suffix ? $suffix : 'Stage';
+                $ids[$i]['state'][$self] = $suffix ? $suffix : Versioned::DRAFT;
             }
         }
     }

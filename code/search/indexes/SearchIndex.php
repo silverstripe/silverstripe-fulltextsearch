@@ -11,6 +11,7 @@ use SilverStripe\FullTextSearch\Search\SearchIntrospection;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
 use SilverStripe\FullTextSearch\Utils\MultipleArrayIterator;
 use SilverStripe\ORM\DataObject;
+use SilverStripe\ORM\FieldType\DBField;
 use SilverStripe\ORM\FieldType\DBString;
 use SilverStripe\ORM\Queries\SQLSelect;
 use SilverStripe\View\ViewableData;
@@ -356,17 +357,16 @@ abstract class SearchIndex extends ViewableData
     public function addAllFulltextFields($includeSubclasses = true)
     {
         foreach ($this->getClasses() as $class => $options) {
-            foreach (SearchIntrospection::hierarchy($class, $includeSubclasses, true) as $dataclass) {
-                $fields = DataObject::getSchema()->databaseFields($class);
+            $classHierarchy = SearchIntrospection::hierarchy($class, $includeSubclasses, true);
+
+            foreach ($classHierarchy as $dataClass) {
+                $fields = DataObject::getSchema()->databaseFields($dataClass);
+
                 foreach ($fields as $field => $type) {
-                    if (preg_match('/^(\w+)\(/', $type, $match)) {
-                        $type = $match[1];
-                    }
                     list($type, $args) = ClassInfo::parse_class_spec($type);
 
-                    // Get class from shortName
+                    /** @var DBField $object */
                     $object = Injector::inst()->get($type, false, ['Name' => 'test']);
-
                     if ($object instanceof DBString) {
                         $this->addFulltextField($field);
                     }

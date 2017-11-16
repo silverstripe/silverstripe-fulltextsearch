@@ -711,9 +711,9 @@ abstract class SolrIndex extends SearchIndex
         $classq = array();
         foreach ($query->classes as $class) {
             if (!empty($class['includeSubclasses'])) {
-                $classq[] = 'ClassHierarchy:'.$class['class'];
+                $classq[] = 'ClassHierarchy:' . $this->sanitiseClassName($class['class']);
             } else {
-                $classq[] = 'ClassName:'.$class['class'];
+                $classq[] = 'ClassName:' . $this->sanitiseClassName($class['class']);
             }
         }
         if ($classq) {
@@ -845,6 +845,16 @@ abstract class SolrIndex extends SearchIndex
         return $ret;
     }
 
+    /**
+     * Solr requires namespaced classes to have double escaped backslashes
+     *
+     * @param  string $className E.g. My\Object\Here
+     * @return string            E.g. My\\Object\\Here
+     */
+    public function sanitiseClassName($className)
+    {
+        return str_replace('\\', '\\\\', $className);
+    }
 
     /**
      * Get the query (q) component for this search
