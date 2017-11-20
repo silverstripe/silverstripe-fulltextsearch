@@ -4,6 +4,7 @@ namespace SilverStripe\FullTextSearch\Search\Indexes;
 
 use Exception;
 use InvalidArgumentException;
+use Psr\Log\LoggerInterface;
 use SilverStripe\Core\ClassInfo;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Core\Injector\Injector;
@@ -564,15 +565,10 @@ abstract class SearchIndex extends ViewableData
      * Log non-fatal errors
      *
      * @param Exception $e
-     * @throws Exception
      */
     public static function warn($e)
     {
-        // Noisy errors during testing
-        if (class_exists('SapphireTest', false) && SapphireTest::is_running_test()) {
-            throw $e;
-        }
-        SS_Log::log($e, SS_Log::WARN);
+        Injector::inst()->get(LoggerInterface::class)->warning($e);
     }
 
     /**
