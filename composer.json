@@ -27,11 +27,7 @@
         "silverstripe/cms": "~3.1",
         "hafriedlander/silverstripe-phockito": "*"
     },
-    "extra": {
-        "branch-alias": {
-            "2.x-dev": "2.4.x-dev"
-        }
-    },
+    "extra": [],
     "suggest": {
         "silverstripe/fulltextsearch-localsolr": "Adds a ready-to-use local Solr server for initial development"
     },
