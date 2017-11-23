@@ -29,7 +29,7 @@ For details of updates, bugfixes, and features, please see the [changelog](CHANG
 used at query time for most of the same use cases
 
 * Fix field referencing in queries. Should be able to do `$query->search('Text', 'Content')`, not
-`$query->search('Text', 'SiteTree_Content')` like you have to do now
+`$query->search('Text', SiteTree::class . '_Content')` like you have to do now
 
     - Make sure that when field exists in multiple classes, searching against bare fields searches all of them
 

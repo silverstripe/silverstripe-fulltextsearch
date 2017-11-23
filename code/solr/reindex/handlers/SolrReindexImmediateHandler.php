@@ -4,6 +4,7 @@ namespace SilverStripe\FullTextSearch\Solr\Reindex\Handlers;
 
 use Psr\Log\LoggerInterface;
 use SilverStripe\Control\Director;
+use SilverStripe\Core\Manifest\ModuleLoader;
 use SilverStripe\FullTextSearch\Solr\Solr;
 use SilverStripe\FullTextSearch\Solr\SolrIndex;
 use SilverStripe\ORM\DB;
@@ -71,7 +72,8 @@ class SolrReindexImmediateHandler extends SolrReindexBase
         $indexClass = get_class($indexInstance);
         $indexClassEscaped = addslashes($indexClass);
         $class = addslashes($class);
-        $scriptPath = sprintf("%s%sframework%scli-script.php", BASE_PATH, DIRECTORY_SEPARATOR, DIRECTORY_SEPARATOR);
+        $frameworkPath = ModuleLoader::getModule('silverstripe/framework')->getPath();
+        $scriptPath = sprintf("%s%scli-script.php", $frameworkPath, DIRECTORY_SEPARATOR);
         $scriptTask = "php {$scriptPath} dev/tasks/{$taskName}";
 
         $cmd = "{$scriptTask} index={$indexClassEscaped} class={$class} group={$group} groups={$groups} variantstate={$statevar}";

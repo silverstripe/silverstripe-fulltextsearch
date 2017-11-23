@@ -1,9 +1,10 @@
 <?php
 namespace SilverStripe\FullTextSearch\Solr\Tasks;
 
+use Monolog\Handler\StreamHandler;
+use Psr\Log\LoggerInterface;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\BuildTask;
-use Psr\Log\LoggerInterface;
 use SilverStripe\FullTextSearch\Utils\Logging\SearchLogFactory;
 
 /**
@@ -21,13 +22,13 @@ class Solr_BuildTask extends BuildTask
     protected $logger = null;
 
     /**
-     * Get the current logger
+     * Get the monolog logger
      *
      * @return LoggerInterface
      */
     public function getLogger()
     {
-        return Injector::inst()->get(LoggerInterface::class);
+        return $this->logger;
     }
 
     /**

@@ -328,6 +328,15 @@ class SolrIndexTest extends SapphireTest
         );
     }
 
+    public function testSanitiseClassName()
+    {
+        $index = new SolrIndexTest_FakeIndex2;
+        $this->assertSame(
+            'SilverStripe\\\\FullTextSearch\\\\Tests\\\\SolrIndexTest',
+            $index->sanitiseClassName(static::class)
+        );
+    }
+
     protected function getFakeRawSolrResponse()
     {
         return new \Apache_Solr_Response(
