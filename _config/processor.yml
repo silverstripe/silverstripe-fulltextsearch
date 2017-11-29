@@ -11,7 +11,7 @@ SilverStripe\Core\Injector\Injector:
 ---
 Name: queuedjobprocessor
 Only:
-  ModuleExists: silverstripe/queuedjobs
+  ModuleExists: symbiote/silverstripe-queuedjobs
 Except:
   Environment: 'dev'
 ---

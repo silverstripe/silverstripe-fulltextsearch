@@ -9,11 +9,11 @@ use SilverStripe\FullTextSearch\Solr\Reindex\Handlers\SolrReindexHandler;
 use SilverStripe\FullTextSearch\Utils\Logging\SearchLogFactory;
 use stdClass;
 
-if (!interface_exists('SilverStripe\QueuedJobs\Services\QueuedJob')) {
+if (!interface_exists('Symbiote\QueuedJobs\Services\QueuedJob')) {
     return;
 }
 
-use SilverStripe\QueuedJobs\Services\QueuedJob;
+use Symbiote\QueuedJobs\Services\QueuedJob;
 
 /**
  * Base class for jobs which perform re-index

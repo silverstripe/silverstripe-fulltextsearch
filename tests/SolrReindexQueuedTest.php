@@ -18,8 +18,8 @@ use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_Index;
 use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_Item;
 use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_RecordingLogger;
 use SilverStripe\FullTextSearch\Tests\SolrReindexQueuedTest\SolrReindexQueuedTest_Service;
-use SilverStripe\QueuedJobs\Services\QueuedJob;
-use SilverStripe\QueuedJobs\Services\QueuedJobService;
+use Symbiote\QueuedJobs\Services\QueuedJob;
+use Symbiote\QueuedJobs\Services\QueuedJobService;
 
 /**
  * Additional tests of solr reindexing processes when run with queuedjobs
@@ -50,7 +50,7 @@ class SolrReindexQueuedTest extends SapphireTest
     {
         parent::setUp();
 
-        if (!interface_exists('SilverStripe\QueuedJobs\Services\QueuedJob')) {
+        if (!interface_exists('Symbiote\QueuedJobs\Services\QueuedJob')) {
             $this->skipTest = true;
             return $this->markTestSkipped("These tests need the QueuedJobs module installed to run");
         }
