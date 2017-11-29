@@ -8,6 +8,7 @@ use SilverStripe\Dev\SapphireTest;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\DB;
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
+use SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater;
 use SilverStripe\FullTextSearch\Solr\Reindex\Handlers\SolrReindexQueuedHandler;
 use SilverStripe\FullTextSearch\Solr\Reindex\Handlers\SolrReindexHandler;
 use SilverStripe\FullTextSearch\Solr\Services\Solr4Service;
@@ -46,8 +47,10 @@ class SolrReindexQueuedTest extends SapphireTest
      */
     protected $service = null;
 
-    public function setUp()
+    protected function setUp()
     {
+        Config::modify()->set(SearchUpdater::class, 'flush_on_shutdown', false);
+
         parent::setUp();
 
         if (!interface_exists('Symbiote\QueuedJobs\Services\QueuedJob')) {

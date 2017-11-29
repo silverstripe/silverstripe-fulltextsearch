@@ -45,8 +45,10 @@ class BatchedProcessorTest extends SapphireTest
         parent::setUpOnce();
     }
 
-    public function setUp()
+    protected function setUp()
     {
+        Config::modify()->set(SearchUpdater::class, 'flush_on_shutdown', false);
+
         parent::setUp();
 
         if (!interface_exists('Symbiote\QueuedJobs\Services\QueuedJob')) {
