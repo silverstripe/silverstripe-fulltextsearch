@@ -151,22 +151,4 @@ class Solr
     {
         return FullTextSearch::get_indexes(SolrIndex::class);
     }
-
-    /**
-     * Include the thirdparty Solr client api library. Done this way to avoid issues where code is called in
-     * mysite/_config before fulltextsearch/_config has a change to update the include path.
-     */
-    public static function include_client_api()
-    {
-        static $included = false;
-
-        if (!$included) {
-            $solr_php_path = __DIR__. '/../..' . '/thirdparty/solr-php-client/';
-            set_include_path(get_include_path() . PATH_SEPARATOR . $solr_php_path);
-            require_once($solr_php_path . 'Apache/Solr/Service.php');
-            require_once($solr_php_path . 'Apache/Solr/Document.php');
-
-            $included = true;
-        }
-    }
 }
