@@ -56,6 +56,8 @@ class BatchedProcessorTest extends SapphireTest
             $this->markTestSkipped("These tests need the QueuedJobs module installed to run");
         }
 
+        Config::modify()->set(QueuedJobService::class, 'use_shutdown_function', false);
+
         if (class_exists('Subsite')) {
             $this->skipTest = true;
             $this->markTestSkipped(get_class() . ' skipped when running with subsites');

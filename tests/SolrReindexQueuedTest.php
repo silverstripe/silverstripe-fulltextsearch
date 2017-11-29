@@ -58,6 +58,8 @@ class SolrReindexQueuedTest extends SapphireTest
             return $this->markTestSkipped("These tests need the QueuedJobs module installed to run");
         }
 
+        Config::modify()->set(QueuedJobService::class, 'use_shutdown_function', false);
+
         // Set queued handler for reindex
         Config::modify()->set(Injector::class, SolrReindexHandler::class, array(
             'class' => SolrReindexQueuedHandler::class
