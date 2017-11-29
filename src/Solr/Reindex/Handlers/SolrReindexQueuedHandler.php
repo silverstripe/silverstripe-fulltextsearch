@@ -12,13 +12,13 @@ use SilverStripe\FullTextSearch\Solr\Reindex\Jobs\SolrReindexQueuedJob;
 use SilverStripe\FullTextSearch\Solr\Reindex\Jobs\SolrReindexGroupQueuedJob;
 use SilverStripe\FullTextSearch\Search\Processors\SearchUpdateCommitJobProcessor;
 
-if (!interface_exists('SilverStripe\QueuedJobs\Services\QueuedJob')) {
+if (!interface_exists('Symbiote\QueuedJobs\Services\QueuedJob')) {
     return;
 }
 
-use SilverStripe\QueuedJobs\Services\QueuedJob;
-use SilverStripe\QueuedJobs\Services\QueuedJobService;
-use SilverStripe\QueuedJobs\DataObjects\QueuedJobDescriptor;
+use Symbiote\QueuedJobs\Services\QueuedJob;
+use Symbiote\QueuedJobs\Services\QueuedJobService;
+use Symbiote\QueuedJobs\DataObjects\QueuedJobDescriptor;
 
 /**
  * Represents a queued task to start the reindex job

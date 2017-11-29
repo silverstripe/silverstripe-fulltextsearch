@@ -2,7 +2,7 @@
 
 namespace SilverStripe\FullTextSearch\Tests\BatchedProcessorTest;
 
-use SilverStripe\QueuedJobs\Services\QueuedJob;
+use Symbiote\QueuedJobs\Services\QueuedJob;
 
 class BatchedProcessor_QueuedJobService
 {

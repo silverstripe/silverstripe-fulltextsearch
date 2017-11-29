@@ -16,7 +16,7 @@ use SilverStripe\FullTextSearch\Search\Processors\SearchUpdateQueuedJobProcessor
 use SilverStripe\FullTextSearch\Search\Processors\SearchUpdateBatchedProcessor;
 use SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariantVersioned;
-use SilverStripe\QueuedJobs\Services\QueuedJobService;
+use Symbiote\QueuedJobs\Services\QueuedJobService;
 
 /**
  * Tests {@see SearchUpdateQueuedJobProcessor}
@@ -39,20 +39,24 @@ class BatchedProcessorTest extends SapphireTest
     public function setUpOnce()
     {
         // Disable illegal extensions if skipping this test
-        if (class_exists('Subsite') || !interface_exists('SilverStripe\QueuedJobs\Services\QueuedJob')) {
+        if (class_exists('Subsite') || !interface_exists('Symbiote\QueuedJobs\Services\QueuedJob')) {
             $this->illegalExtensions = array();
         }
         parent::setUpOnce();
     }
 
-    public function setUp()
+    protected function setUp()
     {
+        Config::modify()->set(SearchUpdater::class, 'flush_on_shutdown', false);
+
         parent::setUp();
 
-        if (!interface_exists('SilverStripe\QueuedJobs\Services\QueuedJob')) {
+        if (!interface_exists('Symbiote\QueuedJobs\Services\QueuedJob')) {
             $this->skipTest = true;
             $this->markTestSkipped("These tests need the QueuedJobs module installed to run");
         }
+
+        Config::modify()->set(QueuedJobService::class, 'use_shutdown_function', false);
 
         if (class_exists('Subsite')) {
             $this->skipTest = true;

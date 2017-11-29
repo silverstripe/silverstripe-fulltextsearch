@@ -8,6 +8,7 @@ use SilverStripe\Dev\SapphireTest;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\DB;
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
+use SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater;
 use SilverStripe\FullTextSearch\Solr\Reindex\Handlers\SolrReindexQueuedHandler;
 use SilverStripe\FullTextSearch\Solr\Reindex\Handlers\SolrReindexHandler;
 use SilverStripe\FullTextSearch\Solr\Services\Solr4Service;
@@ -18,8 +19,8 @@ use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_Index;
 use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_Item;
 use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_RecordingLogger;
 use SilverStripe\FullTextSearch\Tests\SolrReindexQueuedTest\SolrReindexQueuedTest_Service;
-use SilverStripe\QueuedJobs\Services\QueuedJob;
-use SilverStripe\QueuedJobs\Services\QueuedJobService;
+use Symbiote\QueuedJobs\Services\QueuedJob;
+use Symbiote\QueuedJobs\Services\QueuedJobService;
 
 /**
  * Additional tests of solr reindexing processes when run with queuedjobs
@@ -46,14 +47,18 @@ class SolrReindexQueuedTest extends SapphireTest
      */
     protected $service = null;
 
-    public function setUp()
+    protected function setUp()
     {
+        Config::modify()->set(SearchUpdater::class, 'flush_on_shutdown', false);
+
         parent::setUp();
 
-        if (!interface_exists('SilverStripe\QueuedJobs\Services\QueuedJob')) {
+        if (!interface_exists('Symbiote\QueuedJobs\Services\QueuedJob')) {
             $this->skipTest = true;
             return $this->markTestSkipped("These tests need the QueuedJobs module installed to run");
         }
+
+        Config::modify()->set(QueuedJobService::class, 'use_shutdown_function', false);
 
         // Set queued handler for reindex
         Config::modify()->set(Injector::class, SolrReindexHandler::class, array(
