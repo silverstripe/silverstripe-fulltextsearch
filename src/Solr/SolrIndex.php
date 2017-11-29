@@ -3,6 +3,7 @@
 namespace SilverStripe\FullTextSearch\Solr;
 
 use SilverStripe\Control\Director;
+use SilverStripe\Core\Environment;
 use SilverStripe\FulltextSearch\Search\Indexes\SearchIndex;
 use SilverStripe\FullTextSearch\Solr\Services\SolrService;
 use SilverStripe\FulltextSearch\Search\Queries\SearchQuery;
@@ -108,16 +109,17 @@ abstract class SolrIndex extends SearchIndex
     public function getIndexName()
     {
         $name = get_class($this);
+        $indexParts = [$name];
 
-        if (defined('SS_SOLR_INDEX_PREFIX')) {
-            $name = SS_SOLR_INDEX_PREFIX . ''. $name;
+        if ($indexPrefix = Environment::getEnv('SS_SOLR_INDEX_PREFIX')) {
+            array_unshift($indexParts, $indexPrefix);
         }
 
-        if (defined('SS_SOLR_INDEX_SUFFIX')) {
-            $name = $name . '' . SS_SOLR_INDEX_SUFFIX;
+        if ($indexSuffix = Environment::getEnv('SS_SOLR_INDEX_SUFFIX')) {
+            $indexParts[] = $indexSuffix;
         }
 
-        return $name;
+        return implode($indexParts);
     }
 
     public function getTypes()

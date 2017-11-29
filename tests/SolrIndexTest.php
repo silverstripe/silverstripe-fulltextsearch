@@ -3,6 +3,7 @@
 namespace SilverStripe\FullTextSearch\Tests;
 
 use SilverStripe\Core\Config\Config;
+use SilverStripe\Core\Environment;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Core\Kernel;
 use SilverStripe\Dev\SapphireTest;
@@ -335,6 +336,22 @@ class SolrIndexTest extends SapphireTest
             'SilverStripe\\\\FullTextSearch\\\\Tests\\\\SolrIndexTest',
             $index->sanitiseClassName(static::class)
         );
+    }
+
+    public function testGetIndexName()
+    {
+        $index = new SolrIndexTest_FakeIndex2;
+        $this->assertSame(SolrIndexTest_FakeIndex2::class, $index->getIndexName());
+    }
+
+    public function testGetIndexNameWithPrefixAndSuffixFromEnvironment()
+    {
+        $index = new SolrIndexTest_FakeIndex2;
+
+        Environment::putEnv('SS_SOLR_INDEX_PREFIX="foo_"');
+        Environment::putEnv('SS_SOLR_INDEX_SUFFIX="_bar"');
+
+        $this->assertSame('foo_' . SolrIndexTest_FakeIndex2::class . '_bar', $index->getIndexName());
     }
 
     protected function getFakeRawSolrResponse()
