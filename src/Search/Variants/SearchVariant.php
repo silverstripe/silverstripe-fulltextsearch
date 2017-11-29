@@ -152,9 +152,10 @@ abstract class SearchVariant
      *
      * SearchVariant::call(...) ==== SearchVariant::with()->call(...);
      */
-    public static function call($method, &$a1 = null, &$a2 = null, &$a3 = null, &$a4 = null, &$a5 = null, &$a6 = null, &$a7 = null)
+
+    public static function call($method, &...$args)
     {
-        return self::with()->call($method, $a1, $a2, $a3, $a4, $a5, $a6, $a7);
+        return self::with()->call($method, ...$args);
     }
 
     /**
