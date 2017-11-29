@@ -31,7 +31,7 @@
     },
     "autoload": {
         "psr-4": {
-            "SilverStripe\\FullTextSearch\\": "code/",
+            "SilverStripe\\FullTextSearch\\": "src/",
             "SilverStripe\\FullTextSearch\\Tests\\": "tests/"
         }
     },
