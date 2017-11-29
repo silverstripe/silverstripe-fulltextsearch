@@ -6,7 +6,6 @@ use SilverStripe\Core\Config\Config;
 use SilverStripe\FullTextSearch\Solr\Solr;
 use Silverstripe\Core\ClassInfo;
 
-Solr::include_client_api();
 /**
  * The API for accessing the primary Solr installation, which includes both SolrService_Core,
  * plus extra methods for interrogating, creating, reloading and getting SolrService_Core instances
@@ -32,8 +31,8 @@ class SolrService extends SolrService_Core
 
     /**
      * Is the passed core active?
-     * @param $core string - The name of the core
-     * @return boolean - True if that core exists & is active
+     * @param string $core The name of the core
+     * @return boolean True if that core exists & is active
      */
     public function coreIsActive($core)
     {

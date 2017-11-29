@@ -2,8 +2,6 @@
 
 namespace SilverStripe\FullTextSearch\Solr;
 
-Solr::include_client_api();
-
 use SilverStripe\Control\Director;
 use SilverStripe\FulltextSearch\Search\Indexes\SearchIndex;
 use SilverStripe\FullTextSearch\Solr\Services\SolrService;
