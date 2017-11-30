@@ -74,7 +74,7 @@ class SolrReindexGroupQueuedJob extends SolrReindexQueuedJobBase
         $data->jobData->class = $this->class;
         $data->jobData->groups = $this->groups;
         $data->jobData->group = $this->group;
-        
+
         return $data;
     }
 
@@ -88,11 +88,6 @@ class SolrReindexGroupQueuedJob extends SolrReindexQueuedJobBase
         $this->class = $jobData->class;
         $this->groups = $jobData->groups;
         $this->group = $jobData->group;
-    }
-
-    public function getSignature()
-    {
-        return md5(get_class($this) . time() . mt_rand(0, 100000));
     }
 
     public function getTitle()
