@@ -14,13 +14,13 @@ class SearchVariant_Caller
         $this->variants = $variants;
     }
 
-    public function call($method, &$a1 = null, &$a2 = null, &$a3 = null, &$a4 = null, &$a5 = null, &$a6 = null, &$a7 = null)
+    public function call($method, &...$args)
     {
         $values = array();
 
         foreach ($this->variants as $variant) {
             if (method_exists($variant, $method)) {
-                $value = $variant->$method($a1, $a2, $a3, $a4, $a5, $a6, $a7);
+                $value = $variant->$method(...$args);
                 if ($value !== null) {
                     $values[] = $value;
                 }
