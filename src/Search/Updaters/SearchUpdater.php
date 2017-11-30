@@ -5,6 +5,7 @@ namespace SilverStripe\FullTextSearch\Search\Updaters;
 use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\SapphireTest;
+use SilverStripe\ORM\Connect\Database;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\DB;
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
@@ -43,10 +44,7 @@ class SearchUpdater
      */
     public static function bind_manipulation_capture()
     {
-        global $databaseConfig;
-
         $current = DB::get_conn();
-
         if (!$current || !$current->getSelectedDatabase() || @$current->isManipulationCapture) {
             return;
         } // If not yet set, or its already captured, just return
@@ -59,8 +57,8 @@ class SearchUpdater
             return;
         }
 
-        /** @var SS_Database $captured */
-        $captured = new $dbClass($databaseConfig);
+        /** @var Database $captured */
+        $captured = new $dbClass();
 
         $captured->setConnector($current->getConnector());
         $captured->setQueryBuilder($current->getQueryBuilder());
