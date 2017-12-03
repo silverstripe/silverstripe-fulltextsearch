@@ -5,9 +5,11 @@ namespace SilverStripe\FullTextSearch\Utils\Logging;
 use Monolog\Formatter\FormatterInterface;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\HandlerInterface;
+use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use SilverStripe\Control\Director;
 use SilverStripe\Core\Injector\Injector;
+use SilverStripe\FullTextSearch\Utils\Logging\QueuedJobLogHandler;
 
 /**
  * Provides logging based on monolog
@@ -53,7 +55,7 @@ class MonologFactory implements SearchLogFactory
         // Unless cli, force output to php://output
         $stream = Director::is_cli() ? $stream : 'php://output';
         $handler = Injector::inst()->createWithArgs(
-            'Monolog\Handler\StreamHandler',
+            StreamHandler::class,
             array($stream, $level, $bubble)
         );
         $handler->setFormatter($formatter);
@@ -73,7 +75,7 @@ class MonologFactory implements SearchLogFactory
             $format = "<p>$format</p>";
         }
         return Injector::inst()->createWithArgs(
-            'Monolog\Formatter\LineFormatter',
+            LineFormatter::class,
             array($format)
         );
     }
@@ -87,7 +89,7 @@ class MonologFactory implements SearchLogFactory
     protected function getLoggerFor($name)
     {
         return Injector::inst()->createWithArgs(
-            'Monolog\Logger',
+            Logger::class,
             array(strtolower($name))
         );
     }
@@ -101,7 +103,7 @@ class MonologFactory implements SearchLogFactory
     protected function getJobHandler($job)
     {
         return Injector::inst()->createWithArgs(
-            'SilverStripe\FullTextSearch\Utils\Logging\QueuedJobLogHandler',
+            QueuedJobLogHandler::class,
             array($job, Logger::INFO)
         );
     }

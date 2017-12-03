@@ -30,7 +30,8 @@ class FullTextSearch
      * abstract indexes). Can optionally be filtered to only return indexes that are subclasses of some class
      *
      * @static
-     * @param String $class - Class name to filter indexes by, so that all returned indexes are subclasses of provided class
+     * @param String $class - Class name to filter indexes by, so that all returned indexes are subclasses of provided
+     * class
      * @param bool $rebuild - If true, don't use cached values
      */
     public static function get_indexes($class = null, $rebuild = false)
@@ -99,7 +100,8 @@ class FullTextSearch
     /**
      * Sometimes, like when in tests, you want to restrain the actual indexes to a subset
      *
-     * Call with one argument - an array of class names, index instances or classname => indexinstance pairs (can be mixed).
+     * Call with one argument - an array of class names, index instances or classname => indexinstance pairs (can be
+     * mixed).
      * Alternatively call with multiple arguments, each of which is a class name or index instance
      *
      * From then on, fulltext search system will only see those indexes passed in this most recent call.

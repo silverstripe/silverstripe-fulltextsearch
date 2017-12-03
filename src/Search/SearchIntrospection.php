@@ -45,7 +45,7 @@ class SearchIntrospection
                 $classes = array_unique(array_merge($classes, array_values(ClassInfo::subclassesFor($class))));
             }
 
-            $idx = array_search('SilverStripe\ORM\DataObject', $classes);
+            $idx = array_search(DataObject::class, $classes);
             if ($idx !== false) {
                 array_splice($classes, 0, $idx+1);
             }

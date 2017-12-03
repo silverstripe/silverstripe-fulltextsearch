@@ -11,14 +11,13 @@ use SilverStripe\Core\Injector\Injector;
 use SilverStripe\FullTextSearch\Solr\Reindex\Jobs\SolrReindexQueuedJob;
 use SilverStripe\FullTextSearch\Solr\Reindex\Jobs\SolrReindexGroupQueuedJob;
 use SilverStripe\FullTextSearch\Search\Processors\SearchUpdateCommitJobProcessor;
-
-if (!interface_exists('Symbiote\QueuedJobs\Services\QueuedJob')) {
-    return;
-}
-
 use Symbiote\QueuedJobs\Services\QueuedJob;
 use Symbiote\QueuedJobs\Services\QueuedJobService;
 use Symbiote\QueuedJobs\DataObjects\QueuedJobDescriptor;
+
+if (!interface_exists(QueuedJob::class)) {
+    return;
+}
 
 /**
  * Represents a queued task to start the reindex job

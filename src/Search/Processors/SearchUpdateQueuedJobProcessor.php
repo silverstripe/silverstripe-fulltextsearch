@@ -4,13 +4,12 @@ namespace SilverStripe\FullTextSearch\Search\Processors;
 
 use SilverStripe\Core\Config\Config;
 use stdClass;
-
-if (!interface_exists('Symbiote\QueuedJobs\Services\QueuedJob')) {
-    return;
-}
-
 use Symbiote\QueuedJobs\Services\QueuedJob;
 use Symbiote\QueuedJobs\Services\QueuedJobService;
+
+if (!interface_exists(QueuedJob::class)) {
+    return;
+}
 
 class SearchUpdateQueuedJobProcessor extends SearchUpdateBatchedProcessor implements QueuedJob
 {

@@ -14,12 +14,12 @@ use SilverStripe\FullTextSearch\Search\Processors\SearchUpdateImmediateProcessor
 use ReflectionClass;
 
 /**
- * This class is responsible for capturing changes to DataObjects and triggering index updates of the resulting dirty index
- * items.
+ * This class is responsible for capturing changes to DataObjects and triggering index updates of the resulting dirty
+ * index items.
  *
- * Attached automatically by _config calling SearchUpdater#bind_manipulation_capture. Overloads the current database connector's
- * manipulate method - basically we need to capture a manipulation _after_ all the augmentManipulation code (for instance Version's)
- * is run
+ * Attached automatically by _config calling SearchUpdater#bind_manipulation_capture. Overloads the current database
+ * connector's manipulate method - basically we need to capture a manipulation _after_ all the augmentManipulation code
+ * (for instance Version's) is run
  *
  * Pretty closely tied to the field structure of SearchIndex.
  *

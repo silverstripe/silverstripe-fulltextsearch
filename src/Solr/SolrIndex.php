@@ -822,7 +822,8 @@ abstract class SolrIndex extends SearchIndex
                 // Extract string suggestion
                 $suggestion = $this->getCollatedSuggestion($res->spellcheck->suggestions->collation);
 
-                // The collation, including advanced query params (e.g. +), suitable for making another query programmatically.
+                // The collation, including advanced query params (e.g. +), suitable for making another query
+                // programmatically.
                 $ret['Suggestion'] = $suggestion;
 
                 // A human friendly version of the suggestion, suitable for 'Did you mean $SuggestionNice?' display.
