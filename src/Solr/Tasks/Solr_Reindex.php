@@ -1,4 +1,5 @@
 <?php
+
 namespace SilverStripe\FullTextSearch\Solr\Tasks;
 
 use ReflectionClass;
@@ -19,7 +20,6 @@ use SilverStripe\FullTextSearch\Solr\SolrIndex;
  *  - verbose (optional)
  *
  * When running with a single batch, provide the following querystring arguments:
- *  - start
  *  - index
  *  - class
  *  - variantstate
@@ -90,16 +90,6 @@ class Solr_Reindex extends Solr_BuildTask
             }
         }
 
-        // Deprecated reindex mechanism
-        $start = $request->getVar('start');
-        if ($start !== null) {
-            // Run single batch directly
-            $indexInstance = singleton($index);
-            $state = json_decode($request->getVar('variantstate'), true);
-            $this->runFrom($indexInstance, $class, $start, $state);
-            return;
-        }
-
         // Check if we are re-indexing a single group
         // If not using queuedjobs, we need to invoke Solr_Reindex as a separate process
         // Otherwise each group is processed via a SolrReindexGroupJob
@@ -119,40 +109,5 @@ class Solr_Reindex extends Solr_BuildTask
         // If run at the top level, delegate to appropriate handler
         $taskName = $this->config()->segment ?: get_class($this);
         $handler->triggerReindex($this->getLogger(), $this->config()->recordsPerRequest, $taskName, $class);
-    }
-
-    /**
-     * @deprecated since version 2.0.0
-     */
-    protected function runFrom($index, $class, $start, $variantstate)
-    {
-        DeprecationTest_Deprecation::notice('2.0.0', 'Solr_Reindex now uses a new grouping mechanism');
-
-        // Set time limit and state
-        increase_time_limit_to();
-        SearchVariant::activate_state($variantstate);
-
-        // Generate filtered list
-        $items = DataList::create($class)
-            ->limit($this->config()->recordsPerRequest, $start);
-
-        // Add child filter
-        $classes = $index->getClasses();
-        $options = $classes[$class];
-        if (!$options['include_children']) {
-            $items = $items->filter('ClassName', $class);
-        }
-
-        // Process selected records in this class
-        $this->getLogger()->info("Adding $class");
-        foreach ($items->sort("ID") as $item) {
-            $this->getLogger()->debug($item->ID);
-
-            // See SearchUpdater_ObjectHandler::triggerReindex
-            $item->triggerReindex();
-            $item->destroy();
-        }
-
-        $this->getLogger()->info("Done");
     }
 }
