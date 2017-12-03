@@ -2,7 +2,9 @@
 
 namespace SilverStripe\FullTextSearch\Solr\Reindex\Jobs;
 
-if (!interface_exists('Symbiote\QueuedJobs\Services\QueuedJob')) {
+use Symbiote\QueuedJobs\Services\QueuedJob;
+
+if (!interface_exists(QueuedJob::class)) {
     return;
 }
 

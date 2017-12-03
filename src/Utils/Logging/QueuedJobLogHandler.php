@@ -4,12 +4,11 @@ namespace SilverStripe\FullTextSearch\Utils\Logging;
 
 use Monolog\Handler\AbstractProcessingHandler;
 use Monolog\Logger;
+use Symbiote\QueuedJobs\Services\QueuedJob;
 
-if (!interface_exists('Symbiote\QueuedJobs\Services\QueuedJob')) {
+if (!interface_exists(QueuedJob::class)) {
     return;
 }
-
-use Symbiote\QueuedJobs\Services\QueuedJob;
 
 /**
  * Handler for logging events into QueuedJob message data

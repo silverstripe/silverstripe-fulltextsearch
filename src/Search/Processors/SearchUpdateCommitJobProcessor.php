@@ -2,20 +2,19 @@
 
 namespace SilverStripe\FullTextSearch\Search\Processors;
 
+use DateTime;
+use DateInterval;
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\ORM\FieldType\DBDatetime;
-use DateTime;
-use DateInterval;
 use stdClass;
-
-if (!interface_exists('Symbiote\QueuedJobs\Services\QueuedJob')) {
-    return;
-}
-
 use Symbiote\QueuedJobs\Services\QueuedJob;
 use Symbiote\QueuedJobs\Services\QueuedJobService;
+
+if (!interface_exists(QueuedJob::class)) {
+    return;
+}
 
 class SearchUpdateCommitJobProcessor implements QueuedJob
 {

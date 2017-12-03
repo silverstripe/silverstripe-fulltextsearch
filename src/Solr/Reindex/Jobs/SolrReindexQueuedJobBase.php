@@ -8,12 +8,11 @@ use SilverStripe\Core\Injector\Injector;
 use SilverStripe\FullTextSearch\Solr\Reindex\Handlers\SolrReindexHandler;
 use SilverStripe\FullTextSearch\Utils\Logging\SearchLogFactory;
 use stdClass;
+use Symbiote\QueuedJobs\Services\QueuedJob;
 
-if (!interface_exists('Symbiote\QueuedJobs\Services\QueuedJob')) {
+if (!interface_exists(QueuedJob::class)) {
     return;
 }
-
-use Symbiote\QueuedJobs\Services\QueuedJob;
 
 /**
  * Base class for jobs which perform re-index
