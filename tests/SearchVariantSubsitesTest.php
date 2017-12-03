@@ -31,11 +31,9 @@ class SearchVariantSubsiteTest extends SapphireTest
             self::$index = singleton(static::class);
         }
 
-        SearchUpdater::bind_manipulation_capture();
-
-        Config::modify()->set(Injector::class, SearchUpdateProcessor::class, [
-            'class' => SearchUpdateImmediateProcessor::class
-        ]);
+        Config::inst()->update('Injector', 'SearchUpdateProcessor', array(
+            'class' => 'SearchUpdateImmediateProcessor'
+        ));
 
         FullTextSearch::force_index_list(self::$index);
         SearchUpdater::clear_dirty_indexes();

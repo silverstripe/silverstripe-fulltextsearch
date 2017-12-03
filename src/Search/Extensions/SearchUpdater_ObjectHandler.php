@@ -1,12 +1,12 @@
 <?php
 
-namespace SilverStripe\FullTextSearch\Search\Updaters;
+namespace SilverStripe\FullTextSearch\Search\Extensions;
 
-use SilverStripe\ORM\DataExtension;
-use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
-use SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater;
-use SilverStripe\ORM\DataObject;
 use SilverStripe\Core\ClassInfo;
+use SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater;
+use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
+use SilverStripe\ORM\DataExtension;
+use SilverStripe\ORM\DataObject;
 
 /**
  * Delete operations do not use database manipulations.

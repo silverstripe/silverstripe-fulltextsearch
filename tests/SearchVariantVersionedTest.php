@@ -34,8 +34,6 @@ class SearchVariantVersionedTest extends SapphireTest
             self::$index = singleton(SearchVariantVersionedTest_Index::class);
         }
 
-        SearchUpdater::bind_manipulation_capture();
-
         Config::modify()->set(Injector::class, SearchUpdateProcessor::class, array(
             'class' => SearchUpdateImmediateProcessor::class
         ));

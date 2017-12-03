@@ -30,8 +30,6 @@ class SearchUpdaterTest extends SapphireTest
             self::$index->reset();
         }
 
-        SearchUpdater::bind_manipulation_capture();
-
         Config::modify()->set(Injector::class, SearchUpdateProcessor::class, array(
             'class' => SearchUpdateImmediateProcessor::class
         ));
@@ -72,17 +70,17 @@ class SearchUpdaterTest extends SapphireTest
         // Check the default "writing a document updates the document"
         SearchUpdater::flush_dirty_indexes();
 
-        $added = self::$index->getAdded(array('ID'));
+        $added = self::$index->getAdded(['ID']);
         // Some databases don't output $added in a consistent order; that's okay
         usort($added, function ($a, $b) {
             return $a['ID']-$b['ID'];
         });
 
-        $this->assertEquals($added, array(
-            array('ID' => $container1->ID),
-            array('ID' => $container2->ID),
-            array('ID' => $container3->ID)
-        ));
+        $this->assertEquals([
+            ['ID' => $container1->ID],
+            ['ID' => $container2->ID],
+            ['ID' => $container3->ID],
+        ], $added);
 
         // Check writing a has_one tracks back to the origin documents
 
@@ -92,17 +90,17 @@ class SearchUpdaterTest extends SapphireTest
         $hasOne->write();
 
         SearchUpdater::flush_dirty_indexes();
-        $added = self::$index->getAdded(array('ID'));
+        $added = self::$index->getAdded(['ID']);
 
         // Some databases don't output $added in a consistent order; that's okay
         usort($added, function ($a, $b) {
             return $a['ID']-$b['ID'];
         });
 
-        $this->assertEquals($added, array(
-            array('ID' => $container1->ID),
-            array('ID' => $container2->ID)
-        ));
+        $this->assertEquals([
+            ['ID' => $container1->ID],
+            ['ID' => $container2->ID],
+        ], $added);
 
         // Check updating an unrelated field doesn't track back
 
@@ -112,7 +110,7 @@ class SearchUpdaterTest extends SapphireTest
         $hasOne->write();
 
         SearchUpdater::flush_dirty_indexes();
-        $this->assertEquals(self::$index->getAdded(array('ID')), array());
+        $this->assertEquals([], self::$index->getAdded(['ID']));
 
         // Check writing a has_one tracks back to the origin documents
 
@@ -122,9 +120,9 @@ class SearchUpdaterTest extends SapphireTest
         $alternateHasOne->write();
 
         SearchUpdater::flush_dirty_indexes();
-        $this->assertEquals(self::$index->getAdded(array('ID')), array(
-            array('ID' => $container3->ID)
-        ));
+        $this->assertEquals([
+            ['ID' => $container3->ID],
+        ], self::$index->getAdded(['ID']));
     }
 
     public function testHasManyHook()
@@ -148,10 +146,10 @@ class SearchUpdaterTest extends SapphireTest
 
         SearchUpdater::flush_dirty_indexes();
 
-        $this->assertEquals(self::$index->getAdded(array('ID')), array(
-            array('ID' => $container1->ID),
-            array('ID' => $container2->ID)
-        ));
+        $this->assertEquals([
+            ['ID' => $container1->ID],
+            ['ID' => $container2->ID],
+        ], self::$index->getAdded(['ID']));
 
         self::$index->reset();
 
@@ -162,8 +160,8 @@ class SearchUpdaterTest extends SapphireTest
         $hasMany2->write();
 
         SearchUpdater::flush_dirty_indexes();
-        $this->assertEquals(self::$index->getAdded(array('ID')), array(
-            array('ID' => $container1->ID)
-        ));
+        $this->assertEquals([
+            ['ID' => $container1->ID],
+        ], self::$index->getAdded(['ID']));
     }
 }

@@ -25,6 +25,8 @@ use Symbiote\QueuedJobs\Services\QueuedJobService;
  */
 class BatchedProcessorTest extends SapphireTest
 {
+    protected $usesDatabase = true;
+
     protected $oldProcessor;
 
     protected static $extra_dataobjects = array(

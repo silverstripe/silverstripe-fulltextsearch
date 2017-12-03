@@ -1,5 +1,0 @@
-SilverStripe\Core\Injector\Injector:
-  SilverStripe\Control\RequestProcessor:
-    properties:
-      filters:
-        - '%$SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater_BindManipulationCaptureFilter'
