@@ -55,9 +55,9 @@ class SolrIndexSubsitesTest extends SapphireTest
             self::$index = singleton(SolrIndexSubsitesTest_Index::class);
         }
 
-        Config::modify()->set('Injector', 'SearchUpdateProcessor', array(
-            'class' => 'SearchUpdateImmediateProcessor'
-        ));
+        Config::modify()->set(Injector::class, SearchUpdateProcessor::class, [
+            'class' => SearchUpdateImmediateProcessor::class,
+        ]);
 
         FullTextSearch::force_index_list(self::$index);
         SearchUpdater::clear_dirty_indexes();

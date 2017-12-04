@@ -15,10 +15,12 @@ use SilverStripe\FullTextSearch\Search\Processors\SearchUpdateQueuedJobProcessor
 use SilverStripe\FullTextSearch\Search\Processors\SearchUpdateBatchedProcessor;
 use SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariantVersioned;
+use SilverStripe\Subsites\Extensions\SiteTreeSubsites;
+use SilverStripe\Subsites\Model\Subsite;
 use SilverStripe\ORM\FieldType\DBDatetime;
 use SilverStripe\Versioned\Versioned;
-use Symbiote\QueuedJobs\Services\QueuedJob;
 use Symbiote\QueuedJobs\Services\QueuedJobService;
+use Symbiote\QueuedJobs\Services\QueuedJob;
 
 /**
  * Tests {@see SearchUpdateQueuedJobProcessor}
@@ -29,9 +31,9 @@ class BatchedProcessorTest extends SapphireTest
 
     protected $oldProcessor;
 
-    protected static $extra_dataobjects = array(
-        BatchedProcessorTest_Object::class
-    );
+    protected static $extra_dataobjects = [
+        BatchedProcessorTest_Object::class,
+    ];
 
     protected static $illegal_extensions = [
         SiteTree::class => [
@@ -203,7 +205,9 @@ class BatchedProcessorTest extends SapphireTest
      */
     public function testSoftCap()
     {
-        $this->markTestSkipped('@todo This test passes in isolation, but not in conjunction with the previous test');
+        $this->markTestSkipped(
+            '@todo PostgreSQL: This test passes in isolation, but not in conjunction with the previous test'
+        );
 
         $index = singleton(BatchedProcessorTest_Index::class);
         $index->reset();

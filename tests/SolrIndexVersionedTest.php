@@ -46,7 +46,7 @@ class SolrIndexVersionedTest extends SapphireTest
             self::$index = singleton(SolrVersionedTest_Index::class);
         }
 
-        Config::modify()->set(Injector::class, SearchUpdateProcessor::class, array(
+        Config::modify()->set(Injector::class, SearchUpdateProcessor::class, [
             'class' => SearchUpdateImmediateProcessor::class
         ]);
 
