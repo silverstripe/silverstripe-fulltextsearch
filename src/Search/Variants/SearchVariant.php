@@ -4,6 +4,7 @@ namespace SilverStripe\FullTextSearch\Search\Variants;
 
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Core\ClassInfo;
+use SilverStripe\Core\Config\Configurable;
 use SilverStripe\FullTextSearch\Utils\CombinationsArrayIterator;
 use ReflectionClass;
 
@@ -13,6 +14,16 @@ use ReflectionClass;
  */
 abstract class SearchVariant
 {
+    use Configurable;
+
+    /**
+     * Whether this variant is enabled
+     *
+     * @config
+     * @var boolean
+     */
+    private static $enabled = true;
+
     public function __construct()
     {
     }
@@ -30,7 +41,7 @@ abstract class SearchVariant
      */
     public function appliesToEnvironment()
     {
-        return true;
+        return $this->config()->get('enabled');
     }
 
     /**
@@ -117,6 +128,14 @@ abstract class SearchVariant
         }
     }
 
+    /**
+     * Clear the cached variants
+     */
+    public static function clear_variant_cache()
+    {
+        self::$class_variants = [];
+    }
+
     /** Holds a cache of SearchVariant_Caller instances, one for each class/includeSubclasses setting */
     protected static $call_instances = array();
 
@@ -175,14 +194,14 @@ abstract class SearchVariant
     /**
      * Activate all the states in the passed argument
      * @static
-     * @param  (array) $state. A set of (string)$variantClass => (any)$state pairs , e.g. as returned by
+     * @param array $state A set of (string)$variantClass => (any)$state pairs , e.g. as returned by
      * SearchVariant::current_state()
      * @return void
      */
     public static function activate_state($state)
     {
         foreach (self::variants() as $variant => $instance) {
-            if (isset($state[$variant])) {
+            if (isset($state[$variant]) && $instance->appliesToEnvironment()) {
                 $instance->activateState($state[$variant]);
             }
         }

@@ -2,12 +2,11 @@
 
 namespace SilverStripe\FullTextSearch\Tests;
 
+use SilverStripe\CMS\Model\SiteTree;
+use SilverStripe\Core\Config\Config;
+use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
-use SilverStripe\ORM\FieldType\DBDatetime;
-use SilverStripe\Core\Config\Config;
-use SilverStripe\Versioned\Versioned;
-use SilverStripe\Core\Injector\Injector;
 use SilverStripe\FullTextSearch\Tests\BatchedProcessorTest\BatchedProcessor_QueuedJobService;
 use SilverStripe\FullTextSearch\Tests\BatchedProcessorTest\BatchedProcessorTest_Index;
 use SilverStripe\FullTextSearch\Tests\BatchedProcessorTest\BatchedProcessorTest_Object;
@@ -16,6 +15,9 @@ use SilverStripe\FullTextSearch\Search\Processors\SearchUpdateQueuedJobProcessor
 use SilverStripe\FullTextSearch\Search\Processors\SearchUpdateBatchedProcessor;
 use SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariantVersioned;
+use SilverStripe\ORM\FieldType\DBDatetime;
+use SilverStripe\Versioned\Versioned;
+use Symbiote\QueuedJobs\Services\QueuedJob;
 use Symbiote\QueuedJobs\Services\QueuedJobService;
 
 /**
@@ -29,37 +31,30 @@ class BatchedProcessorTest extends SapphireTest
         BatchedProcessorTest_Object::class
     );
 
-    protected $illegalExtensions = array(
-        'SiteTree' => array(
-            'SiteTreeSubsites',
-            'Translatable'
-        )
-    );
+    protected static $illegal_extensions = [
+        SiteTree::class => [
+            SiteTreeSubsites::class,
+        ],
+    ];
 
-    public function setUpOnce()
+    public static function setUpBeforeClass()
     {
         // Disable illegal extensions if skipping this test
-        if (class_exists('Subsite') || !interface_exists('Symbiote\QueuedJobs\Services\QueuedJob')) {
-            $this->illegalExtensions = array();
+        if (class_exists(Subsite::class) || !interface_exists(QueuedJob::class)) {
+            static::$illegal_extensions = [];
         }
-        parent::setUpOnce();
+        parent::setUpBeforeClass();
     }
 
     protected function setUp()
     {
-        Config::modify()->set(SearchUpdater::class, 'flush_on_shutdown', false);
-
         parent::setUp();
 
-        if (!interface_exists('Symbiote\QueuedJobs\Services\QueuedJob')) {
-            $this->skipTest = true;
+        if (!interface_exists(QueuedJob::class)) {
             $this->markTestSkipped("These tests need the QueuedJobs module installed to run");
         }
 
-        Config::modify()->set(QueuedJobService::class, 'use_shutdown_function', false);
-
-        if (class_exists('Subsite')) {
-            $this->skipTest = true;
+        if (class_exists(Subsite::class)) {
             $this->markTestSkipped(get_class() . ' skipped when running with subsites');
         }
 
@@ -69,7 +64,7 @@ class BatchedProcessorTest extends SapphireTest
         Config::modify()->set(SearchUpdateBatchedProcessor::class, 'batch_soft_cap', 0);
         Config::modify()->set(SearchUpdateCommitJobProcessor::class, 'cooldown', 600);
 
-        Versioned::set_stage("Stage");
+        Versioned::set_stage(Versioned::DRAFT);
 
         Injector::inst()->registerService(new BatchedProcessor_QueuedJobService(), QueuedJobService::class);
 

@@ -13,7 +13,6 @@ Adds support for fulltext search engines like Sphinx and Solr to SilverStripe CM
 ## Requirements
 
 * SilverStripe 4.0+
-* (optional) [silverstripe-phockito](https://github.com/hafriedlander/silverstripe-phockito) (for testing)
 
 **Note:** For SilverStripe 3.x, please use the [2.x release line](https://github.com/silverstripe/silverstripe-fulltextsearch/tree/2).
 

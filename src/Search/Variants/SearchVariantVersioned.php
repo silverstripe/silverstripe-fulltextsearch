@@ -12,6 +12,10 @@ class SearchVariantVersioned extends SearchVariant
 {
     public function appliesTo($class, $includeSubclasses)
     {
+        if (!$this->appliesToEnvironment()) {
+            return false;
+        }
+
         return SearchIntrospection::has_extension($class, Versioned::class, $includeSubclasses);
     }
 
@@ -57,8 +61,6 @@ class SearchVariantVersioned extends SearchVariant
 
     public function extractManipulationState(&$manipulation)
     {
-        $self = get_class($this);
-
         foreach ($manipulation as $table => $details) {
             $class = $details['class'];
             $stage = Versioned::DRAFT;
@@ -70,7 +72,7 @@ class SearchVariantVersioned extends SearchVariant
 
             if (ClassInfo::exists($class) && $this->appliesTo($class, false)) {
                 $manipulation[$table]['class'] = $class;
-                $manipulation[$table]['state'][$self] = $stage;
+                $manipulation[$table]['state'][get_class($this)] = $stage;
             }
         }
     }
@@ -83,10 +85,9 @@ class SearchVariantVersioned extends SearchVariant
 
         if (ClassInfo::exists($class) && $this->appliesTo($class, false)) {
             $table = $class;
-            $self = get_class($this);
 
             foreach ($ids as $i => $statefulid) {
-                $ids[$i]['state'][$self] = $suffix ? $suffix : Versioned::DRAFT;
+                $ids[$i]['state'][get_class($this)] = $suffix ?: Versioned::DRAFT;
             }
         }
     }

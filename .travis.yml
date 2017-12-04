@@ -12,6 +12,8 @@ matrix:
       env: DB=MYSQL PHPUNIT_TEST=1
     - php: 7.1
       env: DB=MYSQL PHPUNIT_COVERAGE_TEST=1
+    - php: 7.1
+      env: DB=MYSQL PHPUNIT_TEST=1 SUBSITES=1
     - php: 7.2
       env: DB=MYSQL PHPUNIT_TEST=1
 
@@ -21,7 +23,7 @@ before_script:
 
   - composer validate
   - composer require --no-update symbiote/silverstripe-queuedjobs ^4.0
-  # todo: Add Subsites in
+  - if [[ $SUBSITES ]]; then composer require --no-update silverstripe/subsites 2.0.x-dev; fi
   - composer require --no-update silverstripe/installer 4.0.x-dev
   - composer install --prefer-dist --no-interaction --no-progress --no-suggest --optimize-autoloader --verbose --profile
 

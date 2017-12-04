@@ -2,9 +2,9 @@
 
 namespace SilverStripe\FullTextSearch\Tests\SolrIndexSubsitesTest;
 
-use SilverStripe\FullTextSearch\Solr\SolrIndex;
 use SilverStripe\Assets\File;
 use SilverStripe\CMS\Model\SiteTree;
+use SilverStripe\FullTextSearch\Solr\SolrIndex;
 
 class SolrIndexSubsitesTest_Index extends SolrIndex
 {
