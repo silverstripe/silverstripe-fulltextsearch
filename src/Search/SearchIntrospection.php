@@ -30,7 +30,7 @@ class SearchIntrospection
      * Get all the classes involved in a DataObject hierarchy - both super and optionally subclasses
      *
      * @static
-     * @param String $class - The class to query
+     * @param string $class - The class to query
      * @param bool $includeSubclasses - True to return subclasses as well as super classes
      * @param bool $dataOnly - True to only return classes that have tables
      * @return Array - Integer keys, String values as classes sorted by depth (most super first)

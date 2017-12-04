@@ -30,7 +30,7 @@ class FullTextSearch
      * abstract indexes). Can optionally be filtered to only return indexes that are subclasses of some class
      *
      * @static
-     * @param String $class - Class name to filter indexes by, so that all returned indexes are subclasses of provided
+     * @param string $class - Class name to filter indexes by, so that all returned indexes are subclasses of provided
      * class
      * @param bool $rebuild - If true, don't use cached values
      */
