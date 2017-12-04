@@ -22,7 +22,11 @@ SilverStripe\Core\Injector\Injector:
 
 ---
 Name: fulltextsearchsqlite
+After:
+  - 'sqlite3connectors'
 ---
 SilverStripe\Core\Injector\Injector:
+  SQLite3PDODatabase:
+    class: SilverStripe\FullTextSearch\Search\Captures\SearchManipulateCapture_SQLite3Database
   SQLite3Database:
     class: SilverStripe\FullTextSearch\Search\Captures\SearchManipulateCapture_SQLite3Database
