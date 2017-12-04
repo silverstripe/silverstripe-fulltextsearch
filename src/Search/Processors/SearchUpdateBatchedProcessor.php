@@ -2,20 +2,22 @@
 
 namespace SilverStripe\FullTextSearch\Search\Processors;
 
-use SilverStripe\Core\Config\Config;
+use SilverStripe\Core\Config\Configurable;
 
 /**
  * Provides batching of search updates
  */
 abstract class SearchUpdateBatchedProcessor extends SearchUpdateProcessor
 {
+    use Configurable;
+
     /**
      * List of batches to be processed
      *
      * @var array
      */
     protected $batches;
-    
+
     /**
      * Pointer to index of $batches assigned to $current.
      * Set to 0 (first index) if not started, or count + 1 if completed.
@@ -23,14 +25,14 @@ abstract class SearchUpdateBatchedProcessor extends SearchUpdateProcessor
      * @var int
      */
     protected $currentBatch;
-    
+
     /**
      * List of indexes successfully comitted in the current batch
      *
      * @var array
      */
     protected $completedIndexes;
-    
+
     /**
      * Maximum number of record-states to process in one batch.
      * Set to zero to process all records in a single batch
@@ -39,7 +41,7 @@ abstract class SearchUpdateBatchedProcessor extends SearchUpdateProcessor
      * @var int
      */
     private static $batch_size = 100;
-    
+
     /**
      * Up to this number of additional ids can be added to any batch in order to reduce the number
      * of batches
@@ -48,15 +50,15 @@ abstract class SearchUpdateBatchedProcessor extends SearchUpdateProcessor
      * @var int
      */
     private static $batch_soft_cap = 10;
-    
+
     public function __construct()
     {
         parent::__construct();
-        
+
         $this->batches = array();
         $this->setBatch(0);
     }
-    
+
     /**
      * Set the current batch index
      *
@@ -66,14 +68,14 @@ abstract class SearchUpdateBatchedProcessor extends SearchUpdateProcessor
     {
         $this->currentBatch = $batch;
     }
-    
+
     protected function getSource()
     {
         if (isset($this->batches[$this->currentBatch])) {
             return $this->batches[$this->currentBatch];
         }
     }
-    
+
     /**
      * Process the current queue
      *
@@ -85,20 +87,20 @@ abstract class SearchUpdateBatchedProcessor extends SearchUpdateProcessor
         if (empty($this->batches)) {
             return true;
         }
-        
+
         // Don't re-process completed queue
         if ($this->currentBatch >= count($this->batches)) {
             return true;
         }
-        
+
         // Send current patch to indexes
         $this->prepareIndexes();
-        
+
         // Advance to next batch if successful
         $this->setBatch($this->currentBatch + 1);
         return true;
     }
-    
+
     /**
      * Segments batches acording to the specified rules
      *
@@ -108,12 +110,12 @@ abstract class SearchUpdateBatchedProcessor extends SearchUpdateProcessor
     protected function segmentBatches($source)
     {
         // Measure batch_size
-        $batchSize = Config::inst()->get(get_class(), 'batch_size');
+        $batchSize = static::config()->get('batch_size');
         if ($batchSize === 0) {
             return array($source);
         }
-        $softCap = Config::inst()->get(get_class(), 'batch_soft_cap');
-        
+        $softCap = static::config()->get('batch_soft_cap');
+
         // Clear batches
         $batches = array();
         $current = array();
@@ -131,7 +133,7 @@ abstract class SearchUpdateBatchedProcessor extends SearchUpdateProcessor
                 if (!$ids) {
                     continue;
                 }
-                
+
                 // Extract items from $ids until empty
                 while ($ids) {
                     // Estimate maximum number of items to take for this iteration, allowing for the soft cap
@@ -141,7 +143,7 @@ abstract class SearchUpdateBatchedProcessor extends SearchUpdateProcessor
                     }
                     $items = array_slice($ids, 0, $take, true);
                     $ids = array_slice($ids, count($items), null, true);
-                    
+
                     // Update batch
                     $currentSize += count($items);
                     $merge = array(
@@ -165,16 +167,16 @@ abstract class SearchUpdateBatchedProcessor extends SearchUpdateProcessor
         if ($currentSize) {
             $batches[] = $current;
         }
-        
+
         return $batches;
     }
-    
+
     public function batchData()
     {
         $this->batches = $this->segmentBatches($this->dirty);
         $this->setBatch(0);
     }
-    
+
     public function triggerProcessing()
     {
         $this->batchData();

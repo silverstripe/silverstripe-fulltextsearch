@@ -22,9 +22,9 @@ class SearchUpdateCommitJobProcessor implements QueuedJob
      * The QueuedJob queue to use when processing commits
      *
      * @config
-     * @var int
+     * @var string
      */
-    private static $commit_queue = 2; // QueuedJob::QUEUED;
+    private static $commit_queue = QueuedJob::QUEUED;
 
     /**
      * List of indexes to commit
