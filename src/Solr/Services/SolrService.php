@@ -36,8 +36,14 @@ class SolrService extends SolrService_Core
      */
     public function coreIsActive($core)
     {
+        // Request the status of the full core name
         $result = $this->coreCommand('STATUS', $core);
-        return isset($result->status->$core->uptime);
+
+        // Solr returns the core as the 'short name' of the class (e.g. Mysite\Search\SolrIndex -> SolrIndex)
+        $reflection = new \ReflectionClass($core);
+        $shortClass = $reflection->getShortName();
+
+        return isset($result->status->$shortClass->uptime);
     }
 
     /**
