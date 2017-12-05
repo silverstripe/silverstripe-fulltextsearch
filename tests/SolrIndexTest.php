@@ -9,6 +9,7 @@ use SilverStripe\Core\Kernel;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariantSubsites;
+use SilverStripe\FullTextSearch\Solr\SolrIndex;
 use SilverStripe\FullTextSearch\Solr\Services\Solr3Service;
 use SilverStripe\FullTextSearch\Tests\SearchUpdaterTest\SearchUpdaterTest_Container;
 use SilverStripe\FullTextSearch\Tests\SearchUpdaterTest\SearchUpdaterTest_HasOne;
@@ -341,16 +342,25 @@ class SolrIndexTest extends SapphireTest
     public function testSanitiseClassName()
     {
         $index = new SolrIndexTest_FakeIndex2;
+
         $this->assertSame(
             'SilverStripe\\\\FullTextSearch\\\\Tests\\\\SolrIndexTest',
             $index->sanitiseClassName(static::class)
+        );
+
+        $this->assertSame(
+            'SilverStripe-FullTextSearch-Tests-SolrIndexTest',
+            $index->sanitiseClassName(static::class, '-')
         );
     }
 
     public function testGetIndexName()
     {
         $index = new SolrIndexTest_FakeIndex2;
-        $this->assertSame(SolrIndexTest_FakeIndex2::class, $index->getIndexName());
+        $this->assertSame(
+            'SilverStripe-FullTextSearch-Tests-SolrIndexTest-SolrIndexTest_FakeIndex2',
+            $index->getIndexName()
+        );
     }
 
     public function testGetIndexNameWithPrefixAndSuffixFromEnvironment()
@@ -360,7 +370,34 @@ class SolrIndexTest extends SapphireTest
         Environment::putEnv('SS_SOLR_INDEX_PREFIX="foo_"');
         Environment::putEnv('SS_SOLR_INDEX_SUFFIX="_bar"');
 
-        $this->assertSame('foo_' . SolrIndexTest_FakeIndex2::class . '_bar', $index->getIndexName());
+        $this->assertSame(
+            'foo_SilverStripe-FullTextSearch-Tests-SolrIndexTest-SolrIndexTest_FakeIndex2_bar',
+            $index->getIndexName()
+        );
+    }
+
+    /**
+     * @dataProvider indexNameProvider
+     * @param string $indexName
+     * @param string $expected
+     */
+    public function testGetClassNameFromIndex($indexName, $expected)
+    {
+        Environment::putEnv('SS_SOLR_INDEX_PREFIX="foo_"');
+        Environment::putEnv('SS_SOLR_INDEX_SUFFIX="_bar"');
+
+        $this->assertSame($expected, SolrIndex::getClassNameFromIndex($indexName));
+    }
+
+    /**
+     * @return array[]
+     */
+    public function indexNameProvider()
+    {
+        return [
+            ['foo_SilverStripe-FullTextSearch-Tests-SolrIndexTest_bar', __CLASS__],
+            ['SilverStripe-FullTextSearch-Tests-SolrIndexTest', __CLASS__],
+        ];
     }
 
     protected function getFakeRawSolrResponse()

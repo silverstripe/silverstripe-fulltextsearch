@@ -108,7 +108,8 @@ abstract class SolrIndex extends SearchIndex
      */
     public function getIndexName()
     {
-        $name = get_class($this);
+        $name = $this->sanitiseClassName(get_class($this), '-');
+
         $indexParts = [$name];
 
         if ($indexPrefix = Environment::getEnv('SS_SOLR_INDEX_PREFIX')) {
@@ -120,6 +121,29 @@ abstract class SolrIndex extends SearchIndex
         }
 
         return implode($indexParts);
+    }
+
+    /**
+     * Helper for returning the indexer class name from an index name, encoded via {@link getIndexName()}
+     *
+     * @param string $indexName
+     * @return string
+     */
+    public static function getClassNameFromIndex($indexName)
+    {
+        if (($indexPrefix = Environment::getEnv('SS_SOLR_INDEX_PREFIX'))
+            && (substr($indexName, 0, strlen($indexPrefix)) === $indexPrefix)
+        ) {
+            $indexName = substr($indexName, strlen($indexPrefix));
+        }
+
+        if (($indexSuffix = Environment::getEnv('SS_SOLR_INDEX_SUFFIX'))
+            && (substr($indexName, -strlen($indexSuffix)) === $indexSuffix)
+        ) {
+            $indexName = substr($indexName, 0, -strlen($indexSuffix));
+        }
+
+        return str_replace('-', '\\', $indexName);
     }
 
     public function getTypes()
@@ -849,12 +873,13 @@ abstract class SolrIndex extends SearchIndex
     /**
      * Solr requires namespaced classes to have double escaped backslashes
      *
-     * @param  string $className E.g. My\Object\Here
-     * @return string            E.g. My\\Object\\Here
+     * @param  string $className   E.g. My\Object\Here
+     * @param  string $replaceWith The replacement character(s) to use
+     * @return string              E.g. My\\Object\\Here
      */
-    public function sanitiseClassName($className)
+    public function sanitiseClassName($className, $replaceWith = '\\\\')
     {
-        return str_replace('\\', '\\\\', $className);
+        return str_replace('\\', $replaceWith, $className);
     }
 
     /**
