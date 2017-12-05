@@ -2,13 +2,21 @@
 
 namespace SilverStripe\FullTextSearch\Search\Variants;
 
+use SilverStripe\Assets\File;
+use SilverStripe\CMS\Model\SiteTree;
+use SilverStripe\FullTextSearch\Search\SearchIntrospection;
+use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
 use SilverStripe\ORM\Queries\SQLSelect;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Security\Permission;
-use SilverStripe\FullTextSearch\Search\SearchIntrospection;
-use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
+use SilverStripe\Subsites\Model\Subsite;
+use SilverStripe\Subsites\Extensions\SiteTreeSubsites;
+use SilverStripe\Subsites\Extensions\GroupSubsites;
+use SilverStripe\Subsites\Extensions\FileSubsites;
+use SilverStripe\Subsites\Extensions\SiteConfigSubsites;
+use SilverStripe\Subsites\State\SubsiteState;
 
-if (!class_exists('Subsite')) {
+if (!class_exists(Subsite::class)) {
     return;
 }
 
@@ -16,22 +24,26 @@ class SearchVariantSubsites extends SearchVariant
 {
     public function appliesToEnvironment()
     {
-        return class_exists('Subsite');
+        return class_exists(Subsite::class) && parent::appliesToEnvironment();
     }
 
     public function appliesTo($class, $includeSubclasses)
     {
+        if (!$this->appliesToEnvironment()) {
+            return false;
+        }
+
         // Include all DataExtensions that contain a SubsiteID.
         // TODO: refactor subsites to inherit a common interface, so we can run introspection once only.
-        return SearchIntrospection::has_extension($class, 'SiteTreeSubsites', $includeSubclasses) ||
-            SearchIntrospection::has_extension($class, 'GroupSubsites', $includeSubclasses) ||
-            SearchIntrospection::has_extension($class, 'FileSubsites', $includeSubclasses) ||
-            SearchIntrospection::has_extension($class, 'SiteConfigSubsites', $includeSubclasses);
+        return SearchIntrospection::has_extension($class, SiteTreeSubsites::class, $includeSubclasses)
+            || SearchIntrospection::has_extension($class, GroupSubsites::class, $includeSubclasses)
+            || SearchIntrospection::has_extension($class, FileSubsites::class, $includeSubclasses)
+            || SearchIntrospection::has_extension($class, SiteConfigSubsites::class, $includeSubclasses);
     }
 
     public function currentState()
     {
-        return (string)Subsite::currentSubsiteID();
+        return (string) SubsiteState::singleton()->getSubsiteId();
     }
 
     public function reindexStates()
@@ -39,9 +51,9 @@ class SearchVariantSubsites extends SearchVariant
         static $ids = null;
 
         if ($ids === null) {
-            $ids = array('0');
-            foreach (DataObject::get('Subsite') as $subsite) {
-                $ids[] = (string)$subsite->ID;
+            $ids = ['0'];
+            foreach (Subsite::get() as $subsite) {
+                $ids[] = (string) $subsite->ID;
             }
         }
 
@@ -50,26 +62,34 @@ class SearchVariantSubsites extends SearchVariant
 
     public function activateState($state)
     {
-        // We always just set the $_GET variable rather than store in Session - this always works, has highest priority
-        // in Subsite::currentSubsiteID() and doesn't persist unlike Subsite::changeSubsite
-        $_GET['SubsiteID'] = $state;
-        Permission::flush_permission_cache();
+        if (!$this->appliesToEnvironment()) {
+            return;
+        }
+
+        // Note: Setting directly to the SubsiteState because we don't want the subsite ID to be persisted
+        // like Subsite::changeSubsite would do.
+        SubsiteState::singleton()->setSubsiteId($state);
+        Permission::reset();
     }
 
     public function alterDefinition($class, $index)
     {
         $self = get_class($this);
 
+        if (!$this->appliesTo($class, true)) {
+            return;
+        }
+
         // Add field to root
-        $this->addFilterField($index, '_subsite', array(
+        $this->addFilterField($index, '_subsite', [
             'name' => '_subsite',
             'field' => '_subsite',
             'fullfield' => '_subsite',
             'base' => DataObject::getSchema()->baseDataClass($class),
             'origin' => $class,
             'type' => 'Int',
-            'lookup_chain' => array(array('call' => 'variant', 'variant' => $self, 'method' => 'currentState'))
-        ));
+            'lookup_chain' => [['call' => 'variant', 'variant' => $self, 'method' => 'currentState']],
+        ]);
     }
 
     /**
@@ -83,12 +103,12 @@ class SearchVariantSubsites extends SearchVariant
      */
     public function alterQuery($query, $index)
     {
-        if ($this->isFieldFiltered('_subsite', $query)) {
+        if ($this->isFieldFiltered('_subsite', $query) || !$this->appliesToEnvironment()) {
             return;
         }
 
-        $subsite = Subsite::currentSubsiteID();
-        $query->filter('_subsite', array($subsite, SearchQuery::$missing));
+        $subsite = $this->currentState();
+        $query->filter('_subsite', [$subsite, SearchQuery::$missing]);
     }
 
     /**
@@ -98,8 +118,9 @@ class SearchVariantSubsites extends SearchVariant
     public function extractManipulationWriteState(&$writes)
     {
         $self = get_class($this);
-        $query = new SQLSelect('"ID"', '"Subsite"');
-        $subsites = array_merge(array('0'), $query->execute()->column());
+        $tableName = DataObject::getSchema()->tableName(Subsite::class);
+        $query = SQLSelect::create('"ID"', '"' . $tableName . '"');
+        $subsites = array_merge(['0'], $query->execute()->column());
 
         foreach ($writes as $key => $write) {
             $applies = $this->appliesTo($write['class'], true);
@@ -107,25 +128,27 @@ class SearchVariantSubsites extends SearchVariant
                 continue;
             }
 
-            if (isset($write['fields']['SiteTree:SubsiteID'])) {
-                $subsitesForWrite = array($write['fields']['SiteTree:SubsiteID']);
-            } // files in subsite 0 should be in all subsites as they are global
-            elseif (isset($write['fields']['File:SubsiteID']) && intval($write['fields']['File:SubsiteID']) !== 0) {
-                $subsitesForWrite = array($write['fields']['File:SubsiteID']);
+            if (isset($write['fields'][SiteTree::class . ':SubsiteID'])) {
+                $subsitesForWrite = [$write['fields'][SiteTree::class . ':SubsiteID']];
+            } elseif (isset($write['fields'][File::class . ':SubsiteID'])
+                && (int) $write['fields'][File::class . ':SubsiteID'] !== 0
+            ) {
+                // files in subsite 0 should be in all subsites as they are global
+                $subsitesForWrite = [$write['fields'][File::class . ':SubsiteID']];
             } else {
                 $subsitesForWrite = $subsites;
             }
 
-            $next = array();
+            $next = [];
             foreach ($write['statefulids'] as $i => $statefulid) {
                 foreach ($subsitesForWrite as $subsiteID) {
-                    $next[] = array(
+                    $next[] = [
                         'id' => $statefulid['id'],
                         'state' => array_merge(
                             $statefulid['state'],
-                            array($self => (string)$subsiteID)
-                        )
-                    );
+                            [$self => (string) $subsiteID]
+                        ),
+                    ];
                 }
             }
             $writes[$key]['statefulids'] = $next;

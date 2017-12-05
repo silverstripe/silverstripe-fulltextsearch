@@ -43,8 +43,6 @@ class SolrReindexTest extends SapphireTest
 
     protected function setUp()
     {
-        Config::modify()->set(SearchUpdater::class, 'flush_on_shutdown', false);
-
         parent::setUp();
 
         // Set test handler for reindex

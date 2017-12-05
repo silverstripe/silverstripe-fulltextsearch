@@ -16,7 +16,6 @@ mappings:
   SearchUpdater_ObjectHandler: SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater_ObjectHandler
   SearchVariant: SilverStripe\FullTextSearch\Search\Variants\SearchVariant
   SearchVariant_Caller: SilverStripe\FullTextSearch\Search\Variants\SearchVariant_Caller
-  SearchVariantSiteTreeSubsitesPolyhome: SilverStripe\FullTextSearch\Search\Variants\SearchVariantSiteTreeSubsitesPolyhome
   SearchVariantSubsites: SilverStripe\FullTextSearch\Search\Variants\SearchVariantSubsites
   SearchVariantVersioned: SilverStripe\FullTextSearch\Search\Variants\SearchVariantVersioned
   SolrReindexBase: SilverStripe\FullTextSearch\Solr\Reindex\Handlers\SolrReindexBase

@@ -7,18 +7,20 @@ use SilverStripe\Core\Environment;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Core\Kernel;
 use SilverStripe\Dev\SapphireTest;
-use SilverStripe\FullTextSearch\Tests\SolrIndexTest\SolrIndexTest_AmbiguousRelationIndex;
-use SilverStripe\FullTextSearch\Tests\SolrIndexTest\SolrIndexTest_AmbiguousRelationInheritedIndex;
-use SilverStripe\FullTextSearch\Tests\SolrIndexTest\SolrIndexTest_FakeIndex;
-use SilverStripe\FullTextSearch\Tests\SolrIndexTest\SolrIndexTest_FakeIndex2;
-use SilverStripe\FullTextSearch\Tests\SolrIndexTest\SolrIndexTest_BoostedIndex;
+use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
+use SilverStripe\FullTextSearch\Search\Variants\SearchVariantSubsites;
+use SilverStripe\FullTextSearch\Solr\Services\Solr3Service;
 use SilverStripe\FullTextSearch\Tests\SearchUpdaterTest\SearchUpdaterTest_Container;
 use SilverStripe\FullTextSearch\Tests\SearchUpdaterTest\SearchUpdaterTest_HasOne;
 use SilverStripe\FullTextSearch\Tests\SearchUpdaterTest\SearchUpdaterTest_HasMany;
 use SilverStripe\FullTextSearch\Tests\SearchUpdaterTest\SearchUpdaterTest_ManyMany;
 use SilverStripe\FullTextSearch\Tests\SearchUpdaterTest\SearchUpdaterTest_OtherContainer;
-use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
-use SilverStripe\FullTextSearch\Solr\Services\Solr3Service;
+use SilverStripe\FullTextSearch\Tests\SolrIndexTest\SolrIndexTest_AmbiguousRelationIndex;
+use SilverStripe\FullTextSearch\Tests\SolrIndexTest\SolrIndexTest_AmbiguousRelationInheritedIndex;
+use SilverStripe\FullTextSearch\Tests\SolrIndexTest\SolrIndexTest_BoostedIndex;
+use SilverStripe\FullTextSearch\Tests\SolrIndexTest\SolrIndexTest_FakeIndex;
+use SilverStripe\FullTextSearch\Tests\SolrIndexTest\SolrIndexTest_FakeIndex2;
+use SilverStripe\Subsites\Model\Subsite;
 
 class SolrIndexTest extends SapphireTest
 {
@@ -151,6 +153,10 @@ class SolrIndexTest extends SapphireTest
      */
     public function testBoostedField()
     {
+        if (class_exists(Subsite::class)) {
+            Config::modify()->set(SearchVariantSubsites::class, 'enabled', false);
+        }
+
         /** @var Solr3Service|PHPUnit_Framework_MockObject_MockObject $serviceMock */
         $serviceMock = $this->getMockBuilder(Solr3Service::class)
             ->setMethods(['search'])
@@ -162,8 +168,11 @@ class SolrIndexTest extends SapphireTest
                 $this->equalTo('+term'),
                 $this->anything(),
                 $this->anything(),
-                $this->equalTo(['qf' => SearchUpdaterTest_Container::class . '_Field1^1.5 ' . SearchUpdaterTest_Container::class . '_Field2^2.1 _text',
-                    'fq' => '+(_versionedstage:"" (*:* -_versionedstage:[* TO *]))']),
+                $this->equalTo([
+                    'qf' => SearchUpdaterTest_Container::class . '_Field1^1.5 '
+                        . SearchUpdaterTest_Container::class . '_Field2^2.1 _text',
+                    'fq' => '+(_versionedstage:"" (*:* -_versionedstage:[* TO *]))',
+                ]),
                 $this->anything()
             )->willReturn($this->getFakeRawSolrResponse());
 

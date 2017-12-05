@@ -2,32 +2,40 @@
 
 namespace SilverStripe\FullTextSearch\Tests;
 
+use SilverStripe\Core\Config\Config;
+use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\SapphireTest;
+use SilverStripe\FullTextSearch\Search\FullTextSearch;
+use SilverStripe\FullTextSearch\Search\Processors\SearchUpdateProcessor;
+use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
+use SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater;
+use SilverStripe\FullTextSearch\Search\Variants\SearchVariantSubsites;
+use SilverStripe\FullTextSearch\Tests\SearchUpdaterTest\SearchUpdaterTest_Container;
+use SilverStripe\FullTextSearch\Tests\SolrIndexTest\SolrIndexTest_FakeIndex;
+use SilverStripe\Subsites\Model\Subsite;
 
 class SearchVariantSubsiteTest extends SapphireTest
 {
-
     private static $index = null;
 
-
-    public function setUp()
+    protected function setUp()
     {
         parent::setUp();
 
         // Check versioned available
-        if (!class_exists('Subsite')) {
+        if (!class_exists(Subsite::class)) {
             return $this->markTestSkipped('The subsites module is not installed');
         }
 
         if (self::$index === null) {
-            self::$index = singleton('SearchVariantSubsiteTest');
+            self::$index = singleton(static::class);
         }
 
         SearchUpdater::bind_manipulation_capture();
 
-        Config::inst()->update('Injector', 'SearchUpdateProcessor', array(
-            'class' => 'SearchUpdateImmediateProcessor'
-        ));
+        Config::modify()->set(Injector::class, SearchUpdateProcessor::class, [
+            'class' => SearchUpdateImmediateProcessor::class
+        ]);
 
         FullTextSearch::force_index_list(self::$index);
         SearchUpdater::clear_dirty_indexes();
@@ -41,13 +49,13 @@ class SearchVariantSubsiteTest extends SapphireTest
         //typical behaviour: nobody is explicitly filtering on subsite, so the search variant adds a filter to the query
         $this->assertArrayNotHasKey('_subsite', $query->require);
         $variant = new SearchVariantSubsites();
-        $variant->alterDefinition('SearchUpdaterTest_Container', $index);
+        $variant->alterDefinition(SearchUpdaterTest_Container::class, $index);
         $variant->alterQuery($query, $index);
 
         //check that the "default" query has been put in place: it's not empty, and we're searching on Subsite ID:0 and
         // an object of SearchQuery::missing
         $this->assertNotEmpty($query->require['_subsite']);
-        $this->assertEquals(0, $query->require['_subsite'][0]);
+        $this->assertEmpty($query->require['_subsite'][0]);
 
         //check that SearchQuery::missing is set (by default, it is an object of stdClass)
         $this->assertInstanceOf('stdClass', $query->require['_subsite'][1]);
@@ -71,7 +79,7 @@ class SearchVariantSubsiteTest extends SapphireTest
 
         //apply the search variant's definition and query
         $variant = new SearchVariantSubsites();
-        $variant->alterDefinition('SearchUpdaterTest_Container', $index);
+        $variant->alterDefinition(SearchUpdaterTest_Container::class, $index);
 
         //the protected function isFieldFiltered is implicitly tested here
         $variant->alterQuery($query, $index);

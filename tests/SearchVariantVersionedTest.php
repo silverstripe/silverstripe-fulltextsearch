@@ -28,8 +28,6 @@ class SearchVariantVersionedTest extends SapphireTest
 
     protected function setUp()
     {
-        Config::modify()->set(SearchUpdater::class, 'flush_on_shutdown', false);
-
         parent::setUp();
 
         if (self::$index === null) {
@@ -129,5 +127,16 @@ class SearchVariantVersionedTest extends SapphireTest
         $this->assertEquals(array(
             array('ID' => $item->ID, '_versionedstage' => 'Live')
         ), $index->getAdded(array('ID', '_versionedstage')));
+    }
+
+    public function testCanBeDisabledViaConfig()
+    {
+        $variant = new SearchVariantVersioned;
+
+        Config::modify()->set(SearchVariantVersioned::class, 'enabled', true);
+        $this->assertTrue($variant->appliesToEnvironment());
+
+        Config::modify()->set(SearchVariantVersioned::class, 'enabled', false);
+        $this->assertFalse($variant->appliesToEnvironment());
     }
 }

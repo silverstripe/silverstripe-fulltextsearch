@@ -49,16 +49,12 @@ class SolrReindexQueuedTest extends SapphireTest
 
     protected function setUp()
     {
-        Config::modify()->set(SearchUpdater::class, 'flush_on_shutdown', false);
-
         parent::setUp();
 
-        if (!interface_exists('Symbiote\QueuedJobs\Services\QueuedJob')) {
+        if (!interface_exists(QueuedJob::class)) {
             $this->skipTest = true;
             return $this->markTestSkipped("These tests need the QueuedJobs module installed to run");
         }
-
-        Config::modify()->set(QueuedJobService::class, 'use_shutdown_function', false);
 
         // Set queued handler for reindex
         Config::modify()->set(Injector::class, SolrReindexHandler::class, array(

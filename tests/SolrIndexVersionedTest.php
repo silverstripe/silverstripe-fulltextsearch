@@ -2,8 +2,10 @@
 
 namespace SilverStripe\FullTextSearch\Tests;
 
+use Apache_Solr_Document;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Core\Config\Config;
+use SilverStripe\Core\Injector\Injector;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
 use SilverStripe\FullTextSearch\Search\SearchIntrospection;
@@ -15,23 +17,28 @@ use SilverStripe\FullTextSearch\Tests\SolrIndexVersionedTest\SolrVersionedTest_I
 use SilverStripe\FullTextSearch\Search\Processors\SearchUpdateProcessor;
 use SilverStripe\FullTextSearch\Search\Processors\SearchUpdateImmediateProcessor;
 use SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater;
+use SilverStripe\FullTextSearch\Search\Variants\SearchVariantSubsites;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariantVersioned;
+use SilverStripe\Subsites\Model\Subsite;
 use SilverStripe\Versioned\Versioned;
 
 class SolrIndexVersionedTest extends SapphireTest
 {
+    protected $usesDatabase = true;
+
     protected $oldMode = null;
 
     protected static $index = null;
 
-    protected static $extra_dataobjects = array(
+    protected static $extra_dataobjects = [
         SearchVariantVersionedTest_Item::class,
-        SolrIndexVersionedTest_Object::class
-    );
+        SolrIndexVersionedTest_Object::class,
+    ];
 
     protected function setUp()
     {
-        Config::modify()->set(SearchUpdater::class, 'flush_on_shutdown', false);
+        // Need to be set before parent::setUp() since they're executed before the tests start
+        Config::modify()->set(SearchVariantSubsites::class, 'enabled', false);
 
         parent::setUp();
 
@@ -41,18 +48,18 @@ class SolrIndexVersionedTest extends SapphireTest
 
         SearchUpdater::bind_manipulation_capture();
 
-        Config::modify()->set(Injector::class, SearchUpdateProcessor::class, array(
+        Config::modify()->set(Injector::class, SearchUpdateProcessor::class, [
             'class' => SearchUpdateImmediateProcessor::class
-        ));
+        ]);
 
         FullTextSearch::force_index_list(self::$index);
         SearchUpdater::clear_dirty_indexes();
 
         $this->oldMode = Versioned::get_reading_mode();
-        Versioned::set_stage('Stage');
+        Versioned::set_stage(Versioned::DRAFT);
     }
 
-    public function tearDown()
+    protected function tearDown()
     {
         Versioned::set_reading_mode($this->oldMode);
         parent::tearDown();
@@ -80,13 +87,7 @@ class SolrIndexVersionedTest extends SapphireTest
     {
         $id = $object->ID;
         $class = DataObject::getSchema()->baseDataClass($object);
-        // Prevent subsites from breaking tests
-        // TODO: Subsites currently isn't migrated. This needs to be fixed when subsites is fixed.
-        $subsites = '';
-        if (class_exists('Subsite') && DataObject::getSchema()->hasOneComponent($object->getClassName(), 'Subsite')) {
-            $subsites = '"SearchVariantSubsites":"0",';
-        }
-        return $id.'-'.$class.'-{'.$subsites. json_encode(SearchVariantVersioned::class) . ':"'.$stage.'"}';
+        return $id.'-'.$class.'-{'.json_encode(SearchVariantVersioned::class).':"'.$stage.'"}';
     }
 
     /**
@@ -98,12 +99,12 @@ class SolrIndexVersionedTest extends SapphireTest
      */
     protected function getSolrDocument($class, $object, $value, $stage)
     {
-        $doc = new \Apache_Solr_Document();
+        $doc = new Apache_Solr_Document();
         $doc->setField('_documentid', $this->getExpectedDocumentId($object, $stage));
         $doc->setField('ClassName', $class);
         $doc->setField(DataObject::getSchema()->baseDataClass($class) . '_TestText', $value);
         $doc->setField('_versionedstage', $stage);
-        $doc->setField('ID', $object->ID);
+        $doc->setField('ID', (int) $object->ID);
         $doc->setField('ClassHierarchy', SearchIntrospection::hierarchy($class));
         $doc->setFieldBoost('ID', false);
         $doc->setFieldBoost('ClassHierarchy', false);
@@ -114,89 +115,52 @@ class SolrIndexVersionedTest extends SapphireTest
     public function testPublishing()
     {
         // Check that write updates Stage
-        Versioned::set_stage('Stage');
+        Versioned::set_stage(Versioned::DRAFT);
 
         $item = new SearchVariantVersionedTest_Item(array('TestText' => 'Foo'));
         $item->write();
         $object = new SolrIndexVersionedTest_Object(array('TestText' => 'Bar'));
         $object->write();
 
-        $doc1 = $this->getSolrDocument(SearchVariantVersionedTest_Item::class, $item, 'Foo', 'Stage');
-        $doc2 = $this->getSolrDocument(SolrIndexVersionedTest_Object::class, $object, 'Bar', 'Stage');
+        $doc1 = $this->getSolrDocument(SearchVariantVersionedTest_Item::class, $item, 'Foo', Versioned::DRAFT);
+        $doc2 = $this->getSolrDocument(SolrIndexVersionedTest_Object::class, $object, 'Bar', Versioned::DRAFT);
 
         // Ensure correct call is made to Solr
         $this->getServiceMock(['addDocument', 'commit'])
             ->expects($this->exactly(2))
             ->method('addDocument')
             ->withConsecutive(
-                [
-                    $this->equalTo($doc1),
-                    $this->anything(),
-                    $this->anything(),
-                    $this->anything(),
-                    $this->anything()
-                ],
-                [
-                    $this->equalTo($doc2),
-                    $this->anything(),
-                    $this->anything(),
-                    $this->anything(),
-                    $this->anything()
-                ]
+                [$this->equalTo($doc1)],
+                [$this->equalTo($doc2)]
             );
 
         SearchUpdater::flush_dirty_indexes();
 
-
         // Check that write updates Live
-        Versioned::set_stage('Stage');
+        Versioned::set_stage(Versioned::DRAFT);
 
         $item = new SearchVariantVersionedTest_Item(array('TestText' => 'Foo'));
         $item->write();
-        $item->copyVersionToStage('Stage', 'Live');
+        $item->copyVersionToStage(Versioned::DRAFT, Versioned::LIVE);
 
         $object = new SolrIndexVersionedTest_Object(array('TestText' => 'Bar'));
         $object->write();
-        $object->copyVersionToStage('Stage', 'Live');
+        $object->copyVersionToStage(Versioned::DRAFT, Versioned::LIVE);
 
-        $doc1 = $this->getSolrDocument(SearchVariantVersionedTest_Item::class, $item, 'Foo', 'Stage');
-        $doc2 = $this->getSolrDocument(SearchVariantVersionedTest_Item::class, $item, 'Foo', 'Live');
-        $doc3 = $this->getSolrDocument(SolrIndexVersionedTest_Object::class, $object, 'Bar', 'Stage');
-        $doc4 = $this->getSolrDocument(SolrIndexVersionedTest_Object::class, $object, 'Bar', 'Live');
+        $doc1 = $this->getSolrDocument(SearchVariantVersionedTest_Item::class, $item, 'Foo', Versioned::DRAFT);
+        $doc2 = $this->getSolrDocument(SearchVariantVersionedTest_Item::class, $item, 'Foo', Versioned::LIVE);
+        $doc3 = $this->getSolrDocument(SolrIndexVersionedTest_Object::class, $object, 'Bar', Versioned::DRAFT);
+        $doc4 = $this->getSolrDocument(SolrIndexVersionedTest_Object::class, $object, 'Bar', Versioned::LIVE);
 
         // Ensure correct call is made to Solr
         $this->getServiceMock(['addDocument', 'commit'])
             ->expects($this->exactly(4))
             ->method('addDocument')
             ->withConsecutive(
-                [
-                    $this->equalTo($doc1),
-                    $this->anything(),
-                    $this->anything(),
-                    $this->anything(),
-                    $this->anything()
-                ],
-                [
-                    $this->equalTo($doc2),
-                    $this->anything(),
-                    $this->anything(),
-                    $this->anything(),
-                    $this->anything()
-                ],
-                [
-                    $this->equalTo($doc3),
-                    $this->anything(),
-                    $this->anything(),
-                    $this->anything(),
-                    $this->anything()
-                ],
-                [
-                    $this->equalTo($doc4),
-                    $this->anything(),
-                    $this->anything(),
-                    $this->anything(),
-                    $this->anything()
-                ]
+                [$doc1],
+                [$doc2],
+                [$doc3],
+                [$doc4]
             );
 
         SearchUpdater::flush_dirty_indexes();
@@ -205,12 +169,12 @@ class SolrIndexVersionedTest extends SapphireTest
     public function testDelete()
     {
         // Delete the live record (not the stage)
-        Versioned::set_stage('Stage');
+        Versioned::set_stage(Versioned::DRAFT);
 
         $item = new SearchVariantVersionedTest_Item(array('TestText' => 'Too'));
         $item->write();
-        $item->copyVersionToStage('Stage', 'Live');
-        Versioned::set_stage('Live');
+        $item->copyVersionToStage(Versioned::DRAFT, Versioned::LIVE);
+        Versioned::set_stage(Versioned::LIVE);
         $id = clone $item;
         $item->delete();
 
@@ -218,16 +182,16 @@ class SolrIndexVersionedTest extends SapphireTest
         $this->getServiceMock(['addDocument', 'commit', 'deleteById'])
             ->expects($this->exactly(1))
             ->method('deleteById')
-            ->with($this->equalTo($this->getExpectedDocumentId($id, 'Live')));
+            ->with($this->getExpectedDocumentId($id, Versioned::LIVE));
 
         SearchUpdater::flush_dirty_indexes();
 
         // Delete the stage record
-        Versioned::set_stage('Stage');
+        Versioned::set_stage(Versioned::DRAFT);
 
         $item = new SearchVariantVersionedTest_Item(array('TestText' => 'Too'));
         $item->write();
-        $item->copyVersionToStage('Stage', 'Live');
+        $item->copyVersionToStage(Versioned::DRAFT, Versioned::LIVE);
         $id = clone $item;
         $item->delete();
 
@@ -235,7 +199,7 @@ class SolrIndexVersionedTest extends SapphireTest
         $this->getServiceMock(['addDocument', 'commit', 'deleteById'])
             ->expects($this->exactly(1))
             ->method('deleteById')
-            ->with($this->equalTo($this->getExpectedDocumentId($id, 'Stage')));
+            ->with($this->getExpectedDocumentId($id, Versioned::DRAFT));
 
         SearchUpdater::flush_dirty_indexes();
     }
