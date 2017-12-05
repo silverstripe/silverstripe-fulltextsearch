@@ -4,6 +4,7 @@ namespace SilverStripe\FullTextSearch\Solr\Services;
 
 use SilverStripe\Core\Config\Config;
 use SilverStripe\FullTextSearch\Solr\Solr;
+use SilverStripe\FullTextSearch\Solr\SolrIndex;
 use Silverstripe\Core\ClassInfo;
 
 /**
@@ -20,6 +21,9 @@ class SolrService extends SolrService_Core
      */
     protected function coreCommand($command, $core, $params = array())
     {
+        // Unencode the class name
+        $core = SolrIndex::getClassNameFromIndex($core);
+
         $command = strtoupper($command);
         //get the non-namespaced name of the Solr core, since backslashes not valid characters
         $core = ClassInfo::shortName($core);
@@ -31,11 +35,14 @@ class SolrService extends SolrService_Core
 
     /**
      * Is the passed core active?
-     * @param string $core The name of the core
+     * @param string $core The name of the core (an encoded class name)
      * @return boolean True if that core exists & is active
      */
     public function coreIsActive($core)
     {
+        // Unencode the class name
+        $core = SolrIndex::getClassNameFromIndex($core);
+
         // Request the status of the full core name
         $result = $this->coreCommand('STATUS', $core);
 
@@ -88,6 +95,9 @@ class SolrService extends SolrService_Core
      */
     public function serviceForCore($core)
     {
+        // Unencode the class name
+        $core = SolrIndex::getClassNameFromIndex($core);
+
         $klass = Config::inst()->get(get_called_class(), 'core_class');
         $coreName = ClassInfo::shortName($core);
         return new $klass($this->_host, $this->_port, $this->_path . $coreName, $this->_httpTransport);

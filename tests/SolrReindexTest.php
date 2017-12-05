@@ -179,10 +179,17 @@ class SolrReindexTest extends SapphireTest
         $this->getHandler()->runReindex($logger, 21, Solr_Reindex::class);
 
         // Test that invalid classes are removed
-        $this->assertContains('Clearing obsolete classes from ' . SolrReindexTest_Index::class, $logger->getMessages());
-        //var_dump($logger->getMessages());
+        $this->assertContains(
+            'Clearing obsolete classes from ' . str_replace('\\', '-', SolrReindexTest_Index::class),
+            $logger->getMessages()
+        );
+
         // Test that valid classes in invalid variants are removed
-        $this->assertContains('Clearing all records of type ' . SolrReindexTest_Item::class . ' in the current state: {' . json_encode(SolrReindexTest_Variant::class) . ':"2"}', $logger->getMessages());
+        $this->assertContains(
+            'Clearing all records of type ' . SolrReindexTest_Item::class . ' in the current state: {'
+            . json_encode(SolrReindexTest_Variant::class) . ':"2"}',
+            $logger->getMessages()
+        );
 
         // 120x2 grouped into groups of 21 results in 12 groups
         $this->assertEquals(12, $logger->countMessages('Called processGroup with '));
