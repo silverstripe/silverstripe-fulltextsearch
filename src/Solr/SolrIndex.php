@@ -133,8 +133,8 @@ abstract class SolrIndex extends SearchIndex
      *
      * @see http://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters#solr.WhitespaceTokenizerFactory
      *
-     * @param String $field
-     * @param String $type
+     * @param string $field
+     * @param string $type
      * @param Array $params Parameters for the analyzer, usually at least a "class"
      */
     public function addAnalyzer($field, $type, $params)
@@ -243,7 +243,7 @@ abstract class SolrIndex extends SearchIndex
 
     /**
      * Extract a human friendly spelling suggestion from a Solr spellcheck collation string.
-     * @param String $collation
+     * @param string $collation
      * @return String
      */
     protected function getNiceSuggestion($collation = '')
@@ -262,7 +262,7 @@ abstract class SolrIndex extends SearchIndex
      * Extract a query string from a Solr spellcheck collation string.
      * Useful for constructing 'Did you mean?' links, for example:
      * <a href="http://example.com/search?q=$SuggestionQueryString">$SuggestionNice</a>
-     * @param String $collation
+     * @param string $collation
      * @return String
      */
     protected function getSuggestionQueryString($collation = '')
@@ -387,7 +387,7 @@ abstract class SolrIndex extends SearchIndex
     }
 
     /**
-     * @param String $name
+     * @param string $name
      * @param Array $spec
      * @param Array $typeMap
      * @return String XML
@@ -428,9 +428,9 @@ abstract class SolrIndex extends SearchIndex
     /**
      * Convert definition to XML tag
      *
-     * @param String $tag
-     * @param String $attrs Map of attributes
-     * @param String $content Inner content
+     * @param string $tag
+     * @param string $attrs Map of attributes
+     * @param string $content Inner content
      * @return String XML tag
      */
     protected function toXmlTag($tag, $attrs, $content = null)
@@ -448,8 +448,8 @@ abstract class SolrIndex extends SearchIndex
     }
 
     /**
-     * @param String $source Composite field name (<class>_<fieldname>)
-     * @param String $dest
+     * @param string $source Composite field name (<class>_<fieldname>)
+     * @param string $dest
      */
     public function addCopyField($source, $dest, $extraOptions = array())
     {
@@ -881,6 +881,9 @@ abstract class SolrIndex extends SearchIndex
                 if ($fields) {
                     $searchq = array();
                     foreach ($fields as $field) {
+                        // Escape namespace separators in class names
+                        $field = $this->sanitiseClassName($field);
+
                         $boost = (isset($search['boost'][$field])) ? '^' . $search['boost'][$field] : '';
                         $searchq[] = "{$field}:".$part.$fuzzy.$boost;
                     }
