@@ -941,7 +941,10 @@ abstract class SolrIndex extends SearchIndex
     {
         $fq = array();
         foreach ($searchQuery->exclude as $field => $values) {
-            $excludeq = array();
+            // Handle namespaced class names
+            $field = $this->sanitiseClassName($field);
+
+            $excludeq = [];
             $missing = false;
 
             foreach ($values as $value) {
