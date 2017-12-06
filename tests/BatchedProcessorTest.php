@@ -205,7 +205,7 @@ class BatchedProcessorTest extends SapphireTest
      */
     public function testSoftCap()
     {
-        $this->markTestSkipped(
+        $this->markTestIncomplete(
             '@todo PostgreSQL: This test passes in isolation, but not in conjunction with the previous test'
         );
 
