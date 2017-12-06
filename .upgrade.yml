@@ -5,6 +5,9 @@ mappings:
   SearchUpdateProcessor: SilverStripe\FullTextSearch\Search\Processors\SearchUpdateProcessor
   SearchUpdateQueuedJobProcessor: SilverStripe\FullTextSearch\Search\Processors\SearchUpdateQueuedJobProcessor
   FullTextSearch: SilverStripe\FullTextSearch\Search\FullTextSearch
+  SearchManipulateCapture_MySQLDatabase: SilverStripe\FullTextSearch\Search\Captures\SearchManipulateCapture_MySQLDatabase
+  SearchManipulateCapture_PostgreSQLDatabase: SilverStripe\FullTextSearch\Search\Captures\SearchManipulateCapture_PostgreSQLDatabase
+  SearchManipulateCapture_SQLite3Database: SilverStripe\FullTextSearch\Search\Captures\SearchManipulateCapture_SQLite3Database
   SearchIndex: SilverStripe\FullTextSearch\Search\Indexes\SearchIndex
   SearchIndex_Null: SilverStripe\FullTextSearch\Search\Indexes\SearchIndex_Null
   SearchIndex_Recording: SilverStripe\FullTextSearch\Search\Indexes\SearchIndex_Recording
