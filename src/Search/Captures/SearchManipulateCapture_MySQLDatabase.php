@@ -1,6 +1,6 @@
 <?php
 
-namespace SilverStripe\FullTextSearch\Captures;
+namespace SilverStripe\FullTextSearch\Search\Captures;
 
 use SilverStripe\ORM\Connect\MySQLDatabase;
 use SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater;

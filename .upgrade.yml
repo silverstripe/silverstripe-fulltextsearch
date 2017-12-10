@@ -5,6 +5,9 @@ mappings:
   SearchUpdateProcessor: SilverStripe\FullTextSearch\Search\Processors\SearchUpdateProcessor
   SearchUpdateQueuedJobProcessor: SilverStripe\FullTextSearch\Search\Processors\SearchUpdateQueuedJobProcessor
   FullTextSearch: SilverStripe\FullTextSearch\Search\FullTextSearch
+  SearchManipulateCapture_MySQLDatabase: SilverStripe\FullTextSearch\Search\Captures\SearchManipulateCapture_MySQLDatabase
+  SearchManipulateCapture_PostgreSQLDatabase: SilverStripe\FullTextSearch\Search\Captures\SearchManipulateCapture_PostgreSQLDatabase
+  SearchManipulateCapture_SQLite3Database: SilverStripe\FullTextSearch\Search\Captures\SearchManipulateCapture_SQLite3Database
   SearchIndex: SilverStripe\FullTextSearch\Search\Indexes\SearchIndex
   SearchIndex_Null: SilverStripe\FullTextSearch\Search\Indexes\SearchIndex_Null
   SearchIndex_Recording: SilverStripe\FullTextSearch\Search\Indexes\SearchIndex_Recording
@@ -12,8 +15,7 @@ mappings:
   SearchQuery: SilverStripe\FullTextSearch\Search\Queries\SearchQuery
   SearchQuery_Range: SilverStripe\FullTextSearch\Search\Queries\SearchQuery_Range
   SearchUpdater: SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater
-  SearchUpdater_BindManipulationCaptureFilter: SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater_BindManipulationCaptureFilter
-  SearchUpdater_ObjectHandler: SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater_ObjectHandler
+  SearchUpdater_ObjectHandler: SilverStripe\FullTextSearch\Search\Extensions\SearchUpdater_ObjectHandler
   SearchVariant: SilverStripe\FullTextSearch\Search\Variants\SearchVariant
   SearchVariant_Caller: SilverStripe\FullTextSearch\Search\Variants\SearchVariant_Caller
   SearchVariantSubsites: SilverStripe\FullTextSearch\Search\Variants\SearchVariantSubsites

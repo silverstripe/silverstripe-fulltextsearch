@@ -5,6 +5,7 @@ namespace SilverStripe\FullTextSearch\Search\Updaters;
 use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\SapphireTest;
+use SilverStripe\ORM\Connect\Database;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\DB;
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
@@ -17,13 +18,11 @@ use ReflectionClass;
  * This class is responsible for capturing changes to DataObjects and triggering index updates of the resulting dirty
  * index items.
  *
- * Attached automatically by _config calling SearchUpdater#bind_manipulation_capture. Overloads the current database
- * connector's manipulate method - basically we need to capture a manipulation _after_ all the augmentManipulation code
- * (for instance Version's) is run
+ * Attached automatically by Injector configuration that overloads your flavour of Database class. The
+ * SearchManipulateCapture_[type] classes overload the manipulate method - basically we need to capture a
+ * manipulation _after_ all the augmentManipulation code (for instance Version's) is run
  *
  * Pretty closely tied to the field structure of SearchIndex.
- *
- * TODO: The way we bind in is awful hacky.
  */
 
 class SearchUpdater
@@ -37,39 +36,6 @@ class SearchUpdater
      * @var bool
      */
     private static $flush_on_shutdown = true;
-
-    /**
-     * Replace the database object with a subclass that captures all manipulations and passes them to us
-     */
-    public static function bind_manipulation_capture()
-    {
-        global $databaseConfig;
-
-        $current = DB::get_conn();
-
-        if (!$current || !$current->getSelectedDatabase() || @$current->isManipulationCapture) {
-            return;
-        } // If not yet set, or its already captured, just return
-
-        $type = (new ReflectionClass($current))->getShortName();
-        $dbClass = 'SilverStripe\FullTextSearch\Captures\SearchManipulateCapture_' . $type;
-
-        // Check if Capture class exists.
-        if (!class_exists($dbClass)) {
-            return;
-        }
-
-        /** @var SS_Database $captured */
-        $captured = new $dbClass($databaseConfig);
-
-        $captured->setConnector($current->getConnector());
-        $captured->setQueryBuilder($current->getQueryBuilder());
-        $captured->setSchemaManager($current->getSchemaManager());
-
-        // The connection might have had it's name changed (like if we're currently in a test)
-        $captured->selectDatabase($current->getSelectedDatabase());
-        DB::set_conn($captured);
-    }
 
     public static $registered = false;
     /** @var SearchUpdateProcessor */

@@ -1,3 +1,6 @@
+---
+Name: fulltextsearchconfig
+---
 SilverStripe\ORM\DataObject:
   extensions:
-    - 'SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater_ObjectHandler'
+    - SilverStripe\FullTextSearch\Search\Extensions\SearchUpdater_ObjectHandler

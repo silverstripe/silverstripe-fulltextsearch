@@ -16,9 +16,9 @@ class SearchUpdateQueuedJobProcessor extends SearchUpdateBatchedProcessor implem
     /**
      * The QueuedJob queue to use when processing updates
      * @config
-     * @var int
+     * @var string
      */
-    private static $reindex_queue = 2; // QueuedJob::QUEUED;
+    private static $reindex_queue = QueuedJob::QUEUED;
 
     protected $messages = array();
 

@@ -1,11 +1,11 @@
 <?php
 
-namespace SilverStripe\FullTextSearch\Captures;
+namespace SilverStripe\FullTextSearch\Search\Captures;
 
-use SilverStripe\SQLite\SQLite3Database;
 use SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater;
+use SilverStripe\SQLite\SQLite3Database;
 
-if (!class_exists('SQLite3Database')) {
+if (!class_exists(SQLite3Database::class)) {
     return;
 }
 

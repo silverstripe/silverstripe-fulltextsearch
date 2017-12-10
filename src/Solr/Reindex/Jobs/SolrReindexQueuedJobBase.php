@@ -138,6 +138,11 @@ abstract class SolrReindexQueuedJobBase implements QueuedJob
         return QueuedJob::QUEUED;
     }
 
+    public function getSignature()
+    {
+        return sha1(get_class($this) . time() . mt_rand(0, 100000));
+    }
+
     public function addMessage($message)
     {
         $this->messages[] = $message;

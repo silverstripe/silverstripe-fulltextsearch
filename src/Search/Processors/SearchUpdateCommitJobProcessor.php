@@ -22,9 +22,9 @@ class SearchUpdateCommitJobProcessor implements QueuedJob
      * The QueuedJob queue to use when processing commits
      *
      * @config
-     * @var int
+     * @var string
      */
-    private static $commit_queue = 2; // QueuedJob::QUEUED;
+    private static $commit_queue = QueuedJob::QUEUED;
 
     /**
      * List of indexes to commit
@@ -109,9 +109,7 @@ class SearchUpdateCommitJobProcessor implements QueuedJob
 
     public function getSignature()
     {
-        // There is only ever one commit job on the queue so the signature is consistent
-        // See QueuedJobService::queueJob() for the code that prevents duplication
-        return __CLASS__;
+        return sha1(get_class($this) . time() . mt_rand(0, 100000));
     }
 
     public function getTitle()

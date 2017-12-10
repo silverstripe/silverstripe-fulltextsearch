@@ -51,7 +51,7 @@ class SolrReindexQueuedJob extends SolrReindexQueuedJobBase
         $data->jobData->batchSize = $this->batchSize;
         $data->jobData->taskName = $this->taskName;
         $data->jobData->classes = $this->classes;
-        
+
         return $data;
     }
 
@@ -63,11 +63,6 @@ class SolrReindexQueuedJob extends SolrReindexQueuedJobBase
         $this->batchSize = $jobData->batchSize;
         $this->taskName = $jobData->taskName;
         $this->classes = $jobData->classes;
-    }
-
-    public function getSignature()
-    {
-        return __CLASS__;
     }
 
     public function getTitle()
