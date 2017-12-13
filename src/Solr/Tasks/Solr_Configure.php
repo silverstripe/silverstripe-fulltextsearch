@@ -17,6 +17,8 @@ class Solr_Configure extends Solr_BuildTask
     {
         parent::run($request);
 
+        $this->extend('updateBeforeSolrConfigureTask', $request);
+
         // Find the IndexStore handler, which will handle uploading config files to Solr
         $store = $this->getSolrConfigStore();
 
@@ -35,6 +37,8 @@ class Solr_Configure extends Solr_BuildTask
         if (isset($e)) {
             exit(1);
         }
+
+        $this->extend('updateAfterSolrConfigureTask', $request);
     }
 
     /**

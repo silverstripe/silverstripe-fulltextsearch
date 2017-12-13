@@ -56,10 +56,14 @@ class Solr_Reindex extends Solr_BuildTask
     {
         parent::run($request);
 
+        $this->extend('updateBeforeSolrReindexTask', $request);
+
         // Reset state
         $originalState = SearchVariant::current_state();
         $this->doReindex($request);
         SearchVariant::activate_state($originalState);
+
+        $this->extend('updateAfterSolrReindexTask', $request);
     }
 
     /**
