@@ -1,6 +1,6 @@
 <?php
 
-namespace SilverStripe\FullTextSearch\Tests\State;
+namespace SilverStripe\FullTextSearch\State;
 
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Dev\SapphireTest;
@@ -9,7 +9,7 @@ use SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
 use Symbiote\QueuedJobs\Services\QueuedJobService;
 
-class FullTextSearchState implements TestState
+class FullTextSearchTestState implements TestState
 {
     public function setUp(SapphireTest $test)
     {

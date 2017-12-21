@@ -5,4 +5,4 @@ SilverStripe\Core\Injector\Injector:
   SilverStripe\Dev\State\SapphireTestState:
     properties:
       States:
-        fulltextsearch: '%$SilverStripe\FullTextSearch\Tests\State\FullTextSearchState'
+        fulltextsearch: '%$SilverStripe\FullTextSearch\State\FullTextSearchTestState'
