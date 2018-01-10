@@ -33,7 +33,7 @@ class SearchIntrospection
      * @param string $class - The class to query
      * @param bool $includeSubclasses - True to return subclasses as well as super classes
      * @param bool $dataOnly - True to only return classes that have tables
-     * @return Array - Integer keys, String values as classes sorted by depth (most super first)
+     * @return array - Integer keys, String values as classes sorted by depth (most super first)
      */
     public static function hierarchy($class, $includeSubclasses = true, $dataOnly = false)
     {
