@@ -3,7 +3,6 @@
 namespace SilverStripe\FullTextSearch\Search\Indexes;
 
 use Exception;
-use InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use SilverStripe\Core\ClassInfo;
 use SilverStripe\Core\Config\Config;
@@ -93,30 +92,31 @@ abstract class SearchIndex extends ViewableData
     }
 
     /**
-     * Examines the classes this index is built on to try and find defined fields in the class hierarchy for those classes.
-     * Looks for db and viewable-data fields, although can't nessecarily find type for viewable-data fields.
+     * Examines the classes this index is built on to try and find defined fields in the class hierarchy
+     * for those classes.
+     * Looks for db and viewable-data fields, although can't necessarily find type for viewable-data fields.
      * If multiple classes have a relation with the same name all of these will be included in the search index
      * Note that only classes that have the relations uninherited (defined in them) will be listed
      * this is because inherited relations do not need to be processed by index explicitly
      */
-    public function fieldData($field, $forceType = null, $extraOptions = array())
+    public function fieldData($field, $forceType = null, $extraOptions = [])
     {
         $fullfield = str_replace(".", "_", $field);
         $sources = $this->getClasses();
 
         foreach ($sources as $source => $options) {
             $sources[$source]['base'] = DataObject::getSchema()->baseDataClass($source);
-            $sources[$source]['lookup_chain'] = array();
+            $sources[$source]['lookup_chain'] = [];
         }
 
-        $found = array();
+        $found = [];
 
         if (strpos($field, '.') !== false) {
             $lookups = explode(".", $field);
             $field = array_pop($lookups);
 
             foreach ($lookups as $lookup) {
-                $next = array();
+                $next = [];
 
                 foreach ($sources as $source => $baseOptions) {
                     $source = $this->getSourceName($source);
@@ -273,7 +273,7 @@ abstract class SearchIndex extends ViewableData
      * yet been called for this index instance
      *
      * @throws Exception
-     * @param String $class - The class to include
+     * @param string $class - The class to include
      * @param array $options - TODO: Remove
      */
     public function addClass($class, $options = array())
@@ -303,9 +303,9 @@ abstract class SearchIndex extends ViewableData
 
     /**
      * Add a field that should be fulltext searchable
-     * @param String $field - The field to add
-     * @param String $forceType - The type to force this field as (required in some cases, when not detectable from metadata)
-     * @param String $extraOptions - Dependent on search implementation
+     * @param string $field - The field to add
+     * @param string $forceType - The type to force this field as (required in some cases, when not detectable from metadata)
+     * @param string $extraOptions - Dependent on search implementation
      */
     public function addFulltextField($field, $forceType = null, $extraOptions = array())
     {
@@ -319,9 +319,9 @@ abstract class SearchIndex extends ViewableData
 
     /**
      * Add a field that should be filterable
-     * @param String $field - The field to add
-     * @param String $forceType - The type to force this field as (required in some cases, when not detectable from metadata)
-     * @param String $extraOptions - Dependent on search implementation
+     * @param string $field - The field to add
+     * @param string $forceType - The type to force this field as (required in some cases, when not detectable from metadata)
+     * @param string $extraOptions - Dependent on search implementation
      */
     public function addFilterField($field, $forceType = null, $extraOptions = array())
     {
@@ -335,9 +335,9 @@ abstract class SearchIndex extends ViewableData
 
     /**
      * Add a field that should be sortable
-     * @param String $field - The field to add
-     * @param String $forceType - The type to force this field as (required in some cases, when not detectable from metadata)
-     * @param String $extraOptions - Dependent on search implementation
+     * @param string $field - The field to add
+     * @param string $forceType - The type to force this field as (required in some cases, when not detectable from metadata)
+     * @param string $extraOptions - Dependent on search implementation
      */
     public function addSortField($field, $forceType = null, $extraOptions = array())
     {
@@ -467,9 +467,9 @@ abstract class SearchIndex extends ViewableData
     /**
      * Get the "document ID" (a database & variant unique id) given some "Base" class, DataObject ID and state array
      *
-     * @param String $base - The base class of the object
-     * @param Integer $id - The ID of the object
-     * @param Array $state - The variant state of the object
+     * @param string $base - The base class of the object
+     * @param integer $id - The ID of the object
+     * @param array $state - The variant state of the object
      * @return string - The document ID as a string
      */
     public function getDocumentIDForState($base, $id, $state)
@@ -483,8 +483,8 @@ abstract class SearchIndex extends ViewableData
      * Get the "document ID" (a database & variant unique id) given some "Base" class and DataObject
      *
      * @param DataObject $object - The object
-     * @param String $base - The base class of the object
-     * @param Boolean $includesubs - TODO: Probably going away
+     * @param string $base - The base class of the object
+     * @param boolean $includesubs - TODO: Probably going away
      * @return string - The document ID as a string
      */
     public function getDocumentID($object, $base, $includesubs)
@@ -496,8 +496,8 @@ abstract class SearchIndex extends ViewableData
      * Given an object and a field definition (as returned by fieldData) get the current value of that field on that object
      *
      * @param DataObject $object - The object to get the value from
-     * @param Array $field - The field definition to use
-     * @return Mixed - The value of the field, or null if we couldn't look it up for some reason
+     * @param array $field - The field definition to use
+     * @return mixed - The value of the field, or null if we couldn't look it up for some reason
      */
     protected function _getFieldValue($object, $field)
     {
@@ -577,10 +577,10 @@ abstract class SearchIndex extends ViewableData
      *
      * Internal function used by SearchUpdater.
      *
-     * @param  $class
-     * @param  $id
-     * @param  $statefulids
-     * @param  $fields
+     * @param  string $class
+     * @param  int $id
+     * @param  array $statefulids
+     * @param  array $fields
      * @return array
      */
     public function getDirtyIDs($class, $id, $statefulids, $fields)
