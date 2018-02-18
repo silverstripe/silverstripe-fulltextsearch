@@ -8,6 +8,7 @@ use SilverStripe\Core\Manifest\ModuleLoader;
 use SilverStripe\FullTextSearch\Solr\Solr;
 use SilverStripe\FullTextSearch\Solr\SolrIndex;
 use SilverStripe\ORM\DB;
+use Symfony\Component\Process\Process;
 
 /**
  * Invokes an immediate reindex
@@ -77,11 +78,15 @@ class SolrReindexImmediateHandler extends SolrReindexBase
         $scriptTask = "php {$scriptPath} dev/tasks/{$taskName}";
 
         $cmd = "{$scriptTask} index={$indexClassEscaped} class={$class} group={$group} groups={$groups} variantstate={$statevar}";
-        $cmd .= " verbose=1 2>&1";
+        $cmd .= " verbose=1";
         $logger->info("Running '$cmd'");
 
         // Execute script via shell
-        $res = $logger ? passthru($cmd) : `$cmd`;
+        $process = new Process($cmd);
+        $process->inheritEnvironmentVariables();
+        $process->run();
+
+        $res = $process->getOutput();
         if ($logger) {
             $logger->info(preg_replace('/\r\n|\n/', '$0  ', $res));
         }
