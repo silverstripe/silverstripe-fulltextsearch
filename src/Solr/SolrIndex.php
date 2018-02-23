@@ -5,6 +5,7 @@ namespace SilverStripe\FullTextSearch\Solr;
 use SilverStripe\Control\Director;
 use SilverStripe\Core\Environment;
 use SilverStripe\FulltextSearch\Search\Indexes\SearchIndex;
+use SilverStripe\FullTextSearch\Search\Variants\SearchVariant_Caller;
 use SilverStripe\FullTextSearch\Solr\Services\SolrService;
 use SilverStripe\FulltextSearch\Search\Queries\SearchQuery;
 use SilverStripe\FullTextSearch\Search\Queries\SearchQuery_Range;
@@ -710,12 +711,7 @@ abstract class SolrIndex extends SearchIndex
     public function search(SearchQuery $query, $offset = -1, $limit = -1, $params = array())
     {
         $service = $this->getService();
-
-        $searchClass = count($query->classes) == 1
-            ? $query->classes[0]['class']
-            : null;
-        SearchVariant::with($searchClass)
-            ->call('alterQuery', $query, $this);
+        $this->applySearchVariants($query);
 
         $q = array(); // Query
         $fq = array(); // Filter query
@@ -868,6 +864,21 @@ abstract class SolrIndex extends SearchIndex
         $this->extend('updateSearchResults', $ret, $res);
 
         return $ret;
+    }
+
+    /**
+     * With a common set of variants that are relevant to at least one class in the list (from either the query or
+     * the current index), allow them to alter the query to add their variant column conditions.
+     *
+     * @param SearchQuery $query
+     */
+    protected function applySearchVariants(SearchQuery $query)
+    {
+        $classes = count($query->classes) ? $query->classes : $this->getClasses();
+
+        /** @var SearchVariant_Caller $variantCaller */
+        $variantCaller = SearchVariant::withCommon($classes);
+        $variantCaller->call('alterQuery', $query, $this);
     }
 
     /**

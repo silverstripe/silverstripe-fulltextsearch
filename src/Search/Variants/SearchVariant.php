@@ -2,11 +2,10 @@
 
 namespace SilverStripe\FullTextSearch\Search\Variants;
 
-use SilverStripe\ORM\DataObject;
+use ReflectionClass;
 use SilverStripe\Core\ClassInfo;
 use SilverStripe\Core\Config\Configurable;
 use SilverStripe\FullTextSearch\Utils\CombinationsArrayIterator;
-use ReflectionClass;
 
 /**
  * A Search Variant handles decorators and other situations where the items to reindex or search through are modified
@@ -93,6 +92,7 @@ abstract class SearchVariant
     public static function variants($class = null, $includeSubclasses = true)
     {
         if (!$class) {
+            // Build up and cache a list of all search variants (subclasses of SearchVariant)
             if (self::$variants === null) {
                 $classes = ClassInfo::subclassesFor(static::class);
 
@@ -164,6 +164,42 @@ abstract class SearchVariant
         }
         // Then return it
         return self::$call_instances[$key];
+    }
+
+    /**
+     * Similar to {@link SearchVariant::with}, except will only use variants that apply to at least one of the classes
+     * in the input array, where {@link SearchVariant::with} will run the query on the specific class you give it.
+     *
+     * @param array $classes
+     * @return SearchVariant_Caller
+     */
+    public static function withCommon(array $classes = [])
+    {
+        // Allow caching
+        $cacheKey = serialize($classes);
+        if (isset(self::$call_instances[$cacheKey])) {
+            return self::$call_instances[$cacheKey];
+        }
+
+        // Construct new array of variants applicable to at least one class in the list
+        $commonVariants = [];
+        foreach ($classes as $class => $options) {
+            // Extract relevant class options
+            $includeSubclasses = isset($options['include_children']) ? $options['include_children'] : true;
+
+            // Get the variants for the current class
+            $variantsForClass = self::variants($class, $includeSubclasses);
+
+            // Merge the variants applicable to the current class into the list of common variants, using
+            // the variant instance to replace any previous versions for the same class name (should be singleton
+            // anyway).
+            $commonVariants = array_replace($commonVariants, $variantsForClass);
+        }
+
+        // Cache for future calls
+        self::$call_instances[$cacheKey] = new SearchVariant_Caller($commonVariants);
+
+        return self::$call_instances[$cacheKey];
     }
 
     /**
