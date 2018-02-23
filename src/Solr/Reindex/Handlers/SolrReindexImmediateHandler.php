@@ -60,19 +60,21 @@ class SolrReindexImmediateHandler extends SolrReindexBase
         $group,
         $taskName
     ) {
-        // Build state
+        $indexClass = get_class($indexInstance);
+        
+        // Build script parameters
+        $indexClassEscaped = $indexClass;
         $statevar = json_encode($state);
+
         if (strpos(PHP_OS, "WIN") !== false) {
             $statevar = '"'.str_replace('"', '\\"', $statevar).'"';
         } else {
             $statevar = "'".$statevar."'";
+            $class = addslashes($class);
+            $indexClassEscaped = addslashes($indexClass);
         }
 
-        // Build script
-        $indexName = $indexInstance->getIndexName();
-        $indexClass = get_class($indexInstance);
-        $indexClassEscaped = addslashes($indexClass);
-        $class = addslashes($class);
+        // Build script line
         $frameworkPath = ModuleLoader::getModule('silverstripe/framework')->getPath();
         $scriptPath = sprintf("%s%scli-script.php", $frameworkPath, DIRECTORY_SEPARATOR);
         $scriptTask = "php {$scriptPath} dev/tasks/{$taskName}";
