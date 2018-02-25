@@ -282,10 +282,6 @@ abstract class SearchIndex extends ViewableData
             throw new Exception('Can\'t add class to Index after fields have already been added');
         }
 
-        if (!DataObject::getSchema()->classHasTable($class)) {
-            throw new \InvalidArgumentException('Can\'t add classes which don\'t have data tables (no $db or $has_one set on the class)');
-        }
-
         $options = array_merge(array(
             'include_children' => true
         ), $options);
