@@ -170,13 +170,13 @@ abstract class SearchVariant
      * Similar to {@link SearchVariant::with}, except will only use variants that apply to at least one of the classes
      * in the input array, where {@link SearchVariant::with} will run the query on the specific class you give it.
      *
-     * @param array $classes
+     * @param string[] $classes
      * @return SearchVariant_Caller
      */
     public static function withCommon(array $classes = [])
     {
         // Allow caching
-        $cacheKey = serialize($classes);
+        $cacheKey = sha1(serialize($classes));
         if (isset(self::$call_instances[$cacheKey])) {
             return self::$call_instances[$cacheKey];
         }
