@@ -172,7 +172,7 @@ class SolrIndexTest extends SapphireTest
                 $this->equalTo([
                     'qf' => SearchUpdaterTest_Container::class . '_Field1^1.5 '
                         . SearchUpdaterTest_Container::class . '_Field2^2.1 _text',
-                    'fq' => '+(_versionedstage:"" (*:* -_versionedstage:[* TO *]))',
+                    'fq' => '',
                 ]),
                 $this->anything()
             )->willReturn($this->getFakeRawSolrResponse());
