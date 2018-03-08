@@ -3,7 +3,6 @@
 namespace SilverStripe\FullTextSearch\Solr;
 
 use SilverStripe\Control\Director;
-use SilverStripe\Core\ClassInfo;
 use SilverStripe\Core\Environment;
 use SilverStripe\FulltextSearch\Search\Indexes\SearchIndex;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariant_Caller;
@@ -1052,12 +1051,9 @@ abstract class SolrIndex extends SearchIndex
      */
     public function uploadConfig($store)
     {
-        // Ensure the short class name is used to match the call which creates the core in SolrService->coreCreate()
-        $indexName = self::getClassNameFromIndex($this->getIndexName());
-        $indexName = ClassInfo::shortName($indexName);
         // Upload the config files for this index
         $store->uploadString(
-            $indexName,
+            $this->getIndexName(),
             'schema.xml',
             (string)$this->generateSchema()
         );
@@ -1065,7 +1061,7 @@ abstract class SolrIndex extends SearchIndex
         // Upload additional files
         foreach (glob($this->getExtrasPath().'/*') as $file) {
             if (is_file($file)) {
-                $store->uploadFile($indexName, $file);
+                $store->uploadFile($this->getIndexName(), $file);
             }
         }
     }
