@@ -124,29 +124,6 @@ abstract class SolrIndex extends SearchIndex
         return implode($indexParts);
     }
 
-    /**
-     * Helper for returning the indexer class name from an index name, encoded via {@link getIndexName()}
-     *
-     * @param string $indexName
-     * @return string
-     */
-    public static function getClassNameFromIndex($indexName)
-    {
-        if (($indexPrefix = Environment::getEnv('SS_SOLR_INDEX_PREFIX'))
-            && (substr($indexName, 0, strlen($indexPrefix)) === $indexPrefix)
-        ) {
-            $indexName = substr($indexName, strlen($indexPrefix));
-        }
-
-        if (($indexSuffix = Environment::getEnv('SS_SOLR_INDEX_SUFFIX'))
-            && (substr($indexName, -strlen($indexSuffix)) === $indexSuffix)
-        ) {
-            $indexName = substr($indexName, 0, -strlen($indexSuffix));
-        }
-
-        return str_replace('-', '\\', $indexName);
-    }
-
     public function getTypes()
     {
         return $this->renderWith($this->getTemplatesPath() . '/types.ss');

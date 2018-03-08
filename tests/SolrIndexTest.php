@@ -386,7 +386,7 @@ class SolrIndexTest extends SapphireTest
         Environment::putEnv('SS_SOLR_INDEX_PREFIX="foo_"');
         Environment::putEnv('SS_SOLR_INDEX_SUFFIX="_bar"');
 
-        $this->assertSame($expected, SolrIndex::getClassNameFromIndex($indexName));
+        $this->assertSame($expected, $indexName);
     }
 
     /**
