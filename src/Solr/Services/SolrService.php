@@ -76,17 +76,13 @@ class SolrService extends SolrService_Core
     }
 
     /**
-     * Create a new Solr3Service_Core instance for the passed core
+     * Create a new Solr4Service_Core instance for the passed core
      * @param $core string - The name of the core
-     * @return Solr3Service_Core
+     * @return Solr4Service_Core
      */
     public function serviceForCore($core)
     {
-        // Unencode the class name
-        $core = SolrIndex::getClassNameFromIndex($core);
-
         $klass = Config::inst()->get(get_called_class(), 'core_class');
-        $coreName = ClassInfo::shortName($core);
-        return new $klass($this->_host, $this->_port, $this->_path . $coreName, $this->_httpTransport);
+        return new $klass($this->_host, $this->_port, $this->_path . $core, $this->_httpTransport);
     }
 }
