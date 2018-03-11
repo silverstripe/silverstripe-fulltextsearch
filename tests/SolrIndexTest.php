@@ -376,30 +376,6 @@ class SolrIndexTest extends SapphireTest
         );
     }
 
-    /**
-     * @dataProvider indexNameProvider
-     * @param string $indexName
-     * @param string $expected
-     */
-    public function testGetClassNameFromIndex($indexName, $expected)
-    {
-        Environment::putEnv('SS_SOLR_INDEX_PREFIX="foo_"');
-        Environment::putEnv('SS_SOLR_INDEX_SUFFIX="_bar"');
-
-        $this->assertSame($expected, SolrIndex::getClassNameFromIndex($indexName));
-    }
-
-    /**
-     * @return array[]
-     */
-    public function indexNameProvider()
-    {
-        return [
-            ['foo_SilverStripe-FullTextSearch-Tests-SolrIndexTest_bar', __CLASS__],
-            ['SilverStripe-FullTextSearch-Tests-SolrIndexTest', __CLASS__],
-        ];
-    }
-
     protected function getFakeRawSolrResponse()
     {
         return new \Apache_Solr_Response(

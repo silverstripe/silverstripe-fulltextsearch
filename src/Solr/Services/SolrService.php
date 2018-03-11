@@ -21,12 +21,7 @@ class SolrService extends SolrService_Core
      */
     protected function coreCommand($command, $core, $params = array())
     {
-        // Unencode the class name
-        $core = SolrIndex::getClassNameFromIndex($core);
-
         $command = strtoupper($command);
-        //get the non-namespaced name of the Solr core, since backslashes not valid characters
-        $core = ClassInfo::shortName($core);
         $params = array_merge($params, array('action' => $command, 'wt' => 'json'));
         $params[$command == 'CREATE' ? 'name' : 'core'] = $core;
 
@@ -40,17 +35,9 @@ class SolrService extends SolrService_Core
      */
     public function coreIsActive($core)
     {
-        // Unencode the class name
-        $core = SolrIndex::getClassNameFromIndex($core);
-
         // Request the status of the full core name
         $result = $this->coreCommand('STATUS', $core);
-
-        // Solr returns the core as the 'short name' of the class (e.g. Mysite\Search\SolrIndex -> SolrIndex)
-        $reflection = new \ReflectionClass($core);
-        $shortClass = $reflection->getShortName();
-
-        return isset($result->status->$shortClass->uptime);
+        return isset($result->status->$core->uptime);
     }
 
     /**
@@ -89,17 +76,13 @@ class SolrService extends SolrService_Core
     }
 
     /**
-     * Create a new Solr3Service_Core instance for the passed core
+     * Create a new Solr4Service_Core instance for the passed core
      * @param $core string - The name of the core
-     * @return Solr3Service_Core
+     * @return Solr4Service_Core
      */
     public function serviceForCore($core)
     {
-        // Unencode the class name
-        $core = SolrIndex::getClassNameFromIndex($core);
-
         $klass = Config::inst()->get(get_called_class(), 'core_class');
-        $coreName = ClassInfo::shortName($core);
-        return new $klass($this->_host, $this->_port, $this->_path . $coreName, $this->_httpTransport);
+        return new $klass($this->_host, $this->_port, $this->_path . $core, $this->_httpTransport);
     }
 }
