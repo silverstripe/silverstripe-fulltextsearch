@@ -42,7 +42,7 @@ class SearchUpdater
     public static $processor = null;
 
     /**
-     * Called by the SearchManiplateCapture database adapter with every manipulation made against the database.
+     * Called by the ProxyDBExtension database connector with every manipulation made against the database.
      *
      * Check every index to see what objects need re-inserting into what indexes to keep the index fresh,
      * but doesn't actually do it yet.

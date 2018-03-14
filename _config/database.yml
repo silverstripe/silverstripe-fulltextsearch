@@ -1,32 +1,6 @@
 ---
-Name: fulltextsearchmysql
-After:
-  - 'databaseconnectors'
+Name: fulltextsearchproxydb
 ---
-SilverStripe\Core\Injector\Injector:
-  MySQLDatabase:
-    class: SilverStripe\FullTextSearch\Search\Captures\SearchManipulateCapture_MySQLDatabase
-  MySQLPDODatabase:
-    class: SilverStripe\FullTextSearch\Search\Captures\SearchManipulateCapture_MySQLDatabase
-
----
-Name: fulltextsearchpostgresql
-After:
-  - 'postgresqlconnectors'
----
-SilverStripe\Core\Injector\Injector:
-  PostgrePDODatabase:
-    class: SilverStripe\FullTextSearch\Search\Captures\SearchManipulateCapture_PostgreSQLDatabase
-  PostgreSQLDatabase:
-    class: SilverStripe\FullTextSearch\Search\Captures\SearchManipulateCapture_PostgreSQLDatabase
-
----
-Name: fulltextsearchsqlite
-After:
-  - 'sqlite3connectors'
----
-SilverStripe\Core\Injector\Injector:
-  SQLite3PDODatabase:
-    class: SilverStripe\FullTextSearch\Search\Captures\SearchManipulateCapture_SQLite3Database
-  SQLite3Database:
-    class: SilverStripe\FullTextSearch\Search\Captures\SearchManipulateCapture_SQLite3Database
+TractorCow\SilverStripeProxyDB\ProxyDBFactory:
+  extensions:
+    - SilverStripe\FullTextSearch\Search\Extensions\ProxyDBExtension

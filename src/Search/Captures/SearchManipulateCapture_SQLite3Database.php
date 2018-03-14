@@ -9,6 +9,10 @@ if (!class_exists(SQLite3Database::class)) {
     return;
 }
 
+/**
+ * @deprecated 3.1...4.0 Please use tractorcow/silverstripe-proxy-db to proxy the database connector instead
+ */
+
 class SearchManipulateCapture_SQLite3Database extends SQLite3Database
 {
 
