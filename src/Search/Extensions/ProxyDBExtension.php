@@ -7,9 +7,6 @@ use TractorCow\ClassProxy\Generators\ProxyGenerator;
 use SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater;
 
 /**
- * Class ProxyDBExtension
- * @package SilverStripe\FullTextSearch\Search\Extensions
- *
  * This database connector proxy will allow {@link SearchUpdater::handle_manipulation} to monitor database schema
  * changes that may need to be propagated through to search indexes.
  *
