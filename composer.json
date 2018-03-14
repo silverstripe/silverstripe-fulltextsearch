@@ -24,7 +24,8 @@
         "silverstripe/framework": "^4.0",
         "monolog/monolog": "~1.15",
         "ptcinc/solr-php-client": "^1.0",
-        "symfony/process": "^3.2"
+        "symfony/process": "^3.2",
+        "tractorcow/silverstripe-proxy-db" : "~0.1"
     },
     "require-dev": {
         "silverstripe/cms": "^4.0",
