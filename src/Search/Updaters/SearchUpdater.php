@@ -37,6 +37,14 @@ class SearchUpdater
      */
     private static $flush_on_shutdown = true;
 
+    /**
+     * Whether the updater is enabled. Set to false for local development if you don't have a Solr server.
+     *
+     * @config
+     * @var bool
+     */
+    private static $enabled = true;
+
     public static $registered = false;
     /** @var SearchUpdateProcessor */
     public static $processor = null;
@@ -53,6 +61,10 @@ class SearchUpdater
      */
     public static function handle_manipulation($manipulation)
     {
+        if (!static::config()->get('enabled')) {
+            return;
+        }
+
         // First, extract any state that is in the manipulation itself
         foreach ($manipulation as $table => $details) {
             if (!isset($manipulation[$table]['class'])) {

@@ -30,6 +30,20 @@ common interfaces to fulltext engine functionality, abstracting out common behav
 offers its own extensions, and there is some behaviour (such as getting the fulltext search engines installed, configured
 and running) that each connector deals with itself, in a way best suited to that search engine's design.
 
+## Disabling automatic configuration
+
+If you have this module installed but do not have a Solr server running, you can disable the database manipulation
+hooks that trigger automatic index updates:
+
+```yaml
+# File: mysite/_config/search.yml
+---
+Name: mysitesearch
+---
+SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater:
+  enabled: false
+```
+
 ## Basic usage
 
 Basic usage is a four step process:
