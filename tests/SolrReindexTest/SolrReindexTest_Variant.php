@@ -3,11 +3,13 @@
 namespace SilverStripe\FullTextSearch\Tests\SolrReindexTest;
 
 use SilverStripe\Dev\TestOnly;
+use SilverStripe\FullTextSearch\Search\Indexes\SearchIndex;
+use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
 use SilverStripe\ORM\DataObject;
 
 /**
- * Dummy variant that selects items with field Varient matching the current value
+ * Dummy variant that selects items with field Variant matching the current value
  *
  * Variant states are 0 and 1, or null if disabled
  */
@@ -28,9 +30,9 @@ class SolrReindexTest_Variant extends SearchVariant implements TestOnly
         self::disable();
 
         self::$current = 0;
-        self::$variants = array(
+        self::$variants = [
             self::class => singleton(self::class)
-        );
+        ];
     }
 
     /**
@@ -40,8 +42,8 @@ class SolrReindexTest_Variant extends SearchVariant implements TestOnly
     {
         self::$current = null;
         self::$variants = null;
-        self::$class_variants = array();
-        self::$call_instances = array();
+        self::$class_variants = [];
+        self::$call_instances = [];
     }
 
     public function activateState($state)
@@ -68,29 +70,43 @@ class SolrReindexTest_Variant extends SearchVariant implements TestOnly
     {
         // Always use string values for states for consistent json_encode value
         if (isset(self::$current)) {
-            return (string)self::$current;
+            return (string) self::$current;
         }
     }
 
+    /**
+     * @param string $class
+     * @param SearchIndex $index
+     */
     public function alterDefinition($class, $index)
     {
         $self = get_class($this);
 
-        $this->addFilterField($index, '_testvariant', array(
+        $this->addFilterField($index, '_testvariant', [
             'name' => '_testvariant',
             'field' => '_testvariant',
             'fullfield' => '_testvariant',
             'base' => DataObject::getSchema()->baseDataClass($class),
             'origin' => $class,
             'type' => 'Int',
-            'lookup_chain' => array(array('call' => 'variant', 'variant' => $self, 'method' => 'currentState'))
-        ));
+            'lookup_chain' => [
+                [
+                    'call' => 'variant',
+                    'variant' => $self,
+                    'method' => 'currentState'
+                ]
+            ]
+        ]);
     }
 
+    /**
+     * @param SearchQuery $query
+     * @param SearchIndex $index
+     */
     public function alterQuery($query, $index)
     {
         // I guess just calling it _testvariant is ok?
-        $query->filter('_testvariant', $this->currentState());
+        $query->addFilter('_testvariant', $this->currentState());
     }
 
     public function appliesTo($class, $includeSubclasses)

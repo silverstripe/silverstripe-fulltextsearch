@@ -85,7 +85,7 @@ Note: There's usually a connector-specific "reindex" task for this.
 use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
 
 $query = new SearchQuery();
-$query->search('My house is on fire');
+$query->addSearchTerm('My house is on fire');
 ```
 
 4). Apply that query to an index
@@ -123,7 +123,7 @@ class PageController extends ContentController
     public function search(HTTPRequest $request)
     {
         $query = new SearchQuery();
-        $query->search($request->getVar('q'));
+        $query->addSearchTerm($request->getVar('q'));
         return $this->renderWith([
             'SearchResult' => singleton(MyIndex::class)->search($query)
         ]);
@@ -178,13 +178,13 @@ Manual updates are connector specific, please check the connector docs for detai
 ## Searching Specific Fields
 
 By default, the index searches through all indexed fields.
-This can be limited by arguments to the `search()` call.
+This can be limited by arguments to the `addSearchTerm()` call.
 
 ```php
 use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
 
 $query = new SearchQuery();
-$query->search('My house is on fire', [Page::class . '_Title']);
+$query->addSearchTerm('My house is on fire', [Page::class . '_Title']);
 // No results, since we're searching in title rather than page content
 $results = singleton(MyIndex::class)->search($query);
 ```
@@ -201,9 +201,9 @@ use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
 use SilverStripe\FullTextSearch\Search\Queries\SearchQuery_Range;
 
 $query = new SearchQuery();
-$query->search('My house is on fire');
+$query->addSearchTerm('My house is on fire');
 // Only include documents edited in 2011 or earlier
-$query->filter(Page::class . '_LastEdited', new SearchQuery_Range(null, '2011-12-31T23:59:59Z'));
+$query->addFilter(Page::class . '_LastEdited', new SearchQuery_Range(null, '2011-12-31T23:59:59Z'));
 $results = singleton(MyIndex::class)->search($query);
 ```
 
@@ -220,9 +220,9 @@ The `SearchQuery` API has the concept of a "missing" and "present" field value f
 use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
 
 $query = new SearchQuery();
-$query->search('My house is on fire');
+$query->addSearchTerm('My house is on fire');
 // Needs a value, although it can be false
-$query->filter(Page::class . '_ShowInMenus', SearchQuery::$present);
+$query->addFilter(Page::class . '_ShowInMenus', SearchQuery::$present);
 $results = singleton(MyIndex::class)->search($query);
 ```
 
@@ -300,7 +300,7 @@ Example:
 use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
 
 $query = new SearchQuery();
-$query->search(
+$query->addSearchTerm(
     'My house is on fire',
     null,
     [

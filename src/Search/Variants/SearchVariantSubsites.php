@@ -4,6 +4,7 @@ namespace SilverStripe\FullTextSearch\Search\Variants;
 
 use SilverStripe\Assets\File;
 use SilverStripe\CMS\Model\SiteTree;
+use SilverStripe\FullTextSearch\Search\Indexes\SearchIndex;
 use SilverStripe\FullTextSearch\Search\SearchIntrospection;
 use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
 use SilverStripe\ORM\Queries\SQLSelect;
@@ -100,6 +101,9 @@ class SearchVariantSubsites extends SearchVariant
      *
      * A pull request has been raised for this issue. Once accepted this forked module can be deleted and the parent
      * project should be used instead.
+     *
+     * @param SearchQuery $query
+     * @param SearchIndex $index
      */
     public function alterQuery($query, $index)
     {
@@ -108,7 +112,7 @@ class SearchVariantSubsites extends SearchVariant
         }
 
         $subsite = $this->currentState();
-        $query->filter('_subsite', [$subsite, SearchQuery::$missing]);
+        $query->addFilter('_subsite', [$subsite, SearchQuery::$missing]);
     }
 
     /**
