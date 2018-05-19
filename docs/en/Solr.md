@@ -262,13 +262,13 @@ use SilverStripe\FullTextSearch\Search\Queries;
 
 $index = new MyIndex();
 $query = new SearchQuery();
-$query->search('My Term');
+$query->addSearchTerm('My Term');
 $params = [
     'spellcheck' => 'true',
     'spellcheck.collate' => 'true',
 ];
 $results = $index->search($query, -1, -1, $params);
-$results->spellcheck
+$results->spellcheck;
 ```
 
 The built-in `_text` data is better than nothing, but also has some problems:
@@ -337,10 +337,8 @@ use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
 
 $query = new SearchQuery();
-$query->classes = [
-    ['class' => Page::class, 'includeSubclasses' => true],
-];
-$query->search('someterms', [SiteTree::class . '_Title', SiteTree::class . '_Content']);
+$query->addClassFilter(Page::class);
+$query->addSearchTerm('someterms', [SiteTree::class . '_Title', SiteTree::class . '_Content']);
 $result = singleton(SolrSearchIndex::class)->search($query, -1, -1);
 
 // the request to Solr would be:
@@ -366,10 +364,8 @@ use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
 
 $query = new SearchQuery();
-$query->classes = [
-    ['class' => 'Page', 'includeSubclasses' => true],
-];
-$query->search('Lorem', null, [SiteTree::class . '_Content' => 2]);
+$query->addClassFilter(Page::class);
+$query->addSearchTerm('Lorem', null, [SiteTree::class . '_Content' => 2]);
 $result = singleton(SolrSearchIndex::class)->search($query, -1, -1);
 
 // the request to Solr would be:
@@ -463,7 +459,7 @@ use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
 
 $index = new MyIndex();
 $query = new SearchQuery();
-$query->search('My Term');
+$query->addSearchTerm('My Term');
 $results = $index->search($query, -1, -1, ['hl' => 'true']);
 ```
 
@@ -486,7 +482,7 @@ use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
 
 $index = new MyIndex();
 $query = new SearchQuery();
-$query->search('My Term');
+$query->addSearchTerm('My Term');
 $results = $index->search($query, -1, -1, [
     'facet' => 'true',
     'facet.field' => 'SiteTree_ClassName',
@@ -698,8 +694,8 @@ In order to query the field, reverse the search conditions and exclude the range
 
 ```php
 // Wrong: Filter will ignore all empty field values
-$myQuery->filter('fieldname', new SearchQuery_Range('*', 'somedate'));
+$myQuery->addFilter('fieldname', new SearchQuery_Range('*', 'somedate'));
 
 // Better: Exclude the opposite range
-$myQuery->exclude('fieldname', new SearchQuery_Range('somedate', '*'));
+$myQuery->addExclude('fieldname', new SearchQuery_Range('somedate', '*'));
 ```

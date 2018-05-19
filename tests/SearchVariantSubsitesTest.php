@@ -72,7 +72,7 @@ class SearchVariantSubsiteTest extends SapphireTest
 
         //apply the subsite filter on the query (for example, if it's passed into a controller and set before searching)
         //we've chosen an arbirary value of 2 here, to check if it is changed later
-        $query->filter('_subsite', 2);
+        $query->addFilter('_subsite', 2);
         $this->assertNotEmpty($query->require['_subsite']);
 
         //apply the search variant's definition and query

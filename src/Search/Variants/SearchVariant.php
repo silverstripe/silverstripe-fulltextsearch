@@ -5,6 +5,7 @@ namespace SilverStripe\FullTextSearch\Search\Variants;
 use ReflectionClass;
 use SilverStripe\Core\ClassInfo;
 use SilverStripe\Core\Config\Configurable;
+use SilverStripe\FullTextSearch\Search\Indexes\SearchIndex;
 use SilverStripe\FullTextSearch\Utils\CombinationsArrayIterator;
 
 /**

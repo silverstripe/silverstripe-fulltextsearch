@@ -141,7 +141,7 @@ class SolrIndexTest extends SapphireTest
         $index->setService($serviceMock);
 
         $query = new SearchQuery();
-        $query->search(
+        $query->addSearchTerm(
             'term',
             null,
             array('Field1' => 1.5, 'HasOneObject_Field1' => 3)
@@ -181,7 +181,7 @@ class SolrIndexTest extends SapphireTest
         $index->setService($serviceMock);
 
         $query = new SearchQuery();
-        $query->search('term');
+        $query->addSearchTerm('term');
         $index->search($query);
     }
 
@@ -218,7 +218,7 @@ class SolrIndexTest extends SapphireTest
 
         // Search without highlighting
         $query = new SearchQuery();
-        $query->search(
+        $query->addSearchTerm(
             'term',
             null,
             array('Field1' => 1.5, 'HasOneObject_Field1' => 3)
@@ -227,7 +227,7 @@ class SolrIndexTest extends SapphireTest
 
         // Search with highlighting
         $query = new SearchQuery();
-        $query->search(
+        $query->addSearchTerm(
             'term',
             null,
             array('Field1' => 1.5, 'HasOneObject_Field1' => 3)
