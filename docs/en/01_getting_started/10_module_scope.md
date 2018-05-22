@@ -73,45 +73,9 @@ You can override the default template with a new one at `templates/Layout/Page_r
 ### "Slow" start
 Otherwise, basic usage is a four step process:
 
-1). Define an index in SilverStripe (Note: The specific connector index instance - that's what defines which engine gets used)
-
-```php
-// File: mysite/code/MyIndex.php:
-
-use Page;
-use SilverStripe\FullTextSearch\Solr\SolrIndex;
-
-class MyIndex extends SolrIndex
-{
-    public function init()
-    {
-        $this->addClass(Page::class);
-        $this->addFulltextField('Title');
-        $this->addFulltextField('Content');
-    }
-}
-```
-
-You can also skip listing all searchable fields, and have the index
-figure it out automatically via `addAllFulltextFields()`.
-
-2). Add something to the index (Note: You can also just update an existing document in the CMS. but adding _existing_ objects to the index is connector specific)
-
-```php
-$page = Page::create(['Content' => 'Help me. My house is on fire. This is less than optimal.']);
-$page->write();
-```
-
-Note: There's usually a connector-specific "reindex" task for this.
-
 3). Build a query
 
-```php
-use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
 
-$query = new SearchQuery();
-$query->addSearchTerm('My house is on fire');
-```
 
 4). Apply that query to an index
 

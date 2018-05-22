@@ -19,7 +19,7 @@ Adds support for fulltext search engines like Sphinx and Solr to SilverStripe CM
 
 ## Documentation
 
-See docs/en/index.md
+See [the docs](/docs/en/00_index.md), or for the quick version see [the quick start guide](/docs/en/01_getting_started/11_quick_start.md).
 
 For details of updates, bugfixes, and features, please see the [changelog](CHANGELOG.md).
 

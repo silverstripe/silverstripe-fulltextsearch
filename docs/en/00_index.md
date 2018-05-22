@@ -1,0 +1,28 @@
+# Fulltext search documentation index
+
+- Getting started
+    - [Module scope](01_getting_started/10_module_scope.md)
+    - [Quick start guide](01_getting_started/11_quick_start.md)
+- Setup
+    - [Requirements](02_setup/20_requirements.md)
+    - [Installing Solr](02_setup/21_installing_solr.md)
+    - [Installing this module](02_setup/22_installing_the_module.md)
+    - [Solr admin](02_setup/23_solr_admin.md)
+- Configuration
+    - [Creating an index](03_configuration/30_creating_an_index.md)
+    - [Adding data to an index](03_configuration/31_adding_data_to_an_index.md)
+    - [Querying an index](03_configuration/32_querying_the_index.md)
+    - [Running the dev/tasks](03_configuration/33_dev_tasks.md)
+    - [File-based configuration](03_configuration/34_file_based_configuration.md)
+    - [Handling results](03_configuration/35_handling_results.md)
+- Advanced configuration
+    - [Facets](04_advanced_configuration/40_facets.md)
+    - [Using multiple indexes](04_advanced_configuration/41_multiple_indexes.md)
+    - [Synonyms](04_advanced_configuration/42_synonyms.md)
+    - [Spellcheck](04_advanced_configuration/43_spell_check.md)
+    - [Boosting](04_advanced_configuration/44_boosting.md)
+    - [Indexing related objects](04_advanced_configuration/45_indexing_related_objects.md)
+    - [Subsites](04_advanced_configuration/46_subsites.md)
+    - [Adding new fields](04_advanced_configuration/47_adding_new_fields.md)
+- Troubleshooting
+    - [Gotchas](05_troubleshooting/50_common_gotchas.md)
