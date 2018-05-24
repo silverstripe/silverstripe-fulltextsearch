@@ -14,7 +14,7 @@ A reindex event will trigger when you make a change in the CMS, via `SearchUpdat
 
 ## Manually
 
-If you get desperate, you can create a new page in a build task or something like that:
+If the situation calls for it, you can add an object to the index directly:
 
 ```php
 use Page;
@@ -23,8 +23,8 @@ $page = Page::create(['Content' => 'Help me. My house is on fire. This is less t
 $page->write();
 ```
 
-Depending on the size of the index and how much content needs to be updated, it could take a while for your search results to be updated, so try not to panic if your newly-updated page isn't available immediately.
+Depending on the size of the index and how much content needs to be processed, it could take a while for your search results to be updated, so your newly-updated page may not be available in your search results immediately.
 
 ## Queued jobs
 
-If the queuedjobs module is installed, updates are queued up instead of executed in the same request. Queued jobs are usually processed every minute. Large index updates will be batched into multiple queued jobs to ensure a job can run to completion within common constraints, such as memory and execution time limits. You can check the status of jobs in an administrative interface under `admin/queuedjobs/`.
+If the [Queued Jobs module](https://github.com/symbiote/silverstripe-queuedjobs/) is installed, updates are queued up instead of executed in the same request. Queued jobs are usually processed every minute. Large index updates will be batched into multiple queued jobs to ensure a job can run to completion within common constraints, such as memory and execution time limits. You can check the status of jobs in an administrative interface under `admin/queuedjobs/`.
