@@ -58,6 +58,46 @@ $query = SearchQuery::create()
     ->addClassFilter(SpecialPage::class, false); // only return results from SpecialPages, not subclasses
 ```
 
+### Searching value ranges
+
+Most values can be expressed as ranges, most commonly dates or numbers. To search for a range of values rather than an exact match,
+use the `SearchQuery_Range` class. The range can include bounds on both sides, or stay open-ended by simply leaving the argument blank.
+It takes arguments in the form of `SearchQuery_Range::create($start, $end))`:
+
+```php
+use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
+use SilverStripe\FullTextSearch\Search\Queries\SearchQuery_Range;
+use My\Namespace\Index\MyIndex;
+use Page;
+
+$query = SearchQuery::create()
+    ->addSearchTerm('fire')
+    // Only include documents edited in 2011 or earlier
+    ->addFilter(Page::class . '_LastEdited', SearchQuery_Range::create(null, '2011-12-31T23:59:59Z'));
+$results = singleton(MyIndex::class)->search($query);
+```
+
+Note: At the moment, the date format is specific to the search implementation.
+
+### Searching for empty or existing values
+
+Since there's a type conversion between the SilverStripe database, object properties
+and the search index persistence, it's often not clear which condition is searched for.
+Should it equal an empty string, or only match if the field wasn't indexed at all?
+The `SearchQuery` API has the concept of a "missing" and "present" field value for this:
+
+```php
+use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
+use My\Namespace\Index\MyIndex;
+use Page;
+
+$query = SearchQuery::create()
+    ->addSearchTerm('fire');
+    // Needs a value, although it can be false
+    ->addFilter(Page::class . '_ShowInMenus', SearchQuery::$present);
+$results = singleton(MyIndex::class)->search($query);
+```
+
 ## Querying an index
 
 Once you have your query constructed, you need to run it against your index.

@@ -16,7 +16,26 @@ class MyIndex extends SolrIndex
 }
 ```
 
-This will create a new `SolrIndex` called `MyIndex`, and it will store the `Title` field on all `Pages` for searching.
+This will create a new `SolrIndex` called `MyIndex`, and it will store the `Title` field on all `Pages` for searching. To index more than one class,
+you simply call `addClass()` multiple times. Fields that you add don't have to be present on all classes in the index, they will only apply to a class
+if it is present.
+
+```php
+use Page;
+use SilverStripe\Security\Member;
+use SilverStripe\FullTextSearch\Solr\SolrIndex;
+
+class MyIndex extends SolrIndex
+{
+    public function init()
+    {
+        $this->addClass(Page::class);
+        $this->addClass(Member::class);
+        $this->addFulltextField('Content'); // only applies to Page class
+        $this->addFulltextField('FirstName'); // only applies to Member class
+    }
+}
+```
 
 You can also skip listing all searchable fields, and have the index figure it out automatically via `addAllFulltextFields()`. This will add any database fields that are `instanceof DBString` to the index. Use this with caution, however, as you may inadvertently return sensitive information - it is often safer to declare your fields explicitly.
 

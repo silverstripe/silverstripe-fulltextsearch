@@ -26,3 +26,4 @@
     - [Adding new fields](04_advanced_configuration/47_adding_new_fields.md)
 - Troubleshooting
     - [Gotchas](05_troubleshooting/50_common_gotchas.md)
+    - [Test Anchor](05_troubleshooting.md#test-anchor)
