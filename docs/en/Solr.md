@@ -1,90 +1,9 @@
 # Solr connector for SilverStripe fulltextsearch module
 
-## Introduction
-
-The fulltextsearch module includes support for connecting to Solr.
-
-It works with Solr in multi-core mode. It needs to be able to update Solr configuration files, and has modes for
-doing this by direct file access (when Solr shares a server with SilverStripe) and by WebDAV (when it's on a different
-server).
-
-See the helpful [Solr Tutorial](http://lucene.apache.org/solr/4_5_1/tutorial.html), for more on cores
-and querying.
-
-## Requirements
-
-Since Solr is Java based, it requires Java 1.5 or greater installed.
-
-When you're installing it yourself, it also requires a servlet container such as Tomcat, Jetty, or Resin. For
-development testing there is a standalone version that comes bundled with Jetty (see below).
-
-See the official [Solr installation docs](http://wiki.apache.org/solr/SolrInstall) for more information.
-
-Note that these requirements are for the Solr server environment, which doesn't have to be the same physical machine
-as the SilverStripe webhost.
-
-## Installation (Local)
-
-### Get the Solr server
-
-```
-composer require silverstripe/fulltextsearch-localsolr
-```
-
-### Start the server (via CLI, in a separate terminal window or background process)
-
-```
-cd fulltextsearch-localsolr/server/
-java -jar start.jar
-```
-
-### Configure the fulltextsearch Solr component to use the local server
-
-Configure Solr in file mode. The 'path' directory has to be writeable
-by the user the Solr search server is started with (see below).
-
-```php
-// File: mysite/_config.php:
-use SilverStripe\FullTextSearch\Solr\Solr;
-
-Solr::configure_server([
-    'host' => 'localhost',
-    'indexstore' => [
-        'mode' => 'file',
-        'path' => BASE_PATH . '/.solr'
-    ]
-]);
-```
 
 All possible parameters incl optional ones with example values:
 
-```php
-// File: mysite/_config.php:
-use SilverStripe\FullTextSearch\Solr\Solr;
 
-Solr::configure_server([
-    'host' => 'localhost', // default: localhost | The host or IP Solr is listening on
-    'port' => '8983', // default: 8983 | The port Solr is listening on
-    'path' => '/solr', // default: /solr | The suburl the solr service is available on
-    'version' => '4', // default: 4 | Solr server version - currently only 3 and 4 supported
-    'service' => 'Solr4Service', // default: depends on version, Solr3Service for 3, Solr4Service for 4 | the class that provides actual communcation to the Solr server
-    'extraspath' => BASE_PATH .'/fulltextsearch/conf/solr/4/extras/', // default: <basefolder>/fulltextsearch/conf/solr/{version}/extras/ | Absolute path to the folder containing templates which are used for generating the schema and field definitions.
-    'templates' => BASE_PATH . '/fulltextsearch/conf/solr/4/templates/', // default: <basefolder>/fulltextsearch/conf/solr/{version}/templates/ | Absolute path to the configuration default files, e.g. solrconfig.xml
-    'indexstore' => [
-        'mode' => 'file', // a classname which implements SolrConfigStore, or 'file' or 'webdav'
-        'path' => BASE_PATH . '/.solr', // The (locally accessible) path to write the index configurations to OR The suburl on the solr host that is set up to accept index configurations via webdav
-        'remotepath' => '/opt/solr/config', // default (file mode only): same as 'path' above | The path that the Solr server will read the index configurations from
-        'auth' => 'solr:solr', // default: none | Webdav only - A username:password pair string to use to auth against the webdav server
-        'port' => '80' // default: same as solr port | The port for WebDAV if different from the Solr port
-    ]
-]);
-```
-
-Note: We recommend to put the `indexstore.path` directory outside of the webroot.
-If you place it inside of the webroot (as shown in the example),
-please ensure its contents are not accessible through the webserver.
-This can be achieved by server configuration, or (in most configurations)
-also by marking the folder as hidden via a "dot" prefix.
 
 ## Configuration
 

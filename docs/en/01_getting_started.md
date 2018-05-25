@@ -1,4 +1,8 @@
-# Introduction
+# Getting started
+
+## Module scope
+
+### Introduction
 
 This is a module aimed at adding support for standalone fulltext search engines to SilverStripe.
 
@@ -8,7 +12,7 @@ It contains several layers:
  * A connector API, providing common code to allow connecting a fulltext searching engine to the fulltext API
  * Some connectors for common fulltext searching engines (currently only [Apache Solr](http://lucene.apache.org/solr/))
 
-## Reasoning
+### Reasoning
 
 There are several fulltext search engines that work in a similar manner. They build indexes of denormalized data that
 are then searched through using some custom query syntax.
@@ -29,3 +33,5 @@ The intent of this module is not to make changing fulltext search engines seamle
 common interfaces to fulltext engine functionality, abstracting out common behaviour. However, each connector also
 offers its own extensions, and there is some behaviour (such as getting the fulltext search engines installed, configured
 and running) that each connector deals with itself, in a way best suited to that search engine's design.
+
+## Quick start
