@@ -35,3 +35,19 @@ offers its own extensions, and there is some behaviour (such as getting the full
 and running) that each connector deals with itself, in a way best suited to that search engine's design.
 
 ## Quick start
+
+If you are running on a Linux-based system, you can get up and running quickly with the quickstart script, like so:
+
+```bash
+composer require silverstripe/fulltextsearch && vendor/bin/fts_quickstart
+```
+
+This will:
+
+- Install the required Java SDK (using `apt-get` or `yum`)
+- Install Solr 4
+- Set up a daemon to run Solr on startup
+- Start Solr
+- Enable `FulltextSearchable` in your `_config.php` (and create one if you don't have one)
+
+The simply adding `$SearchForm` to a template and flushing the template cache should add a search text box to your site.
