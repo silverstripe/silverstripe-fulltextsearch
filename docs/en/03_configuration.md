@@ -79,15 +79,15 @@ class MyIndex extends SolrIndex
 
 You can also skip listing all searchable fields, and have the index figure it out automatically via `addAllFulltextFields()`. This will add any database fields that are `instanceof DBString` to the index. Use this with caution, however, as you may inadvertently return sensitive information - it is often safer to declare your fields explicitly.
 
-Once you've added this file, make sure you run a [Solr configure](#dev_tasks) to set up your new index.
+Once you've added this file, make sure you run a [Solr configure](#solr-configure) to set up your new index.
 
 ## Adding data to an index
 
-Once you have [created your index](./30_creating_an_index.md), you can add data to it in a number of ways.
+Once you have [created your index](#creating-an-index), you can add data to it in a number of ways.
 
 ### Reindex the site
 
-Running the [Solr reindex task](./33_dev_tasks.md) will crawl your site for classes that match those defined on your index, and add the defined fields to the index for searching. This is the most common method used to build the index the first time, or to perform a full rebuild of the index.
+Running the [Solr reindex task](#solr-reindex) will crawl your site for classes that match those defined on your index, and add the defined fields to the index for searching. This is the most common method used to build the index the first time, or to perform a full rebuild of the index.
 
 ### Publish a page in the CMS
 
@@ -177,7 +177,7 @@ $query = SearchQuery::create()
     ->addSearchTerm('fire');
 ```
 
-You can also limit this to specific fields by passing an array as the second argument:
+You can also limit this to specific fields by passing an array as the second argument, specified in the form of `{table}_{field}`:
 
 ```php
 use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
@@ -226,7 +226,7 @@ $query = SearchQuery::create()
     ->addSearchTerm('fire')
     // Only include documents edited in 2011 or earlier
     ->addFilter(Page::class . '_LastEdited', SearchQuery_Range::create(null, '2011-12-31T23:59:59Z'));
-$results = singleton(MyIndex::class)->search($query);
+$results = MyIndex::singleton()->search($query);
 ```
 
 Note: At the moment, the date format is specific to the search implementation.
@@ -247,7 +247,7 @@ $query = SearchQuery::create()
     ->addSearchTerm('fire');
     // Needs a value, although it can be false
     ->addFilter(Page::class . '_ShowInMenus', SearchQuery::$present);
-$results = singleton(MyIndex::class)->search($query);
+$results = MyIndex::singleton()->search($query);
 ```
 
 ### Querying an index
@@ -259,7 +259,7 @@ use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
 use My\Namespace\Index\MyIndex;
 
 $query = SearchQuery::create()->addSearchTerm('fire');
-$results = singleton(MyIndex::class)->search($query);
+$results = MyIndex::singleton()->search($query);
 ```
 
 The return value of a `search()` call is an object which contains a few properties:
@@ -279,7 +279,13 @@ It is often a good idea to run a configure, followed by a reindex, after a code 
 
 `dev/tasks/Solr_Configure`
 
-This task will upload configuration to the Solr core, reloading it or creating it as necessary. This should be run after every code change to your indexes, or configuration changes.
+This task will upload configuration to the Solr core, reloading it or creating it as necessary, and generate the schema. This should be run after every code change to your indexes, or after any configuration changes. This will convert the PHP-based abstraction layer into actual Solr XML. Assuming default configuration and the use of the `DefaultIndex`, it will:
+
+- create the directory `BASE_PATH/.solr/DefaultIndex/` if it doesn't already exist
+- copy configuration files from `vendor/silverstripe/fulltextsearch/conf/extras` to `BASE_PATH/.solr/DefaultIndex/conf/`
+- generate a `schema.xml` in `BASE_PATH/.solr/DefaultIndex/conf/`
+
+This task will overwrite these files every time it is run.
 
 ### Solr reindex
 
@@ -289,7 +295,22 @@ This task performs a reindex, which adds all the data specified in the index def
 
 If you have the [Queued Jobs module](https://github.com/symbiote/silverstripe-queuedjobs/) installed, then this task will create multiple reindex jobs that are processed asynchronously; unless you are in `dev` mode, in which case the index will be processed immediately (see [processor.yml](/_config/processor.yml)). Otherwise, it will run in one process. Often, if you are running it via the web, the request will time out. Usually this means the actually process is still running in the background, but it can be alarming to the user, so bear that in mind.
 
+Internally groups of records are grouped into sizes of 200. You can configure this group sizing by using the `Solr_Reindex.recordsPerRequest` config:
+
+```yaml
+SilverStripe\FullTextSearch\Solr\Tasks\Solr_Reindex:
+  recordsPerRequest: 150
+```
+
+The Solr indexes will be stored as binary files inside your SilverStripe project. You can also copy the `thirdparty/` Solr directory somewhere else, just set the `path` value in `mysite/_config.php` to point to the new location.
+
 ## File-based configuration
+
+Many aspects of Solr are configured outside of the `schema.xml` file which SilverStripe generates based on the `SolrIndex` subclass that is defined. For example, stopwords are placed in their own `stopwords.txt` file, and advanced [spellchecking](04_advanced_configuration.md#spell-check-("did-you-mean...")) can be configured in `solrconfig.xml`.
+
+By default, these files are copied from the `fulltextsearch/conf/extras/` directory over to the new index location. In order to use your own files, copy these files into a location of your choosing (for example `mysite/data/solr/`), and tell Solr to use this folder with the `extraspath` [configuration setting](#solr-server-parameters). Run a [`Solr_Configure](#solr-configure) to apply these changes.
+
+You can also define these on an index-by-index basis by defining `SolrIndex->getExtrasPath()`.
 
 ## Handling results
 
@@ -311,7 +332,7 @@ class PageController extends ContentController
     {
         $query = SearchQuery::create()->addSearchTerm($request->getVar('q'));
         return $this->renderWith([
-            'SearchResult' => singleton(MyIndex::class)->search($query)
+            'SearchResult' => MyIndex::singleton()->search($query)
         ]);
     }
 }

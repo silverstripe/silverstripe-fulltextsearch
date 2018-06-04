@@ -46,17 +46,16 @@ else
     exit 1
 fi
 
-# Check to see if it has been enabled in _config.php
-grep -i "FulltextSearchable::enable(" "$APPDIR/_config.php" 2> /dev/null
+# Check to see if it has been configured in _config.php
+grep -i "Solr::configure_server(" "$APPDIR/_config.php" 2> /dev/null
 if [ "$?" != 0 ]; then
-    echo "Enabling FulltextSearchable in _config.php..."
+    echo "Configuring Solr in _config.php..."
     if [ ! -f "$APPDIR/_config.php" ]; then
         echo "<?php" > "$APPDIR/_config.php"
         echo "" >> "$APPDIR/_config.php"
     fi
     echo "" >> "$APPDIR/_config.php"
     echo "# Enable Fulltextsearch" >> "$APPDIR/_config.php"
-    echo "\\SilverStripe\\ORM\\Search\\FulltextSearchable::enable();" >> "$APPDIR/_config.php" >> "$APPDIR/_config.php"
     echo "\\SilverStripe\\FullTextSearch\\Solr\\Solr::configure_server([" >> "$APPDIR/_config.php"
     echo "    'indexstore' => [" >> "$APPDIR/_config.php"
     echo "        'mode' => 'file'," >> "$APPDIR/_config.php"

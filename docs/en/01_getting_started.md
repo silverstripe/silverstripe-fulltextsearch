@@ -22,17 +22,17 @@ fulltext searching as an extension of the object model. However, the disconnect 
 design and the object model meant that searching was inefficient. The abstraction would also often break and it was
 hard to then figure out what was going on.
 
-This module instead provides the ability to define those indexes and queries in PHP. The indexes are defined as a mapping
-between the SilverStripe object model and the connector-specific fulltext engine index model. This module then interrogates model metadata
-to build the specific index definition.
+This module instead provides the ability to define those indexes and queries in PHP. The indexes are defined as a 
+mapping between the SilverStripe object model and the connector-specific fulltext engine index model. This module then 
+interrogates model metadata to build the specific index definition.
 
-It also hooks into SilverStripe framework in order to update the indexes when the models change and connectors then convert those index and query definitions
-into fulltext engine specific code.
+It also hooks into SilverStripe framework in order to update the indexes when the models change and connectors then 
+convert those index and query definitions into fulltext engine specific code.
 
 The intent of this module is not to make changing fulltext search engines seamless. Where possible this module provides
 common interfaces to fulltext engine functionality, abstracting out common behaviour. However, each connector also
-offers its own extensions, and there is some behaviour (such as getting the fulltext search engines installed, configured
-and running) that each connector deals with itself, in a way best suited to that search engine's design.
+offers its own extensions, and there is some behaviour (such as getting the fulltext search engines installed, 
+configured and running) that each connector deals with itself, in a way best suited to that search engine's design.
 
 ## Quick start
 
@@ -48,6 +48,10 @@ This will:
 - Install Solr 4
 - Set up a daemon to run Solr on startup
 - Start Solr
-- Enable `FulltextSearchable` in your `_config.php` (and create one if you don't have one)
+- Configure Solr in your `_config.php` (and create one if you don't have one)
+- Create a DefaultIndex
+- Run a [Solr Configure](03_configuration.md#solr-configure) and a [Solr Reindex](03_configuration.md#solr-reindex)
 
-The simply adding `$SearchForm` to a template and flushing the template cache should add a search text box to your site.
+You'll then need to build a search form and results display that suits the functionality of your site.
+
+// TODO update me when https://github.com/silverstripe/silverstripe-fulltextsearch/pull/216 is merged

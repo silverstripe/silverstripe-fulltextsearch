@@ -6,7 +6,6 @@
 - Setup
     - [Requirements](02_setup.md#requirements)
     - [Installing Solr](02_setup.md#installing-solr)
-    - [Installing this module](02_setup.md#installing-the-module)
     - [Solr admin](02_setup.md#solr-admin)
 - Configuration
     - [Solr server parameters](03_configuration.md#solr-server-parameters)
@@ -20,10 +19,11 @@
     - [Facets](04_advanced_configuration.md#facets)
     - [Using multiple indexes](04_advanced_configuration.md#multiple-indexes)
     - [Synonyms](04_advanced_configuration.md#synonyms)
-    - [Spellcheck](04_advanced_configuration.md#spell-check)
+    - [Spellcheck](04_advanced_configuration.md#spell-check-("did-you-mean..."))
+    - [Highlighting](04_advanced_configuration.md#highlighting)
     - [Boosting](04_advanced_configuration.md#boosting)
     - [Indexing related objects](04_advanced_configuration.md#indexing-related-objects)
     - [Subsites](04_advanced_configuration.md#subsites)
-    - [Adding new fields](04_advanced_configuration.md#adding-new-fields)
+    - [Custom field types](04_advanced_configuration.md#custom-field-types)
 - Troubleshooting
     - [Gotchas](05_troubleshooting.md#common-gotchas)
