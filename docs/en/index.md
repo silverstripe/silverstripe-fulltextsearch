@@ -46,7 +46,11 @@ SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater:
 
 ## Basic usage
 
-If you have the [CMS module](https://github.com/silverstripe/silverstripe-cms) installed, you will be able to simply add `$SearchForm` to your template to add a Solr search form. Default configuration is added via the [`ContentControllerExtension`](/src/Solr/Control/ContentControllerExtension.php) and replacement [`SearchForm`](/src/Solr/Forms/SearchForm.php)
+If you have the [CMS module](https://github.com/silverstripe/silverstripe-cms) installed, you will be able to simply add `$SearchForm` to your template to add a Solr search form. Default configuration is added via the [`ContentControllerExtension`](/src/Solr/Control/ContentControllerExtension.php) and alternative [`SearchForm`](/src/Solr/Forms/SearchForm.php).
+
+Ensure that you _don't_ have `SilverStripe\ORM\Search\FulltextSearchable::enable()` set in `_config.php`, as the `SearchForm` action provided by that class will conflict.
+
+You can override the default template with a new one at `templates/Layout/Page_results_solr.ss`.
 
 Otherwise, basic usage is a four step process:
 

@@ -55,6 +55,6 @@ class ContentControllerExtension extends Extension
             'Query' => DBField::create_field('Text', $form->getSearchQuery()),
             'Title' => _t('SilverStripe\\CMS\\Search\\SearchForm.SearchResults', 'Search Results')
         ];
-        return $this->owner->customise($data)->renderWith(['Page_results', 'Page']);
+        return $this->owner->customise($data)->renderWith(['Page_results_solr', 'Page_results', 'Page']);
     }
 }

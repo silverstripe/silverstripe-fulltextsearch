@@ -10,8 +10,8 @@ use SilverStripe\Forms\TextField;
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
 use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
 use SilverStripe\FullTextSearch\Solr\SolrIndex;
-use SilverStripe\ORM\ArrayList;
 use SilverStripe\ORM\DataObject;
+use SilverStripe\View\ArrayData;
 
 class SearchForm extends Form
 {
@@ -55,7 +55,7 @@ class SearchForm extends Form
      * Return dataObjectSet of the results using current request to get info from form.
      * Simplest implementation loops over all Solr indexes
      *
-     * @return ArrayList
+     * @return ArrayData
      */
     public function getResults()
     {
@@ -65,24 +65,28 @@ class SearchForm extends Form
         $searchTerms = $request->requestVar('Search');
         $query = SearchQuery::create()->addSearchTerm($searchTerms);
 
-        $indexes = FullTextSearch::get_indexes(SolrIndex::class);
-        $results = ArrayList::create();
+        $params = [
+            'spellcheck' => 'true',
+            'spellcheck.collate' => 'true',
+        ];
+
+        // Get the first index
+        $indexClasses = FullTextSearch::get_indexes(SolrIndex::class);
+        $indexClass = reset($indexClasses);
 
         /** @var SolrIndex $index */
-        foreach ($indexes as $index) {
-            $results->merge($index->search($query)->Matches);
-        }
+        $index = $indexClass::singleton();
+        $results = $index->search($query, -1, -1, $params);
 
         // filter by permission
         if ($results) {
-            /** @var DataObject $result */
-            foreach ($results as $result) {
-                if (!$result->canView()) {
-                    $results->remove($result);
+            foreach ($results->Matches as $match) {
+                /** @var DataObject $match */
+                if (!$match->canView()) {
+                    $results->Matches->remove($match);
                 }
             }
         }
-
         return $results;
     }
 

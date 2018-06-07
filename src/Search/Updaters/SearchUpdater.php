@@ -105,8 +105,8 @@ class SearchUpdater
                     'command' => $command,
                     'fields' => array()
                 );
-            } // Otherwise update the class label if it's more specific than the currently recorded one
-            elseif (is_subclass_of($class, $writes[$key]['class'])) {
+            // Otherwise update the class label if it's more specific than the currently recorded one
+            } elseif (is_subclass_of($class, $writes[$key]['class'])) {
                 $writes[$key]['class'] = $class;
             }
 
