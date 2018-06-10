@@ -4,3 +4,6 @@ Name: fulltextsearchconfig
 SilverStripe\ORM\DataObject:
   extensions:
     - SilverStripe\FullTextSearch\Search\Extensions\SearchUpdater_ObjectHandler
+SilverStripe\CMS\Controllers\ContentController:
+  extensions:
+    - SilverStripe\FullTextSearch\Solr\Control\ContentControllerExtension
