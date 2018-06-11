@@ -52,6 +52,15 @@ This will:
 - Create a DefaultIndex
 - Run a [Solr Configure](03_configuration.md#solr-configure) and a [Solr Reindex](03_configuration.md#solr-reindex)
 
-You'll then need to build a search form and results display that suits the functionality of your site.
+If you have the [CMS module](https://github.com/silverstripe/silverstripe-cms) installed, you will be able to simply add
+ `$SearchForm` to your template to add a Solr search form. Default configuration is added via the
+ [`ContentControllerExtension`](/src/Solr/Control/ContentControllerExtension.php) and alternative
+ [`SearchForm`](/src/Solr/Forms/SearchForm.php). With the
+ [Simple theme](https://github.com/silverstripe-themes/silverstripe-simple), this is in the
+ [`Header`](https://github.com/silverstripe-themes/silverstripe-simple/blob/master/templates/Includes/Header.ss#L10-L15)
+ by default.
 
-// TODO update me when https://github.com/silverstripe/silverstripe-fulltextsearch/pull/216 is merged
+Ensure that you _don't_ have `SilverStripe\ORM\Search\FulltextSearchable::enable()` set in `_config.php`, as the 
+`SearchForm` action provided by that class will conflict.
+
+You can override the default template with a new one at `templates/Layout/Page_results_solr.ss`.

@@ -18,12 +18,13 @@
 - Advanced configuration
     - [Facets](04_advanced_configuration.md#facets)
     - [Using multiple indexes](04_advanced_configuration.md#multiple-indexes)
-    - [Synonyms](04_advanced_configuration.md#synonyms)
+    - [Analyzers, tokens and token filters](04_advanced_configuration.md#analyzers,-tokenizers-and-token-filters)
     - [Spellcheck](04_advanced_configuration.md#spell-check-("did-you-mean..."))
     - [Highlighting](04_advanced_configuration.md#highlighting)
     - [Boosting](04_advanced_configuration.md#boosting)
     - [Indexing related objects](04_advanced_configuration.md#indexing-related-objects)
     - [Subsites](04_advanced_configuration.md#subsites)
     - [Custom field types](04_advanced_configuration.md#custom-field-types)
+    = [Text extraction](04_advanced_configuration.md#text-extraction)
 - Troubleshooting
     - [Gotchas](05_troubleshooting.md#common-gotchas)

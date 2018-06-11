@@ -114,7 +114,77 @@ SilverStripe\FullTextSearch\Search\FullTextSearch:
     - CoreSearchIndex
 ```
 
-## Synonyms
+## Analyzers, Tokenizers and Token Filters
+
+When a document is indexed, its individual fields are subject to the analyzing and tokenizing filters that can transform
+and normalize the data in the fields. You can remove blank spaces, strip HTML, replace a particular character and much
+more as described in the [Solr Wiki](http://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters).
+
+### Synonyms
+
+To add synonym processing at query-time, you can add the `SynonymFilterFactory` as an `Analyzer`:
+
+```php
+use SilverStripe\FullTextSearch\Solr\SolrIndex;
+use Page;
+
+class MyIndex extends SolrIndex
+{
+    public function init()
+    {
+        $this->addClass(Page::class);
+        $this->addField('Content');
+	    $this->addAnalyzer('Content', 'filter', [
+	    	'class' => 'solr.SynonymFilterFactory',
+		    'synonyms' => 'synonyms.txt',
+		    'ignoreCase' => 'true',
+		    'expand' => 'false'
+	    ]);
+    }
+}
+```
+
+This generates the following XML schema definition:
+
+```xml
+<field name="Page_Content">
+  <filter class="solr.SynonymFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="false"/>
+</field>
+```
+
+In this case, you most likely also want to define your own synonyms list. You can define a mapping in one of two ways:
+
+* A comma-separated list of words. If the token matches any of the words, then all the words in the list are
+substituted, which will include the original token.
+
+* Two comma-separated lists of words with the symbol "=>" between them. If the token matches any word on
+the left, then the list on the right is substituted. The original token will not be included unless it is also in the
+list on the right. 
+
+For example:
+
+```text
+couch,sofa,lounger
+teh => the
+small => teeny,tiny,weeny
+```
+
+Then you should update your [Solr configuration](03_configuration.md#solr-server-parameters) to include your synonyms
+file via the `extraspath` parameter, for example:
+
+```php
+use SilverStripe\FullTextSearch\Solr\Solr;
+
+Solr::configure_server([
+    'extraspath' => BASE_PATH . '/mysite/Solr/',
+    'indexstore' => [
+        'mode' => 'file',
+        'path' => BASE_PATH . '/.solr',
+    ]
+]);
+```
+
+Will include `/mysite/Solr/synonyms.txt` as your list after a [Solr configure](03_configuration.md#solr-configure)
 
 ## Spell check ("Did you mean...")
 
@@ -340,3 +410,33 @@ Find the fields in your overloaded `types.ss` that you want to enable this behav
 ```xml
 <filter class="solr.ASCIIFoldingFilterFactory"/>
 ```
+
+## Text extraction
+
+Solr provides built-in text extraction capabilities for PDF and Office documents, and numerous other formats, through 
+the `ExtractingRequestHandler` API (see [the Solr wiki entry](http://wiki.apache.org/solr/ExtractingRequestHandler).
+If you're using a default Solr installation, it's most likely already bundled and set up. But if you plan on running the
+Solr server integrated into this module, you'll need to download the libraries and link them first. Run the following
+commands from the webroot:
+
+```
+wget http://archive.apache.org/dist/lucene/solr/4.10.4/solr-4.10.4.tgz
+tar -xvzf solr-4.10.4.tgz
+mkdir .solr/PageSolrIndexboot/dist
+mkdir .solr/PageSolrIndexboot/contrib
+cp solr-4.10.4/dist/solr-cell-4.10.4.jar .solr/PageSolrIndexboot/dist/
+cp -R solr-4.10.4/contrib/extraction .solr/PageSolrIndexboot/contrib/
+rm -rf solr-4.10.4 solr-4.10.4.tgz
+```
+
+Create a custom `solrconfig.xml` (see [File-based configuration](03_configuration.md#file-based-configuration)).
+
+Add the following XML configuration:
+
+```xml
+<lib dir="./contrib/extraction/lib/" />
+<lib dir="./dist" />
+```
+
+Now run a [Solr configure](03_configuration.md#solr-configure). You can use Solr text extraction either directly through
+the HTTP API, or through the [Text extraction module](https://github.com/silverstripe-labs/silverstripe-textextraction).
