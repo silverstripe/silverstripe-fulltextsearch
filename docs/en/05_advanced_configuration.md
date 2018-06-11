@@ -357,7 +357,30 @@ class SolrSearchIndex extends SolrIndex
 
 ## Indexing related objects
 
+To add a related object to your index. 
+
 ## Subsites
+
+When you are utilising the [subsites module](https://github.com/silverstripe/silverstripe-subsites) you
+may want to add [boosting](#boosting/weighting) to results from the current subsite. To do so, you'll
+need to use [eDisMax](https://lucene.apache.org/solr/guide/6_6/the-extended-dismax-query-parser.html)
+and the supporting parameters `bq` and `bf`. You should add the following to your `SolrIndex` 
+extension:
+
+```php
+use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
+use SilverStripe\Subsites\Model\Subsite;
+
+public function search(SearchQuery $query, $offset = -1, $limit = -1, $params = [])) {
+    $params = array_merge($params, [
+        'defType' => 'edismax', // turn on eDisMax
+        'bq' => '_subsite:'.Subsite::currentSubsiteID(),  // boost-query on current subsite ID
+        'bf' => '_subsite^2' // double the score of any document with that subsite ID
+    ]);
+
+    return parent::search($query, $offset, $limit, $params);
+}
+```
 
 ## Custom field types
 

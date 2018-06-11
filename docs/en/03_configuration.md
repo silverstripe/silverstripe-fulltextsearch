@@ -106,7 +106,7 @@ $page = Page::create(['Content' => 'Help me. My house is on fire. This is less t
 $page->write();
 ```
 
-Depending on the size of the index and how much content needs to be processed, it could take a while for your search results to be updated, so your newly-updated page may not be available in your search results immediately.
+Depending on the size of the index and how much content needs to be processed, it could take a while for your search results to be updated, so your newly-updated page may not be available in your search results immediately. This approach is typically not recommended.
 
 ### Queued jobs
 
@@ -136,138 +136,41 @@ class MyIndex extends SolrIndex
 }
 ```
 
-Alternatively, you can index draft content, but simply exclude it from searches. This can be handy to preview search results on unpublished content, in case a CMS author is logged in. Before constructing your `SearchQuery`, conditionally switch to the "live" stage:
+Alternatively, you can index draft content, but simply exclude it from searches. This can be handy to preview search results on unpublished content, in case a CMS author is logged in. Before constructing your `SearchQuery`, conditionally switch to the "live" stage.
+
+### Adding DataObjects
+
+If you create a class that extends `DataObject` (and not `Page`) then it won't be automatically added to the search
+index. You'll have to make some changes to add it in. The `DataObject` class will require the following minimum code 
+to render properly in the search results:
+
+* `Link()` needs to return the URL to follow from the search results to actually view the object.
+* `Name` (as a DB field) will be used as the result title.
+* `Abstract` (as a DB field) will show under the search result title.
+* `getShowInSearch()` is required to get the record to show in search, since all results are filtered by `ShowInSearch`.
+
+So with that, you can add your class to your index:
 
 ```php
-use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
-use SilverStripe\Security\Permission;
-use SilverStripe\Versioned\Versioned;
+use My\Namespace\Model\SearchableDataObject;
+use SilverStripe\FullTextSearch\Solr\SolrIndex;
+use Page;
 
-if (!Permission::check('CMS_ACCESS_CMSMain')) {
-    Versioned::set_stage(Versioned::LIVE);
+class MySolrSearchIndex extends SolrIndex {
+
+    public function init()
+    {
+        $this->addClass(SearchableDataObject::class);
+        $this->addClass(Page::class);
+        $this->addAllFulltextFields();
+    }
 }
-$query = SearchQuery::create();
-// ...
 ```
 
-## Querying an index
-
-This is where the magic happens. You will construct the search terms and other parameters required to form a `SearchQuery` object, and pass that into a `SearchIndex` to get results.
-
-### Building a `SearchQuery`
-
-First, you'll need to construct a new `SearchQuery` object:
-
-```php
-use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
-
-$query = SearchQuery::create();
-```
-
-You can then alter the `SearchQuery` with a number of methods:
-
-#### `addSearchTerm()`
-
-The simplest - pass through a string to search your index for.
-
-```php
-use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
-
-$query = SearchQuery::create()
-    ->addSearchTerm('fire');
-```
-
-You can also limit this to specific fields by passing an array as the second argument, specified in the form of `{table}_{field}`:
-
-```php
-use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
-use Page;
-
-$query = SearchQuery::create()
-    ->addSearchTerm('on fire', [Page::class . '_Title']);
-```
-
-#### `addFuzzySearchTerm()`
-
-Pass through a string to search your index for, with "fuzzier" matching - this means that a term like "fishing" would also likely find results containing "fish" or "fisher". Otherwise behaves the same as `addSearchTerm()`.
-
-```php
-use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
-
-$query = SearchQuery::create()
-    ->addFuzzySearchTerm('fire');
-```
-
-#### `addClassFilter()`
-
-Only query a specific class in the index, optionally including subclasses.
-
-```php
-use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
-use My\Namespace\PageType\SpecialPage;
-
-$query = SearchQuery::create()
-    ->addClassFilter(SpecialPage::class, false); // only return results from SpecialPages, not subclasses
-```
-
-#### Searching value ranges
-
-Most values can be expressed as ranges, most commonly dates or numbers. To search for a range of values rather than an exact match,
-use the `SearchQuery_Range` class. The range can include bounds on both sides, or stay open-ended by simply leaving the argument blank.
-It takes arguments in the form of `SearchQuery_Range::create($start, $end))`:
-
-```php
-use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
-use SilverStripe\FullTextSearch\Search\Queries\SearchQuery_Range;
-use My\Namespace\Index\MyIndex;
-use Page;
-
-$query = SearchQuery::create()
-    ->addSearchTerm('fire')
-    // Only include documents edited in 2011 or earlier
-    ->addFilter(Page::class . '_LastEdited', SearchQuery_Range::create(null, '2011-12-31T23:59:59Z'));
-$results = MyIndex::singleton()->search($query);
-```
-
-Note: At the moment, the date format is specific to the search implementation.
-
-#### Searching for empty or existing values
-
-Since there's a type conversion between the SilverStripe database, object properties
-and the search index persistence, it's often not clear which condition is searched for.
-Should it equal an empty string, or only match if the field wasn't indexed at all?
-The `SearchQuery` API has the concept of a "missing" and "present" field value for this:
-
-```php
-use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
-use My\Namespace\Index\MyIndex;
-use Page;
-
-$query = SearchQuery::create()
-    ->addSearchTerm('fire');
-    // Needs a value, although it can be false
-    ->addFilter(Page::class . '_ShowInMenus', SearchQuery::$present);
-$results = MyIndex::singleton()->search($query);
-```
-
-### Querying an index
-
-Once you have your query constructed, you need to run it against your index.
-
-```php
-use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
-use My\Namespace\Index\MyIndex;
-
-$query = SearchQuery::create()->addSearchTerm('fire');
-$results = MyIndex::singleton()->search($query);
-```
-
-The return value of a `search()` call is an object which contains a few properties:
-
- * `Matches`: `ArrayList` of the current "page" of search results.
- * `Suggestion`: (optional) Any suggested spelling corrections in the original query notation
- * `SuggestionNice`: (optional) Any suggested spelling corrections for display (without query notation)
- * `SuggestionQueryString` (optional) Link to repeat the search with suggested spelling corrections
+Once you've created the above classes and run the [solr dev tasks](#solr-dev-tasks) to tell Solr about the new index 
+you've just created, this will add `SearchableDataObject` and the text fields it has to the index. Now when you search 
+on the site using `MySolrSearchIndex->search()`, the `SearchableDataObject` results will show alongside normal `Page`
+results.
 
 ## Solr dev tasks
 
@@ -306,7 +209,7 @@ The Solr indexes will be stored as binary files inside your SilverStripe project
 
 ## File-based configuration
 
-Many aspects of Solr are configured outside of the `schema.xml` file which SilverStripe generates based on the `SolrIndex` subclass that is defined. For example, stopwords are placed in their own `stopwords.txt` file, and advanced [spellchecking](04_advanced_configuration.md#spell-check-("did-you-mean...")) can be configured in `solrconfig.xml`.
+Many aspects of Solr are configured outside of the `schema.xml` file which SilverStripe generates based on the `SolrIndex` subclass that is defined. For example, stopwords are placed in their own `stopwords.txt` file, and advanced [spellchecking](05_advanced_configuration.md#spell-check-("did-you-mean...")) can be configured in `solrconfig.xml`.
 
 By default, these files are copied from the `fulltextsearch/conf/extras/` directory over to the new index location. In order to use your own files, copy these files into a location of your choosing (for example `mysite/data/solr/`), and tell Solr to use this folder with the `extraspath` [configuration setting](#solr-server-parameters). Run a [`Solr_Configure](#solr-configure) to apply these changes.
 
@@ -340,7 +243,7 @@ class PageController extends ContentController
 
 In your template (e.g. `Page_results.ss`) you can access the results and loop through them. They're stored in the `$Matches` property of the search return object.
 
-```ss
+```silverstripe
 <% if $SearchResult.Matches %>
     <h2>Results for &quot;{$Query}&quot;</h2>
     <p>Displaying Page $SearchResult.Matches.CurrentPage of $SearchResult.Matches.TotalPages</p>
