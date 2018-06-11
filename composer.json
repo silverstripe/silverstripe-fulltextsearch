@@ -38,11 +38,7 @@
             "SilverStripe\\FullTextSearch\\Tests\\": "tests/"
         }
     },
-    "extra": {
-        "branch-alias": {
-            "dev-master": "3.x-dev"
-        }
-    },
+    "extra": [],
     "suggest": {
         "symbiote/silverstripe-queuedjobs": "Add background execution of indexing tasks",
         "silverstripe/fulltextsearch-localsolr": "Adds a ready-to-use local Solr server for initial development"
