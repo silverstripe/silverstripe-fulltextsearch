@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+#
+# chkconfig: 2345 20 20
+# short-description: Solr
+# description: Startup script for Apache Solr Server
+
+SOLR_DIR="/opt/solr/core"
+LOG_FILE="/var/log/solr.log"
+JAVA="/usr/bin/java -DSTOP.PORT=8079 -DSTOP.KEY=stopkey -jar start.jar"
+
+start() {
+echo -n "Starting Solr... "
+cd $SOLR_DIR
+$JAVA > $LOG_FILE 2>&1 &
+sleep 2
+RETVAL=$?
+
+    if [ $RETVAL = 0 ]
+    then
+        echo "done."
+    else
+        echo "failed. See error code for more information."
+    fi
+    return $RETVAL
+}
+
+stop() {
+echo -n "Stopping Solr... "
+pkill -f start.jar > /dev/null
+RETVAL=$?
+
+    if [ $RETVAL = 0 ]
+    then
+        echo "done."
+    else
+        echo "failed. See error code for more information."
+    fi
+    return $RETVAL
+}
+
+case "$1" in
+start)
+start
+;;
+stop)
+stop
+;;
+restart)
+stop
+start
+;;
+*)
+echo $"Usage: solr {start|stop|restart}"
+exit 3
+esac
+exit $RETVAL

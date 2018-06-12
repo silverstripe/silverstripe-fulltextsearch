@@ -38,6 +38,9 @@
             "SilverStripe\\FullTextSearch\\Tests\\": "tests/"
         }
     },
+    "bin": [
+        "bin/fulltextsearch_quickstart"
+    ],
     "extra": {
         "branch-alias": {
             "dev-master": "3.x-dev"
