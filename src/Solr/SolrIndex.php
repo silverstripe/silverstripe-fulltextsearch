@@ -4,13 +4,13 @@ namespace SilverStripe\FullTextSearch\Solr;
 
 use SilverStripe\Control\Director;
 use SilverStripe\Core\Environment;
-use SilverStripe\FulltextSearch\Search\Indexes\SearchIndex;
+use SilverStripe\FullTextSearch\Search\Indexes\SearchIndex;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariant_Caller;
 use SilverStripe\FullTextSearch\Solr\Services\SolrService;
-use SilverStripe\FulltextSearch\Search\Queries\SearchQuery;
+use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
 use SilverStripe\FullTextSearch\Search\Queries\SearchQuery_Range;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
-use SilverStripe\FulltextSearch\Search\SearchIntrospection;
+use SilverStripe\FullTextSearch\Search\SearchIntrospection;
 use SilverStripe\ORM\ArrayList;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\FieldType\DBField;
