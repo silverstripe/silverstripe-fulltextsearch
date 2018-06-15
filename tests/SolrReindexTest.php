@@ -2,22 +2,20 @@
 
 namespace SilverStripe\FullTextSearch\Tests;
 
-use SilverStripe\Dev\SapphireTest;
-use SilverStripe\FullTextSearch\Search\FullTextSearch;
-use SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater;
-use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
-use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_Variant;
-use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_Index;
-use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_TestHandler;
-use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_Item;
-use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_RecordingLogger;
-use SilverStripe\FullTextSearch\Solr\Reindex\Handlers\SolrReindexHandler;
-use SilverStripe\FullTextSearch\Solr\Services\Solr4Service;
-use SilverStripe\FullTextSearch\Solr\Tasks\Solr_Reindex;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Core\Injector\Injector;
-use SilverStripe\ORM\DataObject;
-use SilverStripe\ORM\DB;
+use SilverStripe\Dev\SapphireTest;
+use SilverStripe\FullTextSearch\Search\FullTextSearch;
+use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
+use SilverStripe\FullTextSearch\Solr\Reindex\Handlers\SolrReindexHandler;
+use SilverStripe\FullTextSearch\Solr\Services\Solr4Service;
+use SilverStripe\FullTextSearch\Solr\Services\SolrService;
+use SilverStripe\FullTextSearch\Solr\Tasks\Solr_Reindex;
+use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_Index;
+use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_Item;
+use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_RecordingLogger;
+use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_TestHandler;
+use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_Variant;
 
 class SolrReindexTest extends SapphireTest
 {
@@ -70,11 +68,9 @@ class SolrReindexTest extends SapphireTest
      */
     protected function createDummyData($number)
     {
-        self::resetDBSchema();
-
         // Note that we don't create any records in variant = 2, to represent a variant
         // that should be cleared without any re-indexes performed
-        foreach (array(0, 1) as $variant) {
+        foreach ([0, 1] as $variant) {
             for ($i = 1; $i <= $number; $i++) {
                 $item = new SolrReindexTest_Item();
                 $item->Variant = $variant;
@@ -97,7 +93,7 @@ class SolrReindexTest extends SapphireTest
         return $serviceMock->getMock();
     }
 
-    public function tearDown()
+    protected function tearDown()
     {
         FullTextSearch::force_index_list();
         SolrReindexTest_Variant::disable();
