@@ -3,12 +3,12 @@
 namespace SilverStripe\FullTextSearch\Tests\SolrReindexQueuedTest;
 
 use SilverStripe\Dev\TestOnly;
+use Symbiote\QueuedJobs\Services\QueuedJob;
+use Symbiote\QueuedJobs\Services\QueuedJobService;
 
-if (!class_exists('Symbiote\QueuedJobs\Services\QueuedJobService')) {
+if (!class_exists(QueuedJobService::class)) {
     return;
 }
-
-use Symbiote\QueuedJobs\Services\QueuedJobService;
 
 class SolrReindexQueuedTest_Service extends QueuedJobService implements TestOnly
 {

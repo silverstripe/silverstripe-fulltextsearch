@@ -5,23 +5,19 @@ namespace SilverStripe\FullTextSearch\Tests;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\SapphireTest;
-use SilverStripe\FullTextSearch\Solr\Services\SolrService;
-use SilverStripe\ORM\DataObject;
-use SilverStripe\ORM\DB;
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
-use SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater;
-use SilverStripe\FullTextSearch\Solr\Reindex\Handlers\SolrReindexQueuedHandler;
 use SilverStripe\FullTextSearch\Solr\Reindex\Handlers\SolrReindexHandler;
-use SilverStripe\FullTextSearch\Solr\Services\Solr4Service;
-use SilverStripe\FullTextSearch\Solr\Reindex\Jobs\SolrReindexQueuedJob;
+use SilverStripe\FullTextSearch\Solr\Reindex\Handlers\SolrReindexQueuedHandler;
 use SilverStripe\FullTextSearch\Solr\Reindex\Jobs\SolrReindexGroupQueuedJob;
-use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_Variant;
+use SilverStripe\FullTextSearch\Solr\Reindex\Jobs\SolrReindexQueuedJob;
+use SilverStripe\FullTextSearch\Solr\Services\Solr4Service;
+use SilverStripe\FullTextSearch\Solr\Services\SolrService;
+use SilverStripe\FullTextSearch\Tests\SolrReindexQueuedTest\SolrReindexQueuedTest_Service;
 use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_Index;
 use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_Item;
 use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_RecordingLogger;
-use SilverStripe\FullTextSearch\Tests\SolrReindexQueuedTest\SolrReindexQueuedTest_Service;
+use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_Variant;
 use Symbiote\QueuedJobs\Services\QueuedJob;
-use Symbiote\QueuedJobs\Services\QueuedJobService;
 
 /**
  * Additional tests of solr reindexing processes when run with queuedjobs
@@ -80,13 +76,9 @@ class SolrReindexQueuedTest extends SapphireTest
      */
     protected function createDummyData($number)
     {
-        // Populate dataobjects. Use truncate to generate predictable IDs
-        $tableName = DataObject::getSchema()->tableName(SolrReindexTest_Item::class);
-        DB::get_conn()->clearTable($tableName);
-
         // Note that we don't create any records in variant = 2, to represent a variant
         // that should be cleared without any re-indexes performed
-        foreach (array(0, 1) as $variant) {
+        foreach ([0, 1] as $variant) {
             for ($i = 1; $i <= $number; $i++) {
                 $item = new SolrReindexTest_Item();
                 $item->Variant = $variant;
@@ -104,7 +96,7 @@ class SolrReindexQueuedTest extends SapphireTest
     protected function serviceMock()
     {
         // Setup mock
-        /** @var SilverStripe\FullTextSearch\Solr\Services\Solr4Service|ObjectProphecy $serviceMock */
+        /** @var Solr4Service $serviceMock */
         $serviceMock = $this->getMockBuilder(Solr4Service::class)
             ->setMethods(['deleteByQuery', 'addDocument'])
             ->getMock();
@@ -112,7 +104,7 @@ class SolrReindexQueuedTest extends SapphireTest
         return $serviceMock;
     }
 
-    public function tearDown()
+    protected function tearDown()
     {
         FullTextSearch::force_index_list();
         SolrReindexTest_Variant::disable();
@@ -212,6 +204,7 @@ class SolrReindexQueuedTest extends SapphireTest
         $this->assertEquals(6, $logger->countMessages('Queued Solr Reindex Group'));
 
         // Check next job is a group queued job
+        /** @var SolrReindexGroupQueuedJob $job */
         $job = $this->getQueuedJobService()->getNextJob();
         $this->assertInstanceOf(SolrReindexGroupQueuedJob::class, $job);
         $this->assertEquals(
