@@ -46,12 +46,31 @@ SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater:
 
 ## Basic usage
 
+### Quick start
+
+If you are running on a Linux-based system, you can get up and running quickly with the quickstart script, like so:
+
+```bash
+composer require silverstripe/fulltextsearch && vendor/bin/fulltextsearch_quickstart
+```
+
+This will:
+
+- Install the required Java SDK (using `apt-get` or `yum`)
+- Install Solr 4
+- Set up a daemon to run Solr on startup
+- Start Solr
+- Configure Solr in your `_config.php` (and create one if you don't have one)
+- Create a DefaultIndex
+- Run a [Solr Configure](03_configuration.md#solr-configure) and a [Solr Reindex](03_configuration.md#solr-reindex)
+
 If you have the [CMS module](https://github.com/silverstripe/silverstripe-cms) installed, you will be able to simply add `$SearchForm` to your template to add a Solr search form. Default configuration is added via the [`ContentControllerExtension`](/src/Solr/Control/ContentControllerExtension.php) and alternative [`SearchForm`](/src/Solr/Forms/SearchForm.php).
 
 Ensure that you _don't_ have `SilverStripe\ORM\Search\FulltextSearchable::enable()` set in `_config.php`, as the `SearchForm` action provided by that class will conflict.
 
 You can override the default template with a new one at `templates/Layout/Page_results_solr.ss`.
 
+### "Slow" start
 Otherwise, basic usage is a four step process:
 
 1). Define an index in SilverStripe (Note: The specific connector index instance - that's what defines which engine gets used)

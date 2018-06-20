@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+
+echo "[WARNING] This is intended for development environments only."
+echo "Do NOT use in Production."
+
+echo "Installing Java SDK..."
+# Find our package manager
+if VERB="$( command -v apt-get )" 2> /dev/null; then
+   echo "Debian-based OS detected"
+   sudo apt-get install -y openjdk-8-jdk 2> /dev/null
+elif VERB="$( command -v dnf )" 2> /dev/null; then
+   echo "Modern Fedora-based OS detected"
+   sudo dnf install -y java-1.8.0-openjdk.x86_64 2> /dev/null
+elif VERB="$( command -v yum )" 2> /dev/null; then
+   echo "Fedora-based OS detected"
+   sudo yum install -y java-1.8.0-openjdk.x86_64 2> /dev/null
+else
+   echo "No valid package manager detected; try installing one of the following:"
+   echo "apt-get, dnf, yum"
+   exit 1
+fi
+
+if [ ! -d "/opt/solr" ]; then
+    printf "Installing Solr 4"
+    # Acquire and unzip solr4
+    wget http://archive.apache.org/dist/lucene/solr/4.10.4/solr-4.10.4.tgz 2> /dev/null && printf "."
+    tar -xf solr-4.10.4.tgz 2> /dev/null && printf "."
+    rm solr-4.10.4.tgz 2> /dev/null && printf "."
+
+    # Set the defaults in /opt/solr
+    sudo mv solr-4.10.4 /opt/solr 2> /dev/null && printf "."
+    mv /opt/solr/example /opt/solr/core 2> /dev/null && echo "."
+fi
+
+if [ ! -f "/etc/init.d/solr" ]; then
+    echo "Installing Solr daemon..."
+    # Set up the daemon so that solr will run on startup
+    sudo cp vendor/silverstripe/fulltextsearch/docs/examples/daemon_script /etc/init.d/solr 2> /dev/null
+    sudo chmod +x /etc/init.d/solr 2> /dev/null
+    sudo chkconfig --add solr 2> /dev/null
+fi
+
+# Get solr running
+sudo /etc/init.d/solr start 2> /dev/null
+
+# Determine application dir
+if [ -d app ]; then
+    APPDIR="app"
+elif [ -d mysite ]; then
+    APPDIR="mysite"
+else
+    echo "Can't detect application dir - skipping default index creation"
+    exit 1
+fi
+
+# Check to see if it has been configured in _config.php
+grep -iq "Solr::configure_server(" "$APPDIR/_config.php"
+if [ "$?" != 0 ]; then
+    echo "Configuring Solr in _config.php..."
+    if [ ! -f "$APPDIR/_config.php" ]; then
+        echo "<?php" > "$APPDIR/_config.php"
+        echo "" >> "$APPDIR/_config.php"
+    fi
+    echo "" >> "$APPDIR/_config.php"
+    echo "# Enable Fulltextsearch" >> "$APPDIR/_config.php"
+    echo "\\SilverStripe\\FullTextSearch\\Solr\\Solr::configure_server([" >> "$APPDIR/_config.php"
+    echo "    'indexstore' => [" >> "$APPDIR/_config.php"
+    echo "        'mode' => 'file'," >> "$APPDIR/_config.php"
+    echo "        'path' => BASE_PATH . '/.solr'" >> "$APPDIR/_config.php"
+    echo "    ]" >> "$APPDIR/_config.php"
+    echo "]);" >> "$APPDIR/_config.php"
+fi
+
+# Determine code dir
+if [ -d "$APPDIR/src" ]; then
+    CODEDIR="$APPDIR/src"
+elif [ -d "$APPDIR/code" ]; then
+    CODEDIR="$APPDIR/code"
+else
+    echo "Can't detect code dir - skipping default index creation"
+    exit 1
+fi
+
+# Create a default index
+if [ ! -f "$CODEDIR/FulltextSearch/DefaultIndex.php" ]; then
+    echo "Creating default index..."
+    mkdir -p "$CODEDIR/FulltextSearch"
+    cp vendor/silverstripe/fulltextsearch/docs/examples/default_index.php.example "$CODEDIR/FulltextSearch/DefaultIndex.php"
+fi
+
+vendor/bin/sake dev/tasks/Solr_Configure
+vendor/bin/sake dev/tasks/Solr_Reindex
+
+echo "Quickstart complete!"
