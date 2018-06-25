@@ -1,0 +1,34 @@
+# Fulltext search documentation index
+
+- Getting started
+    - [Module scope](01_getting_started.md#module-scope)
+    - [Quick start guide](01_getting_started.md#quick-start)
+- Setup
+    - [Requirements](02_setup.md#requirements)
+    - [Installing Solr](02_setup.md#installing-solr)
+    - [Solr admin](02_setup.md#solr-admin)
+- Configuration
+    - [Solr server parameters](03_configuration.md#solr-server-parameters)
+    - [Creating an index](03_configuration.md#creating-an-index)
+    - [Adding data to an index](03_configuration.md#adding-data-to-an-index)
+    - [Running the dev/tasks](03_configuration.md#dev-tasks)
+    - [File-based configuration](03_configuration.md#file-based-configuration)
+    - [Handling results](03_configuration.md#handling-results)
+- Querying
+    - [Building a SearchQuery](04_querying.md#building-a-`searchquery`)
+    - [Searching value ranges](04_querying.md#searching-value-ranges)
+    - [Empty or existing values](04_querying.md#empty-or-existing-values)
+    - [Executing your query](04_querying.md#executing-your-query)
+- Advanced configuration
+    - [Facets](05_advanced_configuration.md#facets)
+    - [Using multiple indexes](05_advanced_configuration.md#multiple-indexes)
+    - [Analyzers, tokens and token filters](05_advanced_configuration.md#analyzers,-tokenizers-and-token-filters)
+    - [Spellcheck](05_advanced_configuration.md#spell-check-("did-you-mean..."))
+    - [Highlighting](05_advanced_configuration.md#highlighting)
+    - [Boosting](05_advanced_configuration.md#boosting)
+    - [Indexing related objects](05_advanced_configuration.md#indexing-related-objects)
+    - [Subsites](05_advanced_configuration.md#subsites)
+    - [Custom field types](05_advanced_configuration.md#custom-field-types)
+    = [Text extraction](05_advanced_configuration.md#text-extraction)
+- Troubleshooting
+    - [Gotchas](06_troubleshooting.md#common-gotchas)

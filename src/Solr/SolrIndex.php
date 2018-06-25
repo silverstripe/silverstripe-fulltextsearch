@@ -137,7 +137,7 @@ abstract class SolrIndex extends SearchIndex
      *
      * @param string $field
      * @param string $type
-     * @param Array $params Parameters for the analyzer, usually at least a "class"
+     * @param array $params parameters for the analyzer, usually at least a "class"
      */
     public function addAnalyzer($field, $type, $params)
     {

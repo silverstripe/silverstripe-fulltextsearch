@@ -19,7 +19,9 @@ Adds support for fulltext search engines like Sphinx and Solr to SilverStripe CM
 
 ## Documentation
 
-See docs/en/index.md
+For pure Solr docs, check out [the Solr 4.10.4 guide](https://archive.apache.org/dist/lucene/solr/ref-guide/apache-solr-ref-guide-4.10.pdf).
+
+See [the docs](/docs/en/00_index.md) for configuration and setup, or for the quick version see [the quick start guide](/docs/en/01_getting_started.md#quick-start).
 
 For details of updates, bugfixes, and features, please see the [changelog](CHANGELOG.md).
 
@@ -48,8 +50,4 @@ maybe 'Content->Summary' to allow calling a specific method on the field object 
 
      - Allow user logic to cause triggering reindex of documents when field is user generated
 
-* Add sphinx connector
-
 * Add generic APIs for spell correction, file text extraction and snippet generation
-
-* Better docs
