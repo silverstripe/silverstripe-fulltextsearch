@@ -438,7 +438,7 @@ abstract class SearchIndex extends ViewableData
                     continue;
                 }
 
-                $key = sha1($field['base'].serialize($field['lookup_chain']));
+                $key = sha1($field['base'] . serialize($field['lookup_chain']));
                 $fieldname = "{$field['class']}:{$field['field']}";
 
                 if (isset($this->derivedFields[$key])) {
@@ -619,7 +619,7 @@ abstract class SearchIndex extends ViewableData
                     $tableName = DataObject::getSchema()->tableName($step['class']);
 
                     if ($step['through'] == 'has_one') {
-                        $sql = new SQLSelect('"ID"', '"'.$tableName.'"', '"'.$step['foreignkey'].'" IN ('.implode(',', $ids).')');
+                        $sql = new SQLSelect('"ID"', '"' . $tableName . '"', '"' . $step['foreignkey'] . '" IN (' . implode(',', $ids) . ')');
                         singleton($step['class'])->extend('augmentSQL', $sql);
 
                         $ids = $sql->execute()->column();
@@ -627,8 +627,8 @@ abstract class SearchIndex extends ViewableData
                         // Use TableName for queries
                         $otherTableName = DataObject::getSchema()->tableName($step['otherclass']);
 
-                        $sql = new SQLSelect('"'.$tableName.'"."ID"', '"'.$tableName.'"', '"'.$otherTableName.'"."ID" IN ('.implode(',', $ids).')');
-                        $sql->addInnerJoin($otherTableName, '"'.$tableName.'"."ID" = "'.$otherTableName.'"."'.$step['foreignkey'].'"');
+                        $sql = new SQLSelect('"' . $tableName . '"."ID"', '"' . $tableName . '"', '"' . $otherTableName . '"."ID" IN (' . implode(',', $ids) . ')');
+                        $sql->addInnerJoin($otherTableName, '"' . $tableName . '"."ID" = "' . $otherTableName . '"."' . $step['foreignkey'] . '"');
                         singleton($step['class'])->extend('augmentSQL', $sql);
 
                         $ids = $sql->execute()->column();

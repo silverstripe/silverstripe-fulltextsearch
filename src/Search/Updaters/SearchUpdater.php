@@ -91,7 +91,7 @@ class SearchUpdater
             $fields = isset($details['fields']) ? $details['fields'] : array();
 
             $base = DataObject::getSchema()->baseDataClass($class);
-            $key = "$id:$base:".serialize($state);
+            $key = "$id:$base:" . serialize($state);
 
             $statefulids = array(array('id' => $id, 'state' => $state));
 
@@ -105,8 +105,8 @@ class SearchUpdater
                     'command' => $command,
                     'fields' => array()
                 );
-            // Otherwise update the class label if it's more specific than the currently recorded one
             } elseif (is_subclass_of($class, $writes[$key]['class'])) {
+                // Otherwise update the class label if it's more specific than the currently recorded one
                 $writes[$key]['class'] = $class;
             }
 

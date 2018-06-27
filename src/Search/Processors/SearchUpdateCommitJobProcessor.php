@@ -170,7 +170,7 @@ class SearchUpdateCommitJobProcessor implements QueuedJob
         // the current request
         $cooldown = Config::inst()->get(__CLASS__, 'cooldown');
         $now = new DateTime(DBDatetime::now()->getValue());
-        $now->add(new DateInterval('PT'.$cooldown.'S'));
+        $now->add(new DateInterval('PT' . $cooldown . 'S'));
         $runat = $now->Format('Y-m-d H:i:s');
 
         $this->addMessage("Indexing already run this request, but incomplete. Re-scheduling for {$runat}");

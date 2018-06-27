@@ -61,7 +61,7 @@ class SearchUpdater_ObjectHandler extends DataExtension
         $class = $this->owner->ClassName;
         $state = SearchVariant::current_state($class);
         $base = DataObject::getSchema()->baseDataClass($class);
-        $key = "$id:$base:".serialize($state);
+        $key = "$id:$base:" . serialize($state);
 
         $statefulids = array(array(
             'id' => $id,

@@ -95,7 +95,7 @@ class SolrIndexSubsitesTest extends SapphireTest
         if (class_exists(Subsite::class)
             && DataObject::getSchema()->hasOneComponent($object->getClassName(), 'Subsite')
         ) {
-            $variants[] = '"SearchVariantSubsites":"' . $subsiteID. '"';
+            $variants[] = '"SearchVariantSubsites":"' . $subsiteID . '"';
         }
 
         // Check versioned
