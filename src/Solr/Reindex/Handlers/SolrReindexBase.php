@@ -44,7 +44,7 @@ abstract class SolrReindexBase implements SolrReindexHandler
         $indexClasses = $this->getClassesForIndex($indexInstance, $classes);
 
         // Clear all records in this index which do not contain the given classes
-        $logger->info("Clearing obsolete classes from ".$indexInstance->getIndexName());
+        $logger->info("Clearing obsolete classes from " . $indexInstance->getIndexName());
         $indexInstance->clearObsoleteClasses($indexClasses);
 
         // Build queue for each class
@@ -185,7 +185,7 @@ abstract class SolrReindexBase implements SolrReindexHandler
             $indexInstance->add($item);
             $item->destroy();
         }
-        $logger->info("Updated ".implode(',', $processed));
+        $logger->info("Updated " . implode(',', $processed));
 
         // This will slow down things a tiny bit, but it is done so that we don't timeout to the database during a reindex
         DB::query('SELECT 1');
