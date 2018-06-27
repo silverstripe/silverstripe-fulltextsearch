@@ -67,9 +67,9 @@ class SolrReindexImmediateHandler extends SolrReindexBase
         $statevar = json_encode($state);
 
         if (strpos(PHP_OS, "WIN") !== false) {
-            $statevar = '"'.str_replace('"', '\\"', $statevar).'"';
+            $statevar = '"' . str_replace('"', '\\"', $statevar) . '"';
         } else {
-            $statevar = "'".$statevar."'";
+            $statevar = "'" . $statevar . "'";
             $class = addslashes($class);
             $indexClassEscaped = addslashes($indexClass);
         }

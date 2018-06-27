@@ -335,7 +335,7 @@ abstract class SolrIndex extends SearchIndex
     public function setFieldBoosting($field, $level)
     {
         if (!isset($this->fulltextFields[$field])) {
-            throw new \InvalidArgumentException("No fulltext field $field exists on ".$this->getIndexName());
+            throw new \InvalidArgumentException("No fulltext field $field exists on " . $this->getIndexName());
         }
         if ($level === null) {
             unset($this->boostedFields[$field]);
@@ -715,7 +715,7 @@ abstract class SolrIndex extends SearchIndex
             }
         }
         if ($classq) {
-            $fq[] = '+('.implode(' ', $classq).')';
+            $fq[] = '+(' . implode(' ', $classq) . ')';
         }
 
         // Filter by filters
@@ -736,13 +736,13 @@ abstract class SolrIndex extends SearchIndex
 
         if (!headers_sent() && Director::isDev()) {
             if ($q) {
-                header('X-Query: '.implode(' ', $q));
+                header('X-Query: ' . implode(' ', $q));
             }
             if ($fq) {
-                header('X-Filters: "'.implode('", "', $fq).'"');
+                header('X-Filters: "' . implode('", "', $fq) . '"');
             }
             if ($qf) {
-                header('X-QueryFields: '.$qf);
+                header('X-QueryFields: ' . $qf);
             }
         }
 
@@ -899,11 +899,11 @@ abstract class SolrIndex extends SearchIndex
                         $field = $this->sanitiseClassName($field);
 
                         $boost = (isset($search['boost'][$field])) ? '^' . $search['boost'][$field] : '';
-                        $searchq[] = "{$field}:".$part.$fuzzy.$boost;
+                        $searchq[] = "{$field}:" . $part . $fuzzy . $boost;
                     }
-                    $q[] = '+('.implode(' OR ', $searchq).')';
+                    $q[] = '+(' . implode(' OR ', $searchq) . ')';
                 } else {
-                    $q[] = '+'.$part.$fuzzy;
+                    $q[] = '+' . $part . $fuzzy;
                 }
                 $hlq[] = $part;
             }
@@ -939,11 +939,11 @@ abstract class SolrIndex extends SearchIndex
                     }
                     $requireq[] = "$field:[$start TO $end]";
                 } else {
-                    $requireq[] = $field.':"'.$value.'"';
+                    $requireq[] = $field . ':"' . $value . '"';
                 }
             }
 
-            $fq[] = '+('.implode(' ', $requireq).')';
+            $fq[] = '+(' . implode(' ', $requireq) . ')';
         }
         return $fq;
     }
@@ -980,11 +980,11 @@ abstract class SolrIndex extends SearchIndex
                     }
                     $excludeq[] = "$field:[$start TO $end]";
                 } else {
-                    $excludeq[] = $field.':"'.$value.'"';
+                    $excludeq[] = $field . ':"' . $value . '"';
                 }
             }
 
-            $fq[] = ($missing ? "+{$field}:[* TO *] " : '') . '-('.implode(' ', $excludeq).')';
+            $fq[] = ($missing ? "+{$field}:[* TO *] " : '') . '-(' . implode(' ', $excludeq) . ')';
         }
         return $fq;
     }
@@ -1037,7 +1037,7 @@ abstract class SolrIndex extends SearchIndex
         );
 
         // Upload additional files
-        foreach (glob($this->getExtrasPath().'/*') as $file) {
+        foreach (glob($this->getExtrasPath() . '/*') as $file) {
             if (is_file($file)) {
                 $store->uploadFile($this->getIndexName(), $file);
             }

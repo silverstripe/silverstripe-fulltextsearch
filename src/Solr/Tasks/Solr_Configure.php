@@ -92,7 +92,7 @@ class Solr_Configure extends Solr_BuildTask
         } elseif (ClassInfo::exists($mode) && ClassInfo::classImplements($mode, SolrConfigStore::class)) {
             return new $mode($indexstore);
         } else {
-            user_error('Unknown Solr index mode '.$indexstore['mode'], E_USER_ERROR);
+            user_error('Unknown Solr index mode ' . $indexstore['mode'], E_USER_ERROR);
         }
     }
 }

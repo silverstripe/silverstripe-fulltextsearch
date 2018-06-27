@@ -91,7 +91,7 @@ class SearchUpdater
             $fields = isset($details['fields']) ? $details['fields'] : array();
 
             $base = DataObject::getSchema()->baseDataClass($class);
-            $key = "$id:$base:".serialize($state);
+            $key = "$id:$base:" . serialize($state);
 
             $statefulids = array(array('id' => $id, 'state' => $state));
 

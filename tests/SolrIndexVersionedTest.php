@@ -85,7 +85,7 @@ class SolrIndexVersionedTest extends SapphireTest
     {
         $id = $object->ID;
         $class = DataObject::getSchema()->baseDataClass($object);
-        return $id.'-'.$class.'-{'.json_encode(SearchVariantVersioned::class).':"'.$stage.'"}';
+        return $id . '-' . $class . '-{' . json_encode(SearchVariantVersioned::class) . ':"' . $stage . '"}';
     }
 
     /**
