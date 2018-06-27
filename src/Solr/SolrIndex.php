@@ -2,6 +2,7 @@
 
 namespace SilverStripe\FullTextSearch\Solr;
 
+use Exception;
 use SilverStripe\Control\Director;
 use SilverStripe\Core\Environment;
 use SilverStripe\FulltextSearch\Search\Indexes\SearchIndex;
