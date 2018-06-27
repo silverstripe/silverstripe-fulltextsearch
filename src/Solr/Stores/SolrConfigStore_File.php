@@ -36,7 +36,7 @@ class SolrConfigStore_File implements SolrConfigStore
     public function uploadFile($index, $file)
     {
         $targetDir = $this->getTargetDir($index);
-        copy($file, $targetDir.'/'.basename($file));
+        copy($file, $targetDir . '/' . basename($file));
     }
 
     public function uploadString($index, $filename, $string)
@@ -47,6 +47,6 @@ class SolrConfigStore_File implements SolrConfigStore
 
     public function instanceDir($index)
     {
-        return $this->remote.'/'.$index;
+        return $this->remote . '/' . $index;
     }
 }
