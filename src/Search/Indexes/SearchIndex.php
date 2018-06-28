@@ -565,7 +565,7 @@ abstract class SearchIndex extends ViewableData
      */
     public static function warn($e)
     {
-        Injector::inst()->get(LoggerInterface::class)->warning($e);
+        Injector::inst()->get(LoggerInterface::class)->info($e);
     }
 
     /**
