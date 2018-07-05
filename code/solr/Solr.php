@@ -76,8 +76,14 @@ class Solr
 
         // Build some by-version defaults
         $version = isset(self::$solr_options['version']) ? self::$solr_options['version'] : $defaults['version'];
+        if (version_compare($version, '5', '>=')) {
+            $versionDefaults = array(
+                'service' => 'Solr5Service',
+                'extraspath' => Director::baseFolder().'/fulltextsearch/conf/solr/5/extras/',
+                'templatespath' => Director::baseFolder().'/fulltextsearch/conf/solr/5/templates/',
+            );
 
-        if (version_compare($version, '4', '>=')) {
+        } elseif (version_compare($version, '4', '>=')) {
             $versionDefaults = array(
                 'service' => 'Solr4Service',
                 'extraspath' => Director::baseFolder().'/fulltextsearch/conf/solr/4/extras/',
