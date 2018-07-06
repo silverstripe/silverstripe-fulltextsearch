@@ -572,15 +572,17 @@ If you're using a default Solr installation, it's most likely already
 bundled and set up. But if you plan on running the Solr server integrated
 into this module, you'll need to download the libraries and link the first.
 
+Note that this example is for Solr 4.3.1 - choose the appropriate archive for your
+version.
+
 ```
-wget http://archive.apache.org/dist/lucene/solr/3.1.0/apache-solr-3.1.0.tgz
-mkdir tmp
-tar -xvzf apache-solr-3.1.0.tgz
-mkdir .solr/PageSolrIndexboot/dist
-mkdir .solr/PageSolrIndexboot/contrib
-cp apache-solr-3.1.0/dist/apache-solr-cell-3.1.0.jar .solr/PageSolrIndexboot/dist/
-cp -R apache-solr-3.1.0/contrib/extraction .solr/PageSolrIndexboot/contrib/
-rm -rf apache-solr-3.1.0 apache-solr-3.1.0.tgz
+wget http://archive.apache.org/dist/lucene/solr/4.3.1/solr-4.3.1.tgz
+tar -xvzf solr-4.3.1.tgz
+mkdir .solr/YourIndexName/dist
+mkdir .solr/YourIndexName/contrib
+cp solr-4.3.1/dist/solr-cell-4.3.1.jar .solr/YourIndexName/dist/
+cp -R solr-4.3.1/contrib/extraction .solr/YourIndexName/contrib/
+rm -rf solr-4.3.1 solr-4.3.1.tgz
 ```
 
 Create a custom `solrconfig.xml` (see "File-based configuration").
