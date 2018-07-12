@@ -3,6 +3,9 @@
 namespace SilverStripe\FullTextSearch\Search\Queries;
 
 use SilverStripe\Dev\Deprecation;
+use SilverStripe\FullTextSearch\Search\Adapters\SearchAdapterInterface;
+use SilverStripe\FullTextSearch\Search\Criteria\SearchCriteria;
+use SilverStripe\FullTextSearch\Search\Criteria\SearchCriteriaInterface;
 use SilverStripe\View\ViewableData;
 use stdClass;
 
@@ -27,11 +30,25 @@ class SearchQuery extends ViewableData
     public $require = [];
     public $exclude = [];
 
+    /**
+     * @var SearchCriteriaInterface[]
+     */
+    public $criteria = [];
+
     protected $start = 0;
     protected $limit = -1;
 
+    /**
+     * @var SearchAdapterInterface
+     */
+    protected $adapter = null;
+
     /** These are the API functions */
 
+    /**
+     * SearchQuery constructor.
+     * @throws \Psr\Container\NotFoundExceptionInterface
+     */
     public function __construct()
     {
         if (self::$missing === null) {
@@ -43,11 +60,23 @@ class SearchQuery extends ViewableData
     }
 
     /**
+     * @param SearchAdapterInterface $adapter
+     * @return SearchQuery
+     */
+    public function setHandler(SearchAdapterInterface $adapter)
+    {
+        $this->adapter = $adapter;
+
+        return $this;
+    }
+
+    /**
      * @param string $text   Search terms. Exact format (grouping, boolean expressions, etc.) depends on
      *                       the search implementation.
      * @param array  $fields Limits the search to specific fields (using composite field names)
      * @param array  $boost  Map of composite field names to float values. The higher the value,
      *                       the more important the field gets for relevancy.
+     * @return $this
      */
     public function addSearchTerm($text, $fields = null, $boost = [])
     {
@@ -68,6 +97,7 @@ class SearchQuery extends ViewableData
      * @param string $text   See {@link addSearchTerm()}
      * @param array  $fields See {@link addSearchTerm()}
      * @param array  $boost  See {@link addSearchTerm()}
+     * @return $this
      */
     public function addFuzzySearchTerm($text, $fields = null, $boost = [])
     {
@@ -116,6 +146,7 @@ class SearchQuery extends ViewableData
      *
      * @param string $field  Composite name of the field
      * @param mixed  $values Scalar value, array of values, or an instance of SearchQuery_Range
+     * @return $this
      */
     public function addFilter($field, $values)
     {
@@ -138,6 +169,7 @@ class SearchQuery extends ViewableData
      *
      * @param string $field
      * @param mixed $values
+     * @return $this
      */
     public function addExclude($field, $values)
     {
@@ -153,6 +185,37 @@ class SearchQuery extends ViewableData
     public function getExcludes()
     {
         return $this->exclude;
+    }
+
+    /**
+     * You can pass through a string value, Criteria object, or Criterion object for $target.
+     *
+     * String value might be "SiteTree_Title" or whatever field in your index that you're trying to target.
+     *
+     * If you require complex filtering then you can build your Criteria object first with multiple layers/levels of
+     * Criteria, and then pass it in here when you're ready.
+     *
+     * If you have your own Criterion object that you've created that you want to use, you can also pass that in here.
+     *
+     * @param string|SearchCriteriaInterface $target
+     * @param mixed $value
+     * @param string|null $comparison
+     * @param AbstractSearchQueryWriter $searchQueryWriter
+     * @return SearchCriteriaInterface
+     */
+    public function filterBy(
+        $target,
+        $value = null,
+        $comparison = null,
+        AbstractSearchQueryWriter $searchQueryWriter = null
+    ) {
+        if (!$target instanceof SearchCriteriaInterface) {
+            $target = new SearchCriteria($target, $value, $comparison, $searchQueryWriter);
+        }
+
+        $this->addCriteria($target);
+
+        return $target;
     }
 
     public function setStart($start)
@@ -204,6 +267,14 @@ class SearchQuery extends ViewableData
     public function isFiltered()
     {
         return $this->search || $this->classes || $this->require || $this->exclude;
+    }
+
+    /**
+     * @return SearchAdapterInterface
+     */
+    public function getAdapter()
+    {
+        return $this->adapter;
     }
 
     public function __toString()
@@ -289,5 +360,33 @@ class SearchQuery extends ViewableData
     {
         Deprecation::notice('4.0', 'Use setPageSize() instead');
         return $this->setPageSize($page);
+    }
+
+    /**
+     * @return SearchCriteriaInterface[]
+     */
+    public function getCriteria()
+    {
+        return $this->criteria;
+    }
+
+    /**
+     * @param SearchCriteriaInterface[] $criteria
+     * @return SearchQuery
+     */
+    public function setCriteria($criteria)
+    {
+        $this->criteria = $criteria;
+        return $this;
+    }
+
+    /**
+     * @param SearchCriteriaInterface $criteria
+     * @return SearchQuery
+     */
+    public function addCriteria($criteria)
+    {
+        $this->criteria[] = $criteria;
+        return $this;
     }
 }

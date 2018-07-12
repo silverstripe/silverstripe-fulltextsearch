@@ -19,6 +19,7 @@
     - [Searching value ranges](04_querying.md#searching-value-ranges)
     - [Empty or existing values](04_querying.md#empty-or-existing-values)
     - [Executing your query](04_querying.md#executing-your-query)
+    - [Complex filtering with Criteria](04_querying.md#complex-filtering-with-criteria)
 - Advanced configuration
     - [Facets](05_advanced_configuration.md#facets)
     - [Using multiple indexes](05_advanced_configuration.md#multiple-indexes)

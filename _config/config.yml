@@ -4,3 +4,8 @@ Name: fulltextsearchconfig
 SilverStripe\ORM\DataObject:
   extensions:
     - SilverStripe\FullTextSearch\Search\Extensions\SearchUpdater_ObjectHandler
+
+SilverStripe\Core\Injector\Injector:
+  SilverStripe\FullTextSearch\Search\Queries\SearchQuery:
+    calls:
+      - [ setHandler, [ %$SilverStripe\FullTextSearch\Search\Adapters\SolrSearchAdapter ]]

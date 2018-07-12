@@ -632,6 +632,8 @@ abstract class SolrIndex extends SearchIndex
             static::warn($e);
             return false;
         }
+
+        return true;
     }
 
     /**
@@ -643,6 +645,7 @@ abstract class SolrIndex extends SearchIndex
      *
      * @param array $classes List of non-obsolete classes in the same format as SolrIndex::getClasses()
      * @return bool Flag if successful
+     * @throws \Apache_Solr_HttpTransportException
      */
     public function clearObsoleteClasses($classes)
     {
@@ -676,6 +679,8 @@ abstract class SolrIndex extends SearchIndex
             static::warn($e);
             return false;
         }
+
+        return true;
     }
 
     /**
@@ -685,6 +690,8 @@ abstract class SolrIndex extends SearchIndex
      * @param array $params Extra request parameters passed through to Solr
      * @return ArrayData Map with the following keys:
      *  - 'Matches': ArrayList of the matched object instances
+     * @throws \Apache_Solr_HttpTransportException
+     * @throws \Apache_Solr_InvalidArgumentException
      */
     public function search(SearchQuery $query, $offset = -1, $limit = -1, $params = array())
     {
@@ -990,17 +997,56 @@ abstract class SolrIndex extends SearchIndex
     }
 
     /**
+     * @param SearchQuery $searchQuery
+     * @return string
+     * @throws \Exception
+     */
+    protected function getCriteriaComponent(SearchQuery $searchQuery)
+    {
+        if (count($searchQuery->getCriteria()) === 0) {
+            return null;
+        }
+
+        if ($searchQuery->getAdapter() === null) {
+            throw new \Exception('SearchQuery does not have a SearchAdapter applied');
+        }
+
+        // Need to start with a positive conjunction.
+        $ps = $searchQuery->getAdapter()->getPrependToCriteriaComponent();
+
+        foreach ($searchQuery->getCriteria() as $clause) {
+            $clause->setAdapter($searchQuery->getAdapter());
+            $clause->appendPreparedStatementTo($ps);
+        }
+
+        // Need to start with a positive conjunction.
+        $ps .= $searchQuery->getAdapter()->getAppendToCriteriaComponent();
+
+        // Returned as an array because that's how `getFiltersComponent` expects it.
+        return $ps;
+    }
+
+    /**
      * Get all filter conditions for this search
      *
      * @param SearchQuery $searchQuery
      * @return array
+     * @throws \Exception
      */
     public function getFiltersComponent(SearchQuery $searchQuery)
     {
-        return array_merge(
+        $criteriaComponent = $this->getCriteriaComponent($searchQuery);
+
+        $components = array_merge(
             $this->getRequireFiltersComponent($searchQuery),
             $this->getExcludeFiltersComponent($searchQuery)
         );
+
+        if ($criteriaComponent !== null) {
+            $components[] = $criteriaComponent;
+        }
+
+        return $components;
     }
 
     protected $service;
