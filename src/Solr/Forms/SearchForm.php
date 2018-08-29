@@ -63,10 +63,11 @@ class SearchForm extends Form
         $request = $this->getRequestHandler()->getRequest();
 
         $searchTerms = $request->requestVar('Search');
-        // for pagination
-        $start = $request->requestVar('start');
+        $query = SearchQuery::create()->addSearchTerm($searchTerms);
 
-        $query = SearchQuery::create()->addSearchTerm($searchTerms)->setStart($start);
+        if($start = $request->requestVar('start')){
+            $query->setStart($start);
+        }
 
         $params = [
             'spellcheck' => 'true',
