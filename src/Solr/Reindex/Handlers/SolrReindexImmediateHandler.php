@@ -4,6 +4,8 @@ namespace SilverStripe\FullTextSearch\Solr\Reindex\Handlers;
 
 use Psr\Log\LoggerInterface;
 use SilverStripe\Control\Director;
+use SilverStripe\Core\Config\Config;
+use SilverStripe\Core\Environment;
 use SilverStripe\Core\Manifest\ModuleLoader;
 use SilverStripe\FullTextSearch\Solr\Solr;
 use SilverStripe\FullTextSearch\Solr\SolrIndex;
@@ -17,6 +19,14 @@ use Symfony\Component\Process\Process;
  */
 class SolrReindexImmediateHandler extends SolrReindexBase
 {
+    /**
+     * Path to the php binary
+     * @config
+     * @var null|string
+     */
+    private static $php_bin = 'php';
+
+
     public function triggerReindex(LoggerInterface $logger, $batchSize, $taskName, $classes = null)
     {
         $this->runReindex($logger, $batchSize, $taskName, $classes);
@@ -61,7 +71,7 @@ class SolrReindexImmediateHandler extends SolrReindexBase
         $taskName
     ) {
         $indexClass = get_class($indexInstance);
-        
+
         // Build script parameters
         $indexClassEscaped = $indexClass;
         $statevar = json_encode($state);
@@ -74,10 +84,12 @@ class SolrReindexImmediateHandler extends SolrReindexBase
             $indexClassEscaped = addslashes($indexClass);
         }
 
+        $php = Environment::getEnv('SS_PHP_BIN') ?: Config::inst()->get(static::class, 'php_bin');
+
         // Build script line
         $frameworkPath = ModuleLoader::getModule('silverstripe/framework')->getPath();
         $scriptPath = sprintf("%s%scli-script.php", $frameworkPath, DIRECTORY_SEPARATOR);
-        $scriptTask = "php {$scriptPath} dev/tasks/{$taskName}";
+        $scriptTask = "{$php} {$scriptPath} dev/tasks/{$taskName}";
 
         $cmd = "{$scriptTask} index={$indexClassEscaped} class={$class} group={$group} groups={$groups} variantstate={$statevar}";
         $cmd .= " verbose=1";
