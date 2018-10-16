@@ -6,6 +6,7 @@ use ReflectionClass;
 use SilverStripe\Core\ClassInfo;
 use SilverStripe\Core\Config\Configurable;
 use SilverStripe\FullTextSearch\Search\Indexes\SearchIndex;
+use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
 use SilverStripe\FullTextSearch\Utils\CombinationsArrayIterator;
 
 /**

@@ -65,6 +65,10 @@ class SearchForm extends Form
         $searchTerms = $request->requestVar('Search');
         $query = SearchQuery::create()->addSearchTerm($searchTerms);
 
+        if ($start = $request->requestVar('start')) {
+            $query->setStart($start);
+        }
+
         $params = [
             'spellcheck' => 'true',
             'spellcheck.collate' => 'true',

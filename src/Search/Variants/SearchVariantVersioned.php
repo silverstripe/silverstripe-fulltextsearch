@@ -53,7 +53,7 @@ class SearchVariantVersioned extends SearchVariant
 
     public function alterQuery($query, $index)
     {
-        $query->filter('_versionedstage', [
+        $query->addFilter('_versionedstage', [
             $this->currentState(),
             SearchQuery::$missing
         ]);
