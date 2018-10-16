@@ -41,11 +41,6 @@
     "bin": [
         "bin/fulltextsearch_quickstart"
     ],
-    "extra": {
-        "branch-alias": {
-            "dev-master": "3.x-dev"
-        }
-    },
     "suggest": {
         "symbiote/silverstripe-queuedjobs": "Add background execution of indexing tasks",
         "silverstripe/fulltextsearch-localsolr": "Adds a ready-to-use local Solr server for initial development"
