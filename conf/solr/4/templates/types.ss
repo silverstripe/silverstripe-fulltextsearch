@@ -8,7 +8,7 @@
 
     <!-- The optional sortMissingLast and sortMissingFirst attributes are
          currently supported on types that are sorted internally as strings.
-	       This includes "string","boolean","sint","slong","sfloat","sdouble","pdate"
+         This includes "string","boolean","sint","slong","sfloat","sdouble","pdate"
        - If sortMissingLast="true", then a sort on this field will cause documents
          without the field to come after documents with the field,
          regardless of the requested sort order (asc or desc).
@@ -136,9 +136,11 @@
         <filter class="solr.WordDelimiterFilterFactory" generateWordParts="1" generateNumberParts="1" catenateWords="1" catenateNumbers="1" catenateAll="0" splitOnCaseChange="1"/>
         <filter class="solr.LowerCaseFilterFactory"/>
         <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/>
+        <filter class="solr.ASCIIFoldingFilterFactory"/>
       </analyzer>
       <analyzer type="query">
         <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+        <filter class="solr.ASCIIFoldingFilterFactory"/>
         <filter class="solr.KeywordRepeatFilterFactory"/>
         <filter class="solr.StopFilterFactory"
                 ignoreCase="true"
@@ -162,9 +164,11 @@
         <filter class="solr.WordDelimiterFilterFactory" generateWordParts="1" generateNumberParts="1" catenateWords="1" catenateNumbers="1" catenateAll="0" splitOnCaseChange="1"/>
         <filter class="solr.LowerCaseFilterFactory"/>
         <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/>
+        <filter class="solr.ASCIIFoldingFilterFactory"/>
       </analyzer>
       <analyzer type="query">
         <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+        <filter class="solr.ASCIIFoldingFilterFactory"/>
         <filter class="solr.KeywordRepeatFilterFactory"/>
         <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" enablePositionIncrements="true"/>
         <filter class="solr.WordDelimiterFilterFactory" generateWordParts="1" generateNumberParts="1" catenateWords="0" catenateNumbers="0" catenateAll="0" splitOnCaseChange="1"/>
@@ -210,8 +214,8 @@
             <tokenizer class="solr.StandardTokenizerFactory" />
             <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt"/>
             <filter class="solr.LengthFilterFactory" min="4" max="20" />
-            <filter class="solr.LowerCaseFilterFactory" /> 
-            <filter class="solr.RemoveDuplicatesTokenFilterFactory" /> 
+            <filter class="solr.LowerCaseFilterFactory" />
+            <filter class="solr.RemoveDuplicatesTokenFilterFactory" />
         </analyzer>
     </fieldType>
 
@@ -239,7 +243,7 @@
 
     <!-- A general unstemmed text field that indexes tokens normally and also
          reversed (via ReversedWildcardFilterFactory), to enable more efficient
-	 leading wildcard queries. -->
+         leading wildcard queries. -->
     <fieldType name="text_rev" class="solr.TextField" positionIncrementGap="100">
       <analyzer type="index">
         <tokenizer class="solr.WhitespaceTokenizerFactory"/>
@@ -320,10 +324,10 @@
         a token of "foo|1.4"  would be indexed as "foo" with a payload of 1.4f
         Attributes of the DelimitedPayloadTokenFilterFactory :
          "delimiter" - a one character delimiter. Default is | (pipe)
-	 "encoder" - how to encode the following value into a playload
-	    float -> org.apache.lucene.analysis.payloads.FloatEncoder,
-	    integer -> o.a.l.a.p.IntegerEncoder
-	    identity -> o.a.l.a.p.IdentityEncoder
+         "encoder" - how to encode the following value into a playload
+            float -> org.apache.lucene.analysis.payloads.FloatEncoder,
+            integer -> o.a.l.a.p.IntegerEncoder
+            identity -> o.a.l.a.p.IdentityEncoder
             Fully Qualified class name implementing PayloadEncoder, Encoder must have a no arg constructor.
          -->
         <filter class="solr.DelimitedPayloadTokenFilterFactory" encoder="float"/>
@@ -364,8 +368,8 @@
     <!-- A specialized field for geospatial search. If indexed, this fieldType must not be multivalued. -->
     <fieldType name="location" class="solr.LatLonType" subFieldSuffix="_coordinate"/>
 
-   <!--
+    <!--
     A Geohash is a compact representation of a latitude longitude pair in a single field.
     See http://wiki.apache.org/solr/SpatialSearch
-   -->
+    -->
     <fieldtype name="geohash" class="solr.GeoHashField"/>
