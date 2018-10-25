@@ -98,11 +98,8 @@ class SolrReindexImmediateHandler extends SolrReindexBase
         // Execute script via shell
         $process = new Process($cmd);
 
-        // Set timeout from config. Process default is 60 seconds.
-        $timeout = Config::inst()->get(static::class, 'process_timeout');
-        if ($timeout) {
-            $process->setTimeout($timeout);
-        }
+        // Set timeout from config. Process default is 60 seconds
+        $process->setTimeout($this->config()->get('process_timeout'));
 
         $process->inheritEnvironmentVariables();
         $process->run();
