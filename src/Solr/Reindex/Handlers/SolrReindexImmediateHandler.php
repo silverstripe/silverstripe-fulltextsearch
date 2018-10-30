@@ -11,6 +11,7 @@ use SilverStripe\FullTextSearch\Solr\Solr;
 use SilverStripe\FullTextSearch\Solr\SolrIndex;
 use SilverStripe\ORM\DB;
 use Symfony\Component\Process\Process;
+use SilverStripe\Core\Config\Configurable;
 
 /**
  * Invokes an immediate reindex
@@ -19,6 +20,9 @@ use Symfony\Component\Process\Process;
  */
 class SolrReindexImmediateHandler extends SolrReindexBase
 {
+
+    use Configurable;
+    
     /**
      * Path to the php binary
      * @config
