@@ -615,23 +615,15 @@ abstract class SearchIndex extends ViewableData
                 $ids = array($id);
 
                 foreach ($derivation['chain'] as $step) {
-                    // Use TableName for queries
-                    $tableName = DataObject::getSchema()->tableName($step['class']);
-
                     if ($step['through'] == 'has_one') {
-                        $sql = new SQLSelect('"ID"', '"' . $tableName . '"', '"' . $step['foreignkey'] . '" IN (' . implode(',', $ids) . ')');
-                        singleton($step['class'])->extend('augmentSQL', $sql);
-
-                        $ids = $sql->execute()->column();
+                        $ids = DataObject::get($step['class'])
+                            ->filter($step['foreignkey'], $ids)
+                            ->column('ID');
                     } elseif ($step['through'] == 'has_many') {
-                        // Use TableName for queries
-                        $otherTableName = DataObject::getSchema()->tableName($step['otherclass']);
-
-                        $sql = new SQLSelect('"' . $tableName . '"."ID"', '"' . $tableName . '"', '"' . $otherTableName . '"."ID" IN (' . implode(',', $ids) . ')');
-                        $sql->addInnerJoin($otherTableName, '"' . $tableName . '"."ID" = "' . $otherTableName . '"."' . $step['foreignkey'] . '"');
-                        singleton($step['class'])->extend('augmentSQL', $sql);
-
-                        $ids = $sql->execute()->column();
+                        // Get many ids by querying component with alternate set of foreign ids
+                        $ids = DataObject::singleton($step['otherclass'])
+                            ->getComponents($step['method'], $ids)
+                            ->column('ID');
                     }
 
                     if (empty($ids)) {
