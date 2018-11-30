@@ -596,16 +596,14 @@ abstract class SearchIndex extends ViewableData
 
                 foreach ($derivation['chain'] as $step) {
                     if ($step['through'] == 'has_one') {
-                        $sql = new SQLQuery('"ID"', '"'.$step['class'].'"', '"'.$step['foreignkey'].'" IN ('.implode(',', $ids).')');
-                        singleton($step['class'])->extend('augmentSQL', $sql);
-
-                        $ids = $sql->execute()->column();
+                        $ids = DataObject::get($step['class'])
+                            ->filter($step['foreignkey'], $ids)
+                            ->column('ID');
                     } elseif ($step['through'] == 'has_many') {
-                        $sql = new SQLQuery('"'.$step['class'].'"."ID"', '"'.$step['class'].'"', '"'.$step['otherclass'].'"."ID" IN ('.implode(',', $ids).')');
-                        $sql->addInnerJoin($step['otherclass'], '"'.$step['class'].'"."ID" = "'.$step['otherclass'].'"."'.$step['foreignkey'].'"');
-                        singleton($step['class'])->extend('augmentSQL', $sql);
-
-                        $ids = $sql->execute()->column();
+                        // Get many ids by querying component with alternate set of foreign ids
+                        $ids = DataObject::singleton($step['otherclass'])
+                            ->getComponents($step['method'], $ids)
+                            ->column('ID');
                     }
 
                     if (empty($ids)) {
