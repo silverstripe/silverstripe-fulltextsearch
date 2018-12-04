@@ -187,8 +187,8 @@ abstract class SearchVariant
         $commonVariants = [];
         foreach ($classes as $class => $options) {
             // BC for numerically indexed list of classes
-            if (is_numeric($class) && isset($options['class'])) {
-                $class = $options['class'];
+            if (is_numeric($class) && !empty($options['class'])) {
+                $class = $options['class']; // $options['class'] is assumed to exist throughout the code base
             }
 
             // Extract relevant class options
