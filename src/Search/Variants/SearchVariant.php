@@ -186,6 +186,11 @@ abstract class SearchVariant
         // Construct new array of variants applicable to at least one class in the list
         $commonVariants = [];
         foreach ($classes as $class => $options) {
+            // BC for numerically indexed list of classes
+            if (is_numeric($class) && !empty($options['class'])) {
+                $class = $options['class']; // $options['class'] is assumed to exist throughout the code base
+            }
+
             // Extract relevant class options
             $includeSubclasses = isset($options['include_children']) ? $options['include_children'] : true;
 
