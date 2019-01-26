@@ -3,6 +3,7 @@
 namespace SilverStripe\FullTextSearch\Utils\Logging;
 
 use Psr\Log;
+use Symbiote\QueuedJobs\Services\QueuedJob;
 
 interface SearchLogFactory
 {
@@ -10,7 +11,7 @@ interface SearchLogFactory
      * Make a logger for a queuedjob
      *
      * @param QueuedJob $job
-     * @return Log
+     * @return Log\LoggerInterface
      */
     public function getQueuedJobLogger($job);
 
@@ -19,7 +20,7 @@ interface SearchLogFactory
      *
      * @param string $name
      * @param bool $verbose
-     * @return Log
+     * @return Log\LoggerInterface
      */
     public function getOutputLogger($name, $verbose);
 }
