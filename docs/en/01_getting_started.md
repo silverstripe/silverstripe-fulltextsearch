@@ -39,7 +39,7 @@ configured and running) that each connector deals with itself, in a way best sui
 If you are running on a Linux-based system, you can get up and running quickly with the quickstart script, like so:
 
 ```bash
-composer require silverstripe/fulltextsearch && vendor/bin/fts_quickstart
+composer require silverstripe/fulltextsearch && vendor/bin/fulltextsearch_quickstart
 ```
 
 This will:
