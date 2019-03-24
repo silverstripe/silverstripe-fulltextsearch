@@ -5,9 +5,10 @@ use Exception;
 use SilverStripe\Core\ClassInfo;
 use SilverStripe\FullTextSearch\Solr\Solr;
 use SilverStripe\FullTextSearch\Solr\SolrIndex;
-use SilverStripe\FullTextSearch\Solr\Stores\SolrConfigStore_File;
-use SilverStripe\FullTextSearch\Solr\Stores\SolrConfigStore_WebDAV;
 use SilverStripe\FullTextSearch\Solr\Stores\SolrConfigStore;
+use SilverStripe\FullTextSearch\Solr\Stores\SolrConfigStore_File;
+use SilverStripe\FullTextSearch\Solr\Stores\SolrConfigStore_Post;
+use SilverStripe\FullTextSearch\Solr\Stores\SolrConfigStore_WebDAV;
 
 class Solr_Configure extends Solr_BuildTask
 {
@@ -92,6 +93,9 @@ class Solr_Configure extends Solr_BuildTask
         }
         if ($mode === 'webdav') {
             return new SolrConfigStore_WebDAV($indexstore);
+        }
+        if ($mode == 'post') {
+            return new SolrConfigStore_Post($indexstore);
         }
         if (ClassInfo::exists($mode) && ClassInfo::classImplements($mode, SolrConfigStore::class)) {
             return new $mode($indexstore);
