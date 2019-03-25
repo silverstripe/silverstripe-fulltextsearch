@@ -4,6 +4,7 @@ namespace SilverStripe\FullTextSearch\Solr\Tasks;
 use Exception;
 use SilverStripe\Core\ClassInfo;
 use SilverStripe\FullTextSearch\Solr\Solr;
+use SilverStripe\FullTextSearch\Solr\SolrIndex;
 use SilverStripe\FullTextSearch\Solr\Stores\SolrConfigStore_File;
 use SilverStripe\FullTextSearch\Solr\Stores\SolrConfigStore_WebDAV;
 use SilverStripe\FullTextSearch\Solr\Stores\SolrConfigStore;
@@ -50,29 +51,30 @@ class Solr_Configure extends Solr_BuildTask
     protected function updateIndex($instance, $store)
     {
         $index = $instance->getIndexName();
-        $this->getLogger()->addInfo("Configuring $index.");
+        $this->getLogger()->info("Configuring $index.");
 
         // Upload the config files for this index
-        $this->getLogger()->addInfo("Uploading configuration ...");
+        $this->getLogger()->info("Uploading configuration ...");
         $instance->uploadConfig($store);
 
         // Then tell Solr to use those config files
         $service = Solr::service();
         if ($service->coreIsActive($index)) {
-            $this->getLogger()->addInfo("Reloading core ...");
+            $this->getLogger()->info("Reloading core ...");
             $service->coreReload($index);
         } else {
-            $this->getLogger()->addInfo("Creating core ...");
+            $this->getLogger()->info("Creating core ...");
             $service->coreCreate($index, $store->instanceDir($index));
         }
 
-        $this->getLogger()->addInfo("Done");
+        $this->getLogger()->info("Done");
     }
 
     /**
      * Get config store
      *
      * @return SolrConfigStore
+     * @throws Exception
      */
     protected function getSolrConfigStore()
     {
@@ -85,14 +87,15 @@ class Solr_Configure extends Solr_BuildTask
         // Find the IndexStore handler, which will handle uploading config files to Solr
         $mode = $indexstore['mode'];
 
-        if ($mode == 'file') {
+        if ($mode === 'file') {
             return new SolrConfigStore_File($indexstore);
-        } elseif ($mode == 'webdav') {
-            return new SolrConfigStore_WebDAV($indexstore);
-        } elseif (ClassInfo::exists($mode) && ClassInfo::classImplements($mode, SolrConfigStore::class)) {
-            return new $mode($indexstore);
-        } else {
-            user_error('Unknown Solr index mode ' . $indexstore['mode'], E_USER_ERROR);
         }
+        if ($mode === 'webdav') {
+            return new SolrConfigStore_WebDAV($indexstore);
+        }
+        if (ClassInfo::exists($mode) && ClassInfo::classImplements($mode, SolrConfigStore::class)) {
+            return new $mode($indexstore);
+        }
+        user_error('Unknown Solr index mode ' . $indexstore['mode'], E_USER_ERROR);
     }
 }
