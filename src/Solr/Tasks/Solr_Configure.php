@@ -94,7 +94,7 @@ class Solr_Configure extends Solr_BuildTask
         if ($mode === 'webdav') {
             return new SolrConfigStore_WebDAV($indexstore);
         }
-        if ($mode == 'post') {
+        if ($mode === 'post') {
             return new SolrConfigStore_Post($indexstore);
         }
         if (ClassInfo::exists($mode) && ClassInfo::classImplements($mode, SolrConfigStore::class)) {
