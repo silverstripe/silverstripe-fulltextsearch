@@ -9,6 +9,8 @@ use SilverStripe\Core\Manifest\ModuleLoader;
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
 use SilverStripe\FullTextSearch\Solr\Services\Solr4Service;
 use SilverStripe\FullTextSearch\Solr\Services\Solr3Service;
+use SilverStripe\FullTextSearch\Solr\Services\SolrService;
+use SilverStripe\FullTextSearch\Solr\Services\SolrService_Core;
 
 class Solr
 {
@@ -118,14 +120,14 @@ class Solr
 
     /** @var SolrService | null - The instance of SolrService for core management */
     protected static $service_singleton = null;
-    /** @var [SolrService_Core] - The instances of SolrService_Core for each core */
+    /** @var SolrService_Core[] - The instances of SolrService_Core for each core */
     protected static $service_core_singletons = array();
 
     /**
      * Get a SolrService
      *
      * @param string $core Optional name of index class
-     * @return SolrService_Core
+     * @return SolrService|SolrService_Core
      */
     public static function service($core = null)
     {
@@ -148,9 +150,8 @@ class Solr
             }
 
             return self::$service_core_singletons[$core];
-        } else {
-            return self::$service_singleton;
         }
+        return self::$service_singleton;
     }
 
     public static function get_indexes()

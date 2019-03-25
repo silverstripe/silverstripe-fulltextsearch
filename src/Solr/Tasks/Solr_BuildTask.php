@@ -3,6 +3,7 @@ namespace SilverStripe\FullTextSearch\Solr\Tasks;
 
 use Monolog\Handler\StreamHandler;
 use Psr\Log\LoggerInterface;
+use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\BuildTask;
 use SilverStripe\FullTextSearch\Utils\Logging\SearchLogFactory;
@@ -52,7 +53,7 @@ class Solr_BuildTask extends BuildTask
     /**
      * Setup task
      *
-     * @param SS_HTTPReqest $request
+     * @param HTTPRequest $request
      */
     public function run($request)
     {

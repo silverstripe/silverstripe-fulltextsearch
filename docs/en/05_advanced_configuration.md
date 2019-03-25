@@ -11,7 +11,7 @@ use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
 $index = MyIndex::singleton();
 $query = SearchQuery::create()
     ->addSearchTerm('My Term');
-$params = [    
+$params = [
     'facet' => 'true',
     'facet.field' => 'SiteTree_ClassName',
 ];
@@ -159,7 +159,7 @@ substituted, which will include the original token.
 
 * Two comma-separated lists of words with the symbol "=>" between them. If the token matches any word on
 the left, then the list on the right is substituted. The original token will not be included unless it is also in the
-list on the right. 
+list on the right.
 
 For example:
 
@@ -207,7 +207,7 @@ $results = $index->search($query, -1, -1, $params);
 $results->spellcheck;
 ```
 
-The built-in `_text` data is better than nothing, but also has some problems: it's heavily processed, for example by 
+The built-in `_text` data is better than nothing, but also has some problems: it's heavily processed, for example by
 stemming filters which butcher words. So misspelling "Govnernance" will suggest "govern" rather than "Governance".
 This can be fixed by aggregating spell checking data in a separate field.
 
@@ -289,22 +289,22 @@ Each result will automatically contain an `Excerpt` property which you can use i
 to avoid matching HTML attributes, and cluttering highlighted content with unparsed HTML.
 
 ## Boosting/Weighting
- 
+
  Results aren't all created equal. Matches in some fields are more important than others; for example, a page `Title` might be considered more relevant to the user than terms in the `Content` field.
- 
+
  To account for this, a "weighting" (or "boosting") factor can be applied to each searched field. The default value is `1.0`, anything below that will decrease the relevance, anything above increases it. You can get more information on relevancy at the [Solr wiki](http://wiki.apache.org/solr/SolrRelevancyFAQ).
- 
+
 You can manage the boosting in two ways:
- 
+
 ### Boosting on query
- 
+
  To adjust the relative values at the time of querying, pass them in as the third argument to your `addSearchTerm()` call:
- 
+
  ```php
  use My\Namespace\Index\MyIndex;
  use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
  use Page;
- 
+
  $query = SearchQuery::create()
      ->addSearchTerm(
          'fire',
@@ -317,9 +317,9 @@ You can manage the boosting in two ways:
      );
  $results = MyIndex::singleton()->search($query);
  ```
- 
+
  This will ensure that `Title` is given higher priority for matches than `Content`, which is well above `SecretParagraph`.
- 
+
 ### Boosting on index
 
 Boost values for specific can also be specified directly on the `SolrIndex` class directly.
@@ -357,14 +357,14 @@ class SolrSearchIndex extends SolrIndex
 
 ## Indexing related objects
 
-To add a related object to your index. 
+To add a related object to your index.
 
 ## Subsites
 
 When you are utilising the [subsites module](https://github.com/silverstripe/silverstripe-subsites) you
 may want to add [boosting](#boosting/weighting) to results from the current subsite. To do so, you'll
 need to use [eDisMax](https://lucene.apache.org/solr/guide/6_6/the-extended-dismax-query-parser.html)
-and the supporting parameters `bq` and `bf`. You should add the following to your `SolrIndex` 
+and the supporting parameters `bq` and `bf`. You should add the following to your `SolrIndex`
 extension:
 
 ```php
@@ -385,7 +385,7 @@ public function search(SearchQuery $query, $offset = -1, $limit = -1, $params = 
 ## Custom field types
 
 Solr supports custom field type definitions which are written to its XML schema. Many standard ones are already included
- in the default schema. As the XML file is generated dynamically, we can add our own types by overloading the template 
+ in the default schema. As the XML file is generated dynamically, we can add our own types by overloading the template
  responsible for it: `types.ss`.
 
 In the following example, we read our type definitions from a new file `mysite/solr/templates/types.ss` instead:
@@ -428,7 +428,7 @@ To allow searches on words containing numeric tokens, you'll need to change the 
 
 The `ASCIIFoldingFilterFactory` filter converts alphabetic, numeric, and symbolic Unicode characters which are not in the Basic Latin Unicode block (the first 127 ASCII characters) to their ASCII equivalents, if one exists.
 
-Find the fields in your overloaded `types.ss` that you want to enable this behaviour in, for example inside the `<fieldType name="htmltext">` block, add the following to both its index analyzer and query analyzer records.
+By default, this functionality is enabled on the `htmltext` and `text` fieldTypes. If you want it enabled for any other fieldTypes simply find the fields in your overloaded `types.ss` that you want to enable this behaviour in, for example inside the `<fieldType name="textTight">` block, add the following to both its index analyzer and query analyzer records.
 
 ```xml
 <filter class="solr.ASCIIFoldingFilterFactory"/>
@@ -436,7 +436,7 @@ Find the fields in your overloaded `types.ss` that you want to enable this behav
 
 ## Text extraction
 
-Solr provides built-in text extraction capabilities for PDF and Office documents, and numerous other formats, through 
+Solr provides built-in text extraction capabilities for PDF and Office documents, and numerous other formats, through
 the `ExtractingRequestHandler` API (see [the Solr wiki entry](http://wiki.apache.org/solr/ExtractingRequestHandler).
 If you're using a default Solr installation, it's most likely already bundled and set up. But if you plan on running the
 Solr server integrated into this module, you'll need to download the libraries and link them first. Run the following
