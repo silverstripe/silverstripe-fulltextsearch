@@ -12,7 +12,7 @@
  *
  * TODO: The way we bind in is awful hacky.
  */
-class SearchUpdater extends Object
+class SearchUpdater extends SS_Object
 {
     /**
      * Replace the database object with a subclass that captures all manipulations and passes them to us
