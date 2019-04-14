@@ -342,7 +342,7 @@ abstract class SearchIndex extends ViewableData
                     if (preg_match('/^(\w+)\(/', $type, $match)) {
                         $type = $match[1];
                     }
-                    list($type, $args) = Object::parse_class_spec($type);
+                    list($type, $args) = SS_Object::parse_class_spec($type);
                     if (is_subclass_of($type, 'StringField')) {
                         $this->addFulltextField($field);
                     }

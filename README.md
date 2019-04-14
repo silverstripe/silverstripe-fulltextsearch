@@ -4,6 +4,7 @@
 [![Build Status](https://secure.travis-ci.org/silverstripe/silverstripe-fulltextsearch.png?branch=master)](http://travis-ci.org/silverstripe/silverstripe-fulltextsearch)
 
 Adds support for fulltext search engines like Sphinx and Solr to SilverStripe CMS.
+Compatible with PHP 7.2
 
 ## Maintainer Contact
 
