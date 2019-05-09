@@ -6,12 +6,12 @@ use Exception;
 use SilverStripe\Control\Director;
 use SilverStripe\Core\Environment;
 use SilverStripe\FullTextSearch\Search\Indexes\SearchIndex;
-use SilverStripe\FullTextSearch\Search\Variants\SearchVariant_Caller;
-use SilverStripe\FullTextSearch\Solr\Services\SolrService;
 use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
 use SilverStripe\FullTextSearch\Search\Queries\SearchQuery_Range;
-use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
 use SilverStripe\FullTextSearch\Search\SearchIntrospection;
+use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
+use SilverStripe\FullTextSearch\Search\Variants\SearchVariant_Caller;
+use SilverStripe\FullTextSearch\Solr\Services\SolrService;
 use SilverStripe\FullTextSearch\Solr\Stores\SolrConfigStore;
 use SilverStripe\ORM\ArrayList;
 use SilverStripe\ORM\DataObject;
@@ -208,14 +208,14 @@ abstract class SolrIndex extends SearchIndex
         }
 
         foreach ($this->filterFields as $name => $field) {
-            if ($field['fullfield'] == 'ID' || $field['fullfield'] == 'ClassName') {
+            if ($field['fullfield'] === 'ID' || $field['fullfield'] === 'ClassName') {
                 continue;
             }
             $xml[] = $this->getFieldDefinition($name, $field);
         }
 
         foreach ($this->sortFields as $name => $field) {
-            if ($field['fullfield'] == 'ID' || $field['fullfield'] == 'ClassName') {
+            if ($field['fullfield'] === 'ID' || $field['fullfield'] === 'ClassName') {
                 continue;
             }
             $xml[] = $this->getFieldDefinition($name, $field);
@@ -392,8 +392,8 @@ abstract class SolrIndex extends SearchIndex
 
     /**
      * @param string $name
-     * @param Array $spec
-     * @param Array $typeMap
+     * @param array $spec
+     * @param array $typeMap
      * @return String XML
      */
     protected function getFieldDefinition($name, $spec, $typeMap = null)
@@ -433,9 +433,9 @@ abstract class SolrIndex extends SearchIndex
      * Convert definition to XML tag
      *
      * @param string $tag
-     * @param string $attrs Map of attributes
+     * @param string[] $attrs Map of attributes
      * @param string $content Inner content
-     * @return String XML tag
+     * @return string XML tag
      */
     protected function toXmlTag($tag, $attrs, $content = null)
     {
@@ -528,7 +528,7 @@ abstract class SolrIndex extends SearchIndex
         if (is_array($value)) {
             foreach ($value as $sub) {
                 /* Solr requires dates in the form 1995-12-31T23:59:59Z */
-                if ($type == 'tdate') {
+                if ($type === 'tdate') {
                     if (!$sub) {
                         continue;
                     }
@@ -536,7 +536,7 @@ abstract class SolrIndex extends SearchIndex
                 }
 
                 /* Solr requires numbers to be valid if presented, not just empty */
-                if (($type == 'tint' || $type == 'tfloat' || $type == 'tdouble') && !is_numeric($sub)) {
+                if (($type === 'tint' || $type === 'tfloat' || $type === 'tdouble') && !is_numeric($sub)) {
                     continue;
                 }
 
@@ -544,7 +544,7 @@ abstract class SolrIndex extends SearchIndex
             }
         } else {
             /* Solr requires dates in the form 1995-12-31T23:59:59Z */
-            if ($type == 'tdate') {
+            if ($type === 'tdate') {
                 if (!$value) {
                     return;
                 }
@@ -552,7 +552,7 @@ abstract class SolrIndex extends SearchIndex
             }
 
             /* Solr requires numbers to be valid if presented, not just empty */
-            if (($type == 'tint' || $type == 'tfloat' || $type == 'tdouble') && !is_numeric($value)) {
+            if (($type === 'tint' || $type === 'tfloat' || $type === 'tdouble') && !is_numeric($value)) {
                 return;
             }
 
