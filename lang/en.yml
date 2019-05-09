@@ -1,0 +1,4 @@
+en:
+  SilverStripe\FullTextSearch\Solr\Forms\SearchForm:
+    GO: Go
+    SEARCH: Search
