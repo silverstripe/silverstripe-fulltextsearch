@@ -2,10 +2,8 @@
 
 namespace SilverStripe\FullTextSearch\Solr\Services;
 
+use Apache_Solr_Response;
 use SilverStripe\Core\Config\Config;
-use SilverStripe\FullTextSearch\Solr\Solr;
-use SilverStripe\FullTextSearch\Solr\SolrIndex;
-use Silverstripe\Core\ClassInfo;
 
 /**
  * The API for accessing the primary Solr installation, which includes both SolrService_Core,
@@ -23,7 +21,7 @@ class SolrService extends SolrService_Core
     {
         $command = strtoupper($command);
         $params = array_merge($params, array('action' => $command, 'wt' => 'json'));
-        $params[$command == 'CREATE' ? 'name' : 'core'] = $core;
+        $params[$command === 'CREATE' ? 'name' : 'core'] = $core;
 
         return $this->_sendRawGet($this->_constructUrl('admin/cores', $params));
     }
