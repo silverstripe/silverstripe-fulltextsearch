@@ -22,24 +22,32 @@ fulltext searching as an extension of the object model. However, the disconnect 
 design and the object model meant that searching was inefficient. The abstraction would also often break and it was
 hard to then figure out what was going on.
 
-This module instead provides the ability to define those indexes and queries in PHP. The indexes are defined as a 
-mapping between the SilverStripe object model and the connector-specific fulltext engine index model. This module then 
+This module instead provides the ability to define those indexes and queries in PHP. The indexes are defined as a
+mapping between the SilverStripe object model and the connector-specific fulltext engine index model. This module then
 interrogates model metadata to build the specific index definition.
 
-It also hooks into SilverStripe framework in order to update the indexes when the models change and connectors then 
+It also hooks into SilverStripe framework in order to update the indexes when the models change and connectors then
 convert those index and query definitions into fulltext engine specific code.
 
 The intent of this module is not to make changing fulltext search engines seamless. Where possible this module provides
 common interfaces to fulltext engine functionality, abstracting out common behaviour. However, each connector also
-offers its own extensions, and there is some behaviour (such as getting the fulltext search engines installed, 
+offers its own extensions, and there is some behaviour (such as getting the fulltext search engines installed,
 configured and running) that each connector deals with itself, in a way best suited to that search engine's design.
 
 ## Quick start
 
+If you intend to get up and running without using the fulltextsearch_quickstart script, require this module via composer:
+
+```bash
+composer require silverstripe/fulltextsearch
+```
+
+You're now ready to begin [set up](01_setup.md).
+
 If you are running on a Linux-based system, you can get up and running quickly with the quickstart script, like so:
 
 ```bash
-composer require silverstripe/fulltextsearch && vendor/bin/fts_quickstart
+git clone https://github.com/silverstripe/silverstripe-fulltextsearch.git vendor/silverstripe/fulltextsearch && vendor/bin/fulltextsearch_quickstart
 ```
 
 This will:
@@ -60,7 +68,7 @@ If you have the [CMS module](https://github.com/silverstripe/silverstripe-cms) i
  [`Header`](https://github.com/silverstripe-themes/silverstripe-simple/blob/master/templates/Includes/Header.ss#L10-L15)
  by default.
 
-Ensure that you _don't_ have `SilverStripe\ORM\Search\FulltextSearchable::enable()` set in `_config.php`, as the 
+Ensure that you _don't_ have `SilverStripe\ORM\Search\FulltextSearchable::enable()` set in `_config.php`, as the
 `SearchForm` action provided by that class will conflict.
 
 You can override the default template with a new one at `templates/Layout/Page_results_solr.ss`.
