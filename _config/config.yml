@@ -13,3 +13,7 @@ SilverStripe\Core\Injector\Injector:
   SilverStripe\FullTextSearch\Search\Queries\SearchQuery:
     calls:
       - [ setHandler, [ %$SilverStripe\FullTextSearch\Search\Adapters\SolrSearchAdapter ]]
+
+SilverStripe\Dev\Tasks\MigrateFileTask:
+  extensions:
+  -  SilverStripe\FullTextSearch\Search\Extensions\DisableIndexingOnFileMigration
