@@ -105,4 +105,9 @@ class SearchUpdateQueuedJobProcessor extends SearchUpdateBatchedProcessor implem
 
         return $result;
     }
+    
+    public function getRunAsMemberID()
+    {
+        return 0;
+    }
 }
