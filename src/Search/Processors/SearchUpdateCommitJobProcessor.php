@@ -273,4 +273,9 @@ class SearchUpdateCommitJobProcessor implements QueuedJob
     {
         return $this->messages;
     }
+    
+    public function getRunAsMemberID()
+    {
+        return 0;
+    }
 }
