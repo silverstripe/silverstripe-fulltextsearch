@@ -471,12 +471,14 @@ abstract class SearchIndex extends ViewableData
      * Given an object and a field definition (as returned by fieldData) get the current value of that field on that object
      *
      * @param DataObject $object - The object to get the value from
-     * @param Array $field - The field definition to use
+     * @param array $field - The field definition to use
      * @return Mixed - The value of the field, or null if we couldn't look it up for some reason
      */
     protected function _getFieldValue($object, $field)
     {
-        set_error_handler(create_function('$no, $str', 'throw new Exception("HTML Parse Error: ".$str);'), E_ALL);
+        set_error_handler(function($no, $str) {
+            throw new Exception('HTML Parse Error: ' . $str);
+        }, E_ALL);
 
         try {
             foreach ($field['lookup_chain'] as $step) {

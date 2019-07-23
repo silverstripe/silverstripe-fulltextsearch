@@ -2,22 +2,20 @@
 
 language: php
 
-sudo: false
+dist: trusty
 
 matrix:
   include:
-    - php: 5.4
-      env: DB=PGSQL CORE_RELEASE=3.1
-    - php: 5.5
-      env: DB=MYSQL CORE_RELEASE=3.2
-    - php: 5.6
-      env: DB=MYSQL CORE_RELEASE=3.3 SUBSITES=1
-    - php: 5.6
-      env: DB=MYSQL CORE_RELEASE=3.3 QUEUEDJOBS=1
-    - php: 7.1
-      env: DB=MYSQL CORE_RELEASE=3.6
-    - php: 7.1
-      env: DB=MYSQL CORE_RELEASE=3
+    - php: '7.1'
+      env: DB=PGSQL CORE_RELEASE=3.7
+    - php: '7.1'
+      env: DB=MYSQL CORE_RELEASE=3.7
+    - php: '7.2'
+      env: DB=MYSQL CORE_RELEASE=3.7 SUBSITES=1
+    - php: '7.2'
+      env: DB=MYSQL CORE_RELEASE=3.7 QUEUEDJOBS=1
+    - php: '7.3'
+      env: DB=MYSQL CORE_RELEASE=3.7
 
 before_script:
   - composer self-update || true
@@ -28,4 +26,4 @@ before_script:
   - cd ~/builds/ss
 
 script:
-  - vendor/bin/phpunit fulltextsearch/tests/
+  - vendor/bin/phpunit fulltextsearch/tests

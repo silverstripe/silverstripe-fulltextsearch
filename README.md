@@ -12,7 +12,7 @@ Compatible with PHP 7.2
 
 ## Requirements
 
-* SilverStripe 3.1+
+* SilverStripe 3.7+ (see previous 2.x releases for earlier SilverStripe 3 support, and 3.x for SilverStripe 4)
 * (optional) [silverstripe-phockito](https://github.com/hafriedlander/silverstripe-phockito) (for testing)
 
 ## Documentation
