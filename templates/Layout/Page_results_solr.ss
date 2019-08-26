@@ -1,5 +1,5 @@
 <div id="Content" class="searchResults">
-    <h1>$Title rer</h1>
+    <h1>$Title</h1>
 
     <% if $Query %>
         <p class="searchQuery"><%t Results.SearchQuery 'You searched for' %> &quot;{$Query}&quot;</p>
