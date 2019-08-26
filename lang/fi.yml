@@ -1,7 +1,8 @@
-FI:
+fi:
   SilverStripe\FullTextSearch\Solr\Forms\SearchForm:
-    GO: Suorita
+    GO: Hae
     SEARCH: Haku
+  Results:
     SearchQuery: 'Hakusanasi oli'
     DidYouMean: 'Tarkoititko'
     ReadMore: 'Lue lisää'
