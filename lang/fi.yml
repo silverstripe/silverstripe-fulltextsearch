@@ -1,0 +1,10 @@
+FI:
+  SilverStripe\FullTextSearch\Solr\Forms\SearchForm:
+    GO: Suorita
+    SEARCH: Haku
+    SearchQuery: 'Hakusanasi oli'
+    DidYouMean: 'Tarkoititko'
+    ReadMore: 'Lue lisää'
+    NoResults: 'Pahoittelut, mutta hakusi ei tuottanut yhtään osumaa.'
+    Page: 'Sivu'
+    of: '/'
