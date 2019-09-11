@@ -23,7 +23,7 @@
                         </a>
                     </h4>
                     <p><% if $Abstract %>$Abstract.XML<% else %>$Content.ContextSummary<% end_if %></p>
-                    <a class="readMoreLink" href="$Link" title="Read more about &quot;{$Title}&quot;"><%t SolrResultsPage.ReadMore 'Read more about' %> &quot;{$Title}&quot;...</a>
+                    <a class="readMoreLink" href="$Link" title="<%t SolrResultsPage.ReadMore 'Read more about' %> &quot;{$Title}&quot;"><%t SolrResultsPage.ReadMore 'Read more about' %> &quot;{$Title}&quot;...</a>
                 </li>
             <% end_loop %>
         </ul>
