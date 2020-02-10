@@ -40,7 +40,7 @@ class SearchUpdateQueuedJobProcessor extends SearchUpdateBatchedProcessor implem
 
     public function getJobType()
     {
-        return Config::inst()->get('SearchUpdateQueuedJobProcessor', 'reindex_queue');
+        return Config::inst()->get(SearchUpdateQueuedJobProcessor::class, 'reindex_queue');
     }
 
     public function jobFinished()
