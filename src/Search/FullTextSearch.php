@@ -15,7 +15,7 @@ class FullTextSearch
 {
     protected static $all_indexes = null;
 
-    protected static $indexes_by_subclass = array();
+    protected static $indexes_by_subclass = [];
 
     /**
      * Optional list of index names to limit to. If left empty, all subclasses of SearchIndex
@@ -24,7 +24,19 @@ class FullTextSearch
      * @var array
      * @config
      */
-    private static $indexes = array();
+    private static $indexes = [];
+
+    /**
+     * During (re)index of items, the canView method for the item is called against an anonymous user,
+     * in order to determine whether the item should be included in the index. This is a preventative
+     * security measure, and has a performance cost. If you are confident that a given DataObject should
+     * be visible to everyone, or you have other measures in place to secure the contents of the index,
+     * you can disable this check for that specific class and its descendants.
+     *
+     * @var array Should contain FQCNs of classes the check is to be disabled on (e.g. SiteTree::class)
+     * @config
+     */
+    private static $disable_preindex_canview_check = [];
 
     /**
      * Get all the instantiable search indexes (so all the user created indexes, but not the connector or library level
@@ -142,5 +154,29 @@ class FullTextSearch
 
             self::$all_indexes[$class] = $index;
         }
+    }
+
+    /**
+     * Uses the disable_preindex_canview_check configuration to determine whether the given class should have the
+     * canView check applied.
+     *
+     * @param string $class The FQCN of the class to check
+     * @return bool
+     */
+    public static function isCanViewCheckDisabledForClass(string $class): bool
+    {
+        $disabledCheckClasses = Config::inst()->get(self::class, 'disable_preindex_canview_check');
+
+        if (empty($disabledCheckClasses)) {
+            return false;
+        }
+
+        foreach ($disabledCheckClasses as $disabledCheckClass) {
+            if ($disabledCheckClass === $class || in_array($disabledCheckClass, class_parents($class))) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

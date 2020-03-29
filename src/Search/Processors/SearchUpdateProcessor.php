@@ -6,6 +6,7 @@ use SilverStripe\FullTextSearch\Search\Services\IndexableService;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
+use SilverStripe\Security\InheritedPermissions;
 
 abstract class SearchUpdateProcessor
 {
@@ -73,6 +74,7 @@ abstract class SearchUpdateProcessor
         $dirty = $this->getSource();
         $indexes = FullTextSearch::get_indexes();
         $indexableService = IndexableService::singleton();
+
         foreach ($dirty as $base => $statefulids) {
             if (!$statefulids) {
                 continue;
@@ -86,10 +88,21 @@ abstract class SearchUpdateProcessor
 
                 // Ensure that indexes for all new / updated objects are included
                 $objs = DataObject::get($base)->byIDs(array_keys($ids));
+
+                // Warm the InheritedPermissions cache for the model before calling isIndexable (if applicable)
+                // TODO: Inline this into IndexableService::areIndexable() method?
+                if (method_exists($base, 'getPermissionChecker')) {
+                    $base::singleton()->getPermissionChecker()->prePopulatePermissionCache(
+                        InheritedPermissions::VIEW,
+                        array_keys($ids)
+                    );
+                }
+
+                /** @var DataObject $obj */
                 foreach ($objs as $obj) {
                     foreach ($ids[$obj->ID] as $index) {
                         if (!$indexes[$index]->variantStateExcluded($state)) {
-                            // Remove any existing records from index if ShowInSearch is changed to false
+                            // Remove any existing data from index if the object is no longer indexable
                             if (!$indexableService->isIndexable($obj)) {
                                 $indexes[$index]->delete($base, $obj->ID, $state);
                             } else {
@@ -98,6 +111,7 @@ abstract class SearchUpdateProcessor
                             $dirtyIndexes[$index] = $indexes[$index];
                         }
                     }
+
                     unset($ids[$obj->ID]);
                 }
 

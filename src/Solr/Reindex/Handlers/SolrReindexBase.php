@@ -12,6 +12,7 @@ use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\DataList;
 use SilverStripe\ORM\DB;
+use SilverStripe\Security\InheritedPermissions;
 
 /**
  * Base class for re-indexing of solr content
@@ -238,10 +239,18 @@ abstract class SolrReindexBase implements SolrReindexHandler
             $items = $items->filter('ClassName', $class);
         }
 
+        // Warm the InheritedPermissions cache for the model before calling isIndexable (if applicable)
+        // TODO: Inline this into IndexableService::areIndexable() method?
+        if (method_exists($baseClass, 'getPermissionChecker')) {
+            $baseClass::singleton()->getPermissionChecker()->prePopulatePermissionCache(
+                InheritedPermissions::VIEW,
+                $items->column('ID')
+            );
+        }
+
         $indexableService = IndexableService::singleton();
 
-        // ShowInSearch filter
-        // we cannot use $items->remove($item), as that deletes the record from the database
+        // Filter out objects that must not be indexed
         $idsToRemove = [];
         foreach ($items as $item) {
             if (!$indexableService->isIndexable($item)) {

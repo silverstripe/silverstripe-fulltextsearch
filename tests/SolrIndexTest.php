@@ -416,6 +416,13 @@ class SolrIndexTest extends SapphireTest
             ->setMethods(['addDocument', 'deleteById'])
             ->getMock();
 
+        // We only want to test the ShowInSearch part of IndexableService, so we disable the canView check
+        Config::modify()->set(
+            FullTextSearch::class,
+            'disable_preindex_canview_check',
+            [DataObject::class]
+        );
+
         $index = new SolrIndexTest_ShowInSearchIndex();
         $index->setService($serviceMock);
         FullTextSearch::force_index_list($index);
