@@ -1,0 +1,14 @@
+fi:
+  SilverStripe\FullTextSearch\Solr\Forms\SearchForm:
+    GO: Hae
+    SEARCH: Haku
+  SolrResultsPage:
+    SearchQuery: 'Hakusanasi oli'
+    DidYouMean: 'Tarkoititko'
+    ReadMore: 'Lue lisää'
+    NoResults: 'Pahoittelut, mutta hakusi ei tuottanut yhtään osumaa.'
+    Page: 'Sivu'
+    of: '/'
+    ViewPreviousPage: 'Katso edellinen sivu'
+    View page number: 'Siirry sivulle'
+    ViewNextPage: 'Katso seuraava sivu'

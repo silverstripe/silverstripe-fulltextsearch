@@ -36,10 +36,14 @@ class SearchVariantSubsites extends SearchVariant
 
         // Include all DataExtensions that contain a SubsiteID.
         // TODO: refactor subsites to inherit a common interface, so we can run introspection once only.
-        return SearchIntrospection::has_extension($class, SiteTreeSubsites::class, $includeSubclasses)
+        $appliesTo = SearchIntrospection::has_extension($class, SiteTreeSubsites::class, $includeSubclasses)
             || SearchIntrospection::has_extension($class, GroupSubsites::class, $includeSubclasses)
             || SearchIntrospection::has_extension($class, FileSubsites::class, $includeSubclasses)
             || SearchIntrospection::has_extension($class, SiteConfigSubsites::class, $includeSubclasses);
+
+        $this->extend('updateAppliesTo', $appliesTo, $class, $includeSubclasses);
+
+        return $appliesTo;
     }
 
     public function currentState()

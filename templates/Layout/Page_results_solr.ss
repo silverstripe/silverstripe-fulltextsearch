@@ -2,11 +2,11 @@
     <h1>$Title</h1>
 
     <% if $Query %>
-        <p class="searchQuery">You searched for &quot;{$Query}&quot;</p>
+        <p class="searchQuery"><%t SolrResultsPage.SearchQuery 'You searched for' %> &quot;{$Query}&quot;</p>
     <% end_if %>
 
     <% if $Results.Suggestion %>
-        <p class="spellCheck">Did you mean <a href="{$Link}SearchForm?Search=$Results.SuggestionQueryString">$Results.SuggestionNice</a>?</p>
+        <p class="spellCheck"><%t SolrResultsPage.DidYouMean 'Did you mean' %> <a href="{$Link}SearchForm?Search=$Results.SuggestionQueryString">$Results.SuggestionNice</a>?</p>
     <% end_if %>
 
     <% if $Results.Matches %>
@@ -23,34 +23,34 @@
                         </a>
                     </h4>
                     <p><% if $Abstract %>$Abstract.XML<% else %>$Content.ContextSummary<% end_if %></p>
-                    <a class="readMoreLink" href="$Link" title="Read more about &quot;{$Title}&quot;">Read more about &quot;{$Title}&quot;...</a>
+                    <a class="readMoreLink" href="$Link" title="<%t SolrResultsPage.ReadMore 'Read more about' %> &quot;{$Title}&quot;"><%t SolrResultsPage.ReadMore 'Read more about' %> &quot;{$Title}&quot;...</a>
                 </li>
             <% end_loop %>
         </ul>
     <% else %>
-        <p>Sorry, your search query did not return any results.</p>
+        <p><%t SolrResultsPage.NoResults 'Sorry, your search query did not return any results.' %></p>
     <% end_if %>
 
     <% if $Results.Matches.MoreThanOnePage %>
         <div id="PageNumbers">
             <div class="pagination">
                 <% if $Results.Matches.NotFirstPage %>
-                    <a class="prev" href="$Results.Matches.PrevLink" title="View the previous page">&larr;</a>
+                    <a class="prev" href="$Results.Matches.PrevLink" title="<%t SolrResultsPage.ViewPreviousPage 'View the previous page' %>">&larr;</a>
                 <% end_if %>
                 <span>
                     <% loop $Results.Matches.Pages %>
                         <% if $CurrentBool %>
                             $PageNum
                         <% else %>
-                            <a href="$Link" title="View page number $PageNum" class="go-to-page">$PageNum</a>
+                            <a href="$Link" title="<%t SolrResultsPage.ViewPageNumber 'View page number' %> $PageNum" class="go-to-page">$PageNum</a>
                         <% end_if %>
                     <% end_loop %>
                 </span>
                 <% if $Results.Matches.NotLastPage %>
-                    <a class="next" href="$Results.Matches.NextLink" title="View the next page">&rarr;</a>
+                    <a class="next" href="$Results.Matches.NextLink" title="<%t SolrResultsPage.ViewNextPage 'View the next page' %>">&rarr;</a>
                 <% end_if %>
             </div>
-            <p>Page $Results.Matches.CurrentPage of $Results.Matches.TotalPages</p>
+            <p><%t SolrResultsPage.Page 'Page' %> $Results.Matches.CurrentPage <%t SolrResultsPage.of 'of' %> $Results.Matches.TotalPages</p>
         </div>
     <% end_if %>
 </div>
