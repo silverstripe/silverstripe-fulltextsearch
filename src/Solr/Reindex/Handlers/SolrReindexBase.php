@@ -99,6 +99,8 @@ abstract class SolrReindexBase implements SolrReindexHandler
         $batchSize,
         $taskName
     ) {
+        // Get current state
+        $originalState = SearchVariant::current_state();
         // Set state
         SearchVariant::activate_state($state);
 
@@ -122,6 +124,9 @@ abstract class SolrReindexBase implements SolrReindexHandler
         for ($group = 0; $group < $groups; $group++) {
             $this->processGroup($logger, $indexInstance, $state, $class, $groups, $group, $taskName);
         }
+
+        // Reset state to originalState
+        SearchVariant::activate_state($originalState);
     }
 
     /**
@@ -168,7 +173,11 @@ abstract class SolrReindexBase implements SolrReindexHandler
     ) {
         // Set time limit and state
         Environment::increaseTimeLimitTo();
+        // Get current state
+        $originalState = SearchVariant::current_state();
+        // Set state
         SearchVariant::activate_state($state);
+
         $logger->info("Adding $class");
 
         // Prior to adding these records to solr, delete existing solr records
@@ -186,6 +195,9 @@ abstract class SolrReindexBase implements SolrReindexHandler
             $item->destroy();
         }
         $logger->info("Updated " . implode(',', $processed));
+
+        // Reset state to originalState
+        SearchVariant::activate_state($originalState);
 
         // This will slow down things a tiny bit, but it is done so that we don't timeout to the database during a reindex
         DB::query('SELECT 1');
