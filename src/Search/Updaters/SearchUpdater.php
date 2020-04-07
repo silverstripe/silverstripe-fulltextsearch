@@ -11,7 +11,8 @@ use SilverStripe\ORM\DB;
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
 use SilverStripe\FullTextSearch\Search\SearchIntrospection;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
-use SilverStripe\FullTextSearch\Search\Processors\SearchUpdateImmediateProcessor;
+use SilverStripe\FullTextSearch\Search\Processors\SearchUpdateProcessor;
+
 use ReflectionClass;
 
 /**
@@ -151,7 +152,7 @@ class SearchUpdater
                     foreach ($dirtyids as $dirtyclass => $ids) {
                         if ($ids) {
                             if (!self::$processor) {
-                                self::$processor = Injector::inst()->create(SearchUpdateImmediateProcessor::class);
+                                self::$processor = Injector::inst()->create(SearchUpdateProcessor::class);
                             }
                             self::$processor->addDirtyIDs($dirtyclass, $ids, $index);
                         }
