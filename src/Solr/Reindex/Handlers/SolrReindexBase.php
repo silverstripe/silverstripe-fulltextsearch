@@ -4,6 +4,7 @@ namespace SilverStripe\FullTextSearch\Solr\Reindex\Handlers;
 
 use Psr\Log\LoggerInterface;
 use SilverStripe\Core\Environment;
+use SilverStripe\FullTextSearch\Search\Services\IndexableService;
 use SilverStripe\FullTextSearch\Solr\Solr;
 use SilverStripe\FullTextSearch\Solr\SolrIndex;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
@@ -220,6 +221,7 @@ abstract class SolrReindexBase implements SolrReindexHandler
     {
         // Generate filtered list of local records
         $baseClass = DataObject::getSchema()->baseDataClass($class);
+        /** @var DataList $items */
         $items = DataList::create($class)
             ->where(sprintf(
                 '"%s"."ID" %% \'%d\' = \'%d\'',
@@ -236,6 +238,20 @@ abstract class SolrReindexBase implements SolrReindexHandler
             $items = $items->filter('ClassName', $class);
         }
 
+        $indexableService = IndexableService::singleton();
+
+        // ShowInSearch filter
+        // we cannot use $items->remove($item), as that deletes the record from the database
+        $idsToRemove = [];
+        foreach ($items as $item) {
+            if (!$indexableService->isIndexable($item)) {
+                $idsToRemove[] = $item->ID;
+            }
+        }
+        if (!empty($idsToRemove)) {
+            sort($idsToRemove);
+            $items = $items->exclude(['ID' => $idsToRemove]);
+        }
         return $items;
     }
 

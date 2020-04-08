@@ -2,6 +2,7 @@
 
 namespace SilverStripe\FullTextSearch\Search\Processors;
 
+use SilverStripe\FullTextSearch\Search\Services\IndexableService;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
@@ -31,7 +32,7 @@ abstract class SearchUpdateProcessor
      * @var array
      */
     protected $dirty;
-    
+
     public function __construct()
     {
         $this->dirty = array();
@@ -59,7 +60,7 @@ abstract class SearchUpdateProcessor
 
         $this->dirty[$base] = $forclass;
     }
-    
+
     /**
      * Generates the list of indexes to process for the dirty items
      *
@@ -71,6 +72,7 @@ abstract class SearchUpdateProcessor
         $dirtyIndexes = array();
         $dirty = $this->getSource();
         $indexes = FullTextSearch::get_indexes();
+        $indexableService = IndexableService::singleton();
         foreach ($dirty as $base => $statefulids) {
             if (!$statefulids) {
                 continue;
@@ -87,7 +89,12 @@ abstract class SearchUpdateProcessor
                 foreach ($objs as $obj) {
                     foreach ($ids[$obj->ID] as $index) {
                         if (!$indexes[$index]->variantStateExcluded($state)) {
-                            $indexes[$index]->add($obj);
+                            // Remove any existing records from index if ShowInSearch is changed to false
+                            if (!$indexableService->isIndexable($obj)) {
+                                $indexes[$index]->delete($base, $obj->ID, $state);
+                            } else {
+                                $indexes[$index]->add($obj);
+                            }
                             $dirtyIndexes[$index] = $indexes[$index];
                         }
                     }
@@ -105,11 +112,11 @@ abstract class SearchUpdateProcessor
                 }
             }
         }
-        
+
         SearchVariant::activate_state($originalState);
         return $dirtyIndexes;
     }
-    
+
     /**
      * Commits the specified index to the Solr service
      *
@@ -120,7 +127,7 @@ abstract class SearchUpdateProcessor
     {
         return $index->commit() !== false;
     }
-    
+
     /**
      * Gets the record data source to process
      *

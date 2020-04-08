@@ -2,27 +2,43 @@
 
 namespace SilverStripe\FullTextSearch\Tests;
 
+use Apache_Solr_Document;
+use Page;
+use SilverStripe\Assets\File;
+use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
+use SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
+use SilverStripe\FullTextSearch\Search\Variants\SearchVariantVersioned;
 use SilverStripe\FullTextSearch\Solr\Reindex\Handlers\SolrReindexHandler;
+use SilverStripe\FullTextSearch\Solr\Reindex\Handlers\SolrReindexImmediateHandler;
 use SilverStripe\FullTextSearch\Solr\Services\Solr4Service;
 use SilverStripe\FullTextSearch\Solr\Services\SolrService;
 use SilverStripe\FullTextSearch\Solr\Tasks\Solr_Reindex;
+use SilverStripe\FullTextSearch\Tests\SolrIndexTest\SolrIndexTest_MyDataObjectOne;
+use SilverStripe\FullTextSearch\Tests\SolrIndexTest\SolrIndexTest_MyDataObjectTwo;
+use SilverStripe\FullTextSearch\Tests\SolrIndexTest\SolrIndexTest_MyPage;
+use SilverStripe\FullTextSearch\Tests\SolrIndexTest\SolrIndexTest_ShowInSearchIndex;
 use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_Index;
 use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_Item;
 use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_RecordingLogger;
 use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_TestHandler;
 use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_Variant;
+use SilverStripe\Versioned\Versioned;
 
 class SolrReindexTest extends SapphireTest
 {
+
     protected $usesDatabase = true;
 
     protected static $extra_dataobjects = array(
-        SolrReindexTest_Item::class
+        SolrReindexTest_Item::class,
+        SolrIndexTest_MyPage::class,
+        SolrIndexTest_MyDataObjectOne::class,
+        SolrIndexTest_MyDataObjectTwo::class,
     );
 
     /**
@@ -153,7 +169,6 @@ class SolrReindexTest extends SapphireTest
         $this->assertEquals(240, SolrReindexTest_Item::get()->count());
     }
 
-
     /**
      * Given the invocation of a new re-index with a given set of data, ensure that the necessary
      * list of groups are created and segmented for each state
@@ -283,5 +298,108 @@ class SolrReindexTest extends SapphireTest
 
         // Check ids
         $this->assertEquals(120, count($ids));
+    }
+
+    /**
+     * Test that ShowInSearch filtering is working correctly
+     */
+    public function testShowInSearch()
+    {
+        $defaultMode = Versioned::get_reading_mode();
+        Versioned::set_reading_mode('Stage.' . Versioned::DRAFT);
+
+        // will get added
+        $pageA = new Page();
+        $pageA->Title = 'Test Page true';
+        $pageA->ShowInSearch = true;
+        $pageA->write();
+
+        // will get filtered out
+        $page = new Page();
+        $page->Title = 'Test Page false';
+        $page->ShowInSearch = false;
+        $page->write();
+
+        // will get added
+        $fileA = new File();
+        $fileA->Title = 'Test File true';
+        $fileA->ShowInSearch = true;
+        $fileA->write();
+
+        // will get filtered out
+        $file = new File();
+        $file->Title = 'Test File false';
+        $file->ShowInSearch = false;
+        $file->write();
+
+        // will get added
+        $objOneA = new SolrIndexTest_MyDataObjectOne();
+        $objOneA->Title = 'Test MyDataObjectOne true';
+        $objOneA->ShowInSearch = true;
+        $objOneA->write();
+
+        // will get filtered out
+        $objOne = new SolrIndexTest_MyDataObjectOne();
+        $objOne->Title = 'Test MyDataObjectOne false';
+        $objOne->ShowInSearch = false;
+        $objOne->write();
+
+        // will get added
+        // this class has a getShowInSearch() == true, which will override $mypage->ShowInSearch = false
+        $objTwoA = new SolrIndexTest_MyDataObjectTwo();
+        $objTwoA->Title = 'Test MyDataObjectTwo false';
+        $objTwoA->ShowInSearch = false;
+        $objTwoA->write();
+
+        // will get added
+        // this class has a getShowInSearch() == true, which will override $mypage->ShowInSearch = false
+        $myPageA = new SolrIndexTest_MyPage();
+        $myPageA->Title = 'Test MyPage false';
+        $myPageA->ShowInSearch = false;
+        $myPageA->write();
+
+        $serviceMock = $this->getMockBuilder(Solr4Service::class)
+            ->setMethods(['addDocument', 'deleteByQuery'])
+            ->getMock();
+
+        $index = new SolrIndexTest_ShowInSearchIndex();
+        $index->setService($serviceMock);
+        FullTextSearch::force_index_list($index);
+
+        $callback = function (Apache_Solr_Document $doc) use ($pageA, $myPageA, $fileA, $objOneA, $objTwoA): bool {
+            $validKeys = [
+                Page::class . $pageA->ID,
+                SolrIndexTest_MyPage::class . $myPageA->ID,
+                File::class . $fileA->ID,
+                SolrIndexTest_MyDataObjectOne::class . $objOneA->ID,
+                SolrIndexTest_MyDataObjectTwo::class . $objTwoA->ID
+            ];
+            return in_array($this->createSolrDocKey($doc), $validKeys);
+        };
+
+        $serviceMock
+            ->expects($this->exactly(5))
+            ->method('addDocument')
+            ->withConsecutive(
+                [$this->callback($callback)],
+                [$this->callback($callback)],
+                [$this->callback($callback)],
+                [$this->callback($callback)],
+                [$this->callback($callback)]
+            );
+
+        $logger = new SolrReindexTest_RecordingLogger();
+        $state = [SearchVariantVersioned::class => Versioned::DRAFT];
+        $handler = Injector::inst()->get(SolrReindexImmediateHandler::class);
+        $handler->runGroup($logger, $index, $state, SiteTree::class, 1, 0);
+        $handler->runGroup($logger, $index, $state, File::class, 1, 0);
+        $handler->runGroup($logger, $index, $state, SolrIndexTest_MyDataObjectOne::class, 1, 0);
+
+        Versioned::set_reading_mode($defaultMode);
+    }
+
+    protected function createSolrDocKey(Apache_Solr_Document $doc)
+    {
+        return $doc->getField('ClassName')['value'] . $doc->getField('ID')['value'];
     }
 }

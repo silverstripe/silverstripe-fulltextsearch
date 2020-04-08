@@ -21,6 +21,7 @@
         }
     ],
     "require": {
+        "php": ">=7.1",
         "silverstripe/framework": "^4.0",
         "monolog/monolog": "~1.15",
         "ptcinc/solr-php-client": "^1.0",
