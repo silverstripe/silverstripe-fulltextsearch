@@ -147,7 +147,7 @@ to render properly in the search results:
 * `Link()` needs to return the URL to follow from the search results to actually view the object.
 * `Name` (as a DB field) will be used as the result title.
 * `Abstract` (as a DB field) will show under the search result title.
-* `getShowInSearch()` is required to get the record to show in search, since all results are filtered by `ShowInSearch`.
+* `ShowInSearch` (as a DB field) or `getShowInSearch()` is recommended to allow the optional exclusion of DataObjects from being added to the search index.  If omitted, then all DataObjects of this type will be added to the search index.
 
 So with that, you can add your class to your index:
 
@@ -171,6 +171,28 @@ Once you've created the above classes and run the [solr dev tasks](#solr-dev-tas
 you've just created, this will add `SearchableDataObject` and the text fields it has to the index. Now when you search 
 on the site using `MySolrSearchIndex->search()`, the `SearchableDataObject` results will show alongside normal `Page`
 results.
+
+### ShowInSearch and getShowInSearch() filtering
+
+The fulltextsearch module checks the value of `ShowInSearch` on each object it operates against, and if this evaluates
+to `false`, the object is excluded from the index / results. You can implement a `getShowInSearch` method on your
+DataObject to control the way this is computed. This check happens in two places:
+
+a) When attempting to add the object to the search index (or update it)
+b) Before returning results from the search index. Note: this only applies to Solr 4 implementations.
+
+The second check is an additional layer to ensure that a result is excluded if the evaluated response changes between
+index and query time. For example, a getShowInSearch() implementation that filters out objects after a certain date
+might return `true` when the object is added to the index, but `false` when a user later performs a search.
+
+This filtering is applied to all Page (SiteTree) and File records since they have a ShowInSearch database column.
+This will also be applied to any DataObjects that have a ShowInSearch database column or a getShowInSearch() function.
+
+This is a compulsory check and there is no opt-out available.
+
+Note: If you implement a custom getShowInSearch() method on a Page, the database column 'ShowInSearch' will not be used
+and the 'Show In Search?' settings in the CMS admin found under Page > Settings will no longer work. Either incorporate
+the ShowInSearch column in your getShowInSearch() logic, or remove the field from the CMS to minimise confusion.
 
 ## Solr dev tasks
 
