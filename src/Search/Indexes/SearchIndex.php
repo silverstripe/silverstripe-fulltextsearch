@@ -619,19 +619,14 @@ abstract class SearchIndex extends ViewableData
                     $tableName = DataObject::getSchema()->tableName($step['class']);
 
                     if ($step['through'] == 'has_one') {
-                        $sql = new SQLSelect('"ID"', '"' . $tableName . '"', '"' . $step['foreignkey'] . '" IN (' . implode(',', $ids) . ')');
-                        singleton($step['class'])->extend('augmentSQL', $sql);
-
-                        $ids = $sql->execute()->column();
+                        $ids = DataObject::get($step['class'])
+                            ->filter($step['foreignkey'], $ids)
+                            ->column('ID');
                     } elseif ($step['through'] == 'has_many') {
-                        // Use TableName for queries
-                        $otherTableName = DataObject::getSchema()->tableName($step['otherclass']);
-
-                        $sql = new SQLSelect('"' . $tableName . '"."ID"', '"' . $tableName . '"', '"' . $otherTableName . '"."ID" IN (' . implode(',', $ids) . ')');
-                        $sql->addInnerJoin($otherTableName, '"' . $tableName . '"."ID" = "' . $otherTableName . '"."' . $step['foreignkey'] . '"');
-                        singleton($step['class'])->extend('augmentSQL', $sql);
-
-                        $ids = $sql->execute()->column();
+                        // foreignkey identifies a has_one column on the model linked via the has_many relation
+                        $ids = DataObject::get($step['otherclass'])
+                            ->filter('ID', $ids)
+                            ->column($step['foreignkey']);
                     }
 
                     if (empty($ids)) {

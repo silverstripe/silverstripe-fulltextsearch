@@ -2,15 +2,24 @@
 
 namespace SilverStripe\FullTextSearch\Tests;
 
+use Apache_Solr_Document;
+use Page;
+use SebastianBergmann\Version;
+use SilverStripe\Assets\File;
+use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Core\Environment;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Core\Kernel;
 use SilverStripe\Dev\SapphireTest;
+use SilverStripe\FullTextSearch\Search\FullTextSearch;
 use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
+use SilverStripe\FullTextSearch\Search\Services\IndexableService;
+use SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariantSubsites;
 use SilverStripe\FullTextSearch\Solr\SolrIndex;
 use SilverStripe\FullTextSearch\Solr\Services\Solr3Service;
+use SilverStripe\FullTextSearch\Solr\Services\Solr4Service;
 use SilverStripe\FullTextSearch\Tests\SearchUpdaterTest\SearchUpdaterTest_Container;
 use SilverStripe\FullTextSearch\Tests\SearchUpdaterTest\SearchUpdaterTest_HasOne;
 use SilverStripe\FullTextSearch\Tests\SearchUpdaterTest\SearchUpdaterTest_HasMany;
@@ -21,10 +30,25 @@ use SilverStripe\FullTextSearch\Tests\SolrIndexTest\SolrIndexTest_AmbiguousRelat
 use SilverStripe\FullTextSearch\Tests\SolrIndexTest\SolrIndexTest_BoostedIndex;
 use SilverStripe\FullTextSearch\Tests\SolrIndexTest\SolrIndexTest_FakeIndex;
 use SilverStripe\FullTextSearch\Tests\SolrIndexTest\SolrIndexTest_FakeIndex2;
+use SilverStripe\FullTextSearch\Tests\SolrIndexTest\SolrIndexTest_ShowInSearchIndex;
+use SilverStripe\FullTextSearch\Tests\SolrIndexTest\SolrIndexTest_MyPage;
+use SilverStripe\FullTextSearch\Tests\SolrIndexTest\SolrIndexTest_MyDataObjectOne;
+use SilverStripe\FullTextSearch\Tests\SolrIndexTest\SolrIndexTest_MyDataObjectTwo;
+use SilverStripe\ORM\DataObject;
 use SilverStripe\Subsites\Model\Subsite;
+use SilverStripe\Versioned\Versioned;
 
 class SolrIndexTest extends SapphireTest
 {
+
+    protected $usesDatabase = true;
+
+    protected static $extra_dataobjects = [
+        SolrIndexTest_MyPage::class,
+        SolrIndexTest_MyDataObjectOne::class,
+        SolrIndexTest_MyDataObjectTwo::class,
+    ];
+
     public function testFieldDataHasOne()
     {
         $index = new SolrIndexTest_FakeIndex();
@@ -374,6 +398,125 @@ class SolrIndexTest extends SapphireTest
             'foo_SilverStripe-FullTextSearch-Tests-SolrIndexTest-SolrIndexTest_FakeIndex2_bar',
             $index->getIndexName()
         );
+    }
+
+    /**
+     * Test that ShowInSearch and getShowInSearch() exclude DataObjects from being added to the index
+     *
+     * Note: this code path that really being tested here is SearchUpdateProcessor->prepareIndexes()
+     * This code path is used for 'inlet' filtering on CMS->save()
+     * The results of this will show-up in SolrIndex->_addAs()
+     */
+    public function testShowInSearch()
+    {
+        $defaultMode = Versioned::get_reading_mode();
+        Versioned::set_reading_mode('Stage.' . Versioned::DRAFT);
+
+        $serviceMock = $this->getMockBuilder(Solr4Service::class)
+            ->setMethods(['addDocument', 'deleteById'])
+            ->getMock();
+
+        $index = new SolrIndexTest_ShowInSearchIndex();
+        $index->setService($serviceMock);
+        FullTextSearch::force_index_list($index);
+
+        // will get added
+        $pageA = new Page();
+        $pageA->Title = 'Test Page true';
+        $pageA->ShowInSearch = true;
+        $pageA->write();
+
+        // will get filtered out
+        $page = new Page();
+        $page->Title = 'Test Page false';
+        $page->ShowInSearch = false;
+        $page->write();
+
+        // will get added
+        $fileA = new File();
+        $fileA->Title = 'Test File true';
+        $fileA->ShowInSearch = true;
+        $fileA->write();
+
+        // will get filtered out
+        $file = new File();
+        $file->Title = 'Test File false';
+        $file->ShowInSearch = false;
+        $file->write();
+
+        // will get added
+        $objOneA = new SolrIndexTest_MyDataObjectOne();
+        $objOneA->Title = 'Test MyDataObjectOne true';
+        $objOneA->ShowInSearch = true;
+        $objOneA->write();
+
+        // will get filtered out
+        $objOne = new SolrIndexTest_MyDataObjectOne();
+        $objOne->Title = 'Test MyDataObjectOne false';
+        $objOne->ShowInSearch = false;
+        $objOne->write();
+
+        // will get added
+        // this class has a getShowInSearch() == true, which will override $mypage->ShowInSearch = false
+        $objTwoA = new SolrIndexTest_MyDataObjectTwo();
+        $objTwoA->Title = 'Test MyDataObjectTwo false';
+        $objTwoA->ShowInSearch = false;
+        $objTwoA->write();
+
+        // will get added
+        // this class has a getShowInSearch() == true, which will override $mypage->ShowInSearch = false
+        $myPageA = new SolrIndexTest_MyPage();
+        $myPageA->Title = 'Test MyPage false';
+        $myPageA->ShowInSearch = false;
+        $myPageA->write();
+
+        $callback = function (Apache_Solr_Document $doc) use ($pageA, $myPageA, $fileA, $objOneA, $objTwoA): bool {
+            $validKeys = [
+                Page::class . $pageA->ID,
+                SolrIndexTest_MyPage::class . $myPageA->ID,
+                File::class . $fileA->ID,
+                SolrIndexTest_MyDataObjectOne::class . $objOneA->ID,
+                SolrIndexTest_MyDataObjectTwo::class . $objTwoA->ID
+            ];
+            return in_array($this->createSolrDocKey($doc), $validKeys);
+        };
+
+        $serviceMock
+            ->expects($this->exactly(5))
+            ->method('addDocument')
+            ->withConsecutive(
+                [$this->callback($callback)],
+                [$this->callback($callback)],
+                [$this->callback($callback)],
+                [$this->callback($callback)],
+                [$this->callback($callback)]
+            );
+
+        // This is what actually triggers all the solr stuff
+        SearchUpdater::flush_dirty_indexes();
+
+        // delete a solr doc by setting ShowInSearch to false
+        $pageA->ShowInSearch = false;
+        $pageA->write();
+
+        $serviceMock
+            ->expects($this->exactly(1))
+            ->method('deleteById')
+            ->withConsecutive(
+                [$this->callback(function (string $docID) use ($pageA): bool {
+                    return strpos($docID, $pageA->ID . '-' . SiteTree::class) !== false;
+                })]
+            );
+
+        IndexableService::singleton()->clearCache();
+        SearchUpdater::flush_dirty_indexes();
+
+        Versioned::set_reading_mode($defaultMode);
+    }
+
+    protected function createSolrDocKey(Apache_Solr_Document $doc)
+    {
+        return $doc->getField('ClassName')['value'] . $doc->getField('ID')['value'];
     }
 
     protected function getFakeRawSolrResponse()
