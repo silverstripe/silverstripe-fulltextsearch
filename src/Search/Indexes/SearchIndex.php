@@ -615,9 +615,6 @@ abstract class SearchIndex extends ViewableData
                 $ids = array($id);
 
                 foreach ($derivation['chain'] as $step) {
-                    // Use TableName for queries
-                    $tableName = DataObject::getSchema()->tableName($step['class']);
-
                     if ($step['through'] == 'has_one') {
                         $ids = DataObject::get($step['class'])
                             ->filter($step['foreignkey'], $ids)
