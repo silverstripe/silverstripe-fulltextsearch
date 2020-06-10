@@ -4,7 +4,8 @@ namespace SilverStripe\FullTextSearch\Solr\Reindex\Handlers;
 
 use Psr\Log\LoggerInterface;
 use SilverStripe\Core\Environment;
-use SilverStripe\FullTextSearch\Search\Services\IndexableService;
+use SilverStripe\FullTextSearch\Search\Services\SearchableService;
+use SilverStripe\FullTextSearch\Search\Variants\SearchVariantVersioned;
 use SilverStripe\FullTextSearch\Solr\Solr;
 use SilverStripe\FullTextSearch\Solr\SolrIndex;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
@@ -12,6 +13,7 @@ use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\DataList;
 use SilverStripe\ORM\DB;
+use SilverStripe\Versioned\Versioned;
 
 /**
  * Base class for re-indexing of solr content
@@ -41,6 +43,8 @@ abstract class SolrReindexBase implements SolrReindexHandler
         $taskName,
         $classes = null
     ) {
+        $searchableService = SearchableService::singleton();
+
         // Filter classes for this index
         $indexClasses = $this->getClassesForIndex($indexInstance, $classes);
 
@@ -53,7 +57,9 @@ abstract class SolrReindexBase implements SolrReindexHandler
             $includeSubclasses = $options['include_children'];
 
             foreach (SearchVariant::reindex_states($class, $includeSubclasses) as $state) {
-                $this->processVariant($logger, $indexInstance, $state, $class, $includeSubclasses, $batchSize, $taskName);
+                if (!$searchableService->variantStateExcluded($state)) {
+                    $this->processVariant($logger, $indexInstance, $state, $class, $includeSubclasses, $batchSize, $taskName);
+                }
             }
         }
     }
@@ -238,13 +244,12 @@ abstract class SolrReindexBase implements SolrReindexHandler
             $items = $items->filter('ClassName', $class);
         }
 
-        $indexableService = IndexableService::singleton();
+        $searchableService = SearchableService::singleton();
 
-        // ShowInSearch filter
-        // we cannot use $items->remove($item), as that deletes the record from the database
+        // Filter out objects that must not be indexed
         $idsToRemove = [];
         foreach ($items as $item) {
-            if (!$indexableService->isIndexable($item)) {
+            if (!$searchableService->isIndexable($item)) {
                 $idsToRemove[] = $item->ID;
             }
         }

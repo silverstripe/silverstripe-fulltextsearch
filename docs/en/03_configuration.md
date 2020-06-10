@@ -112,12 +112,13 @@ Depending on the size of the index and how much content needs to be processed, i
 
 If the [Queued Jobs module](https://github.com/symbiote/silverstripe-queuedjobs/) is installed, updates are queued up instead of executed in the same request. Queued jobs are usually processed every minute. Large index updates will be batched into multiple queued jobs to ensure a job can run to completion within common constraints, such as memory and execution time limits. You can check the status of jobs in an administrative interface under `admin/queuedjobs/`.
 
-### Excluding draft content
+### Draft content
 
-By default, the `SearchUpdater` class indexes all available "variant states", so in the case of the `Versioned` extension, both "draft" and "live".
-For most cases, you'll want to exclude draft content from your search results.
+By default, the `SearchUpdater` class attempts to index all available "variant states", except for draft content.
+Draft content is excluded by default via calls to SearchableService::variantStateExcluded().
 
-You can either prevent the draft content from being indexed in the first place, by adding the following to your `SearchIndex::init()` method:
+Excluding draft content was a new default added in 3.7.0.  Prior to that, draft content was previously indexed by
+ default and could be excluded fron the index by adding the following to the `SearchIndex::init()` method:
 
 ```php
 use Page;
@@ -136,7 +137,10 @@ class MyIndex extends SolrIndex
 }
 ```
 
-Alternatively, you can index draft content, but simply exclude it from searches. This can be handy to preview search results on unpublished content, in case a CMS author is logged in. Before constructing your `SearchQuery`, conditionally switch to the "live" stage.
+If required, you can opt-out of the secure default and index draft content, but simply exclude it from searches.
+Read the inline documentation within SearchableService.php for more details on how to do this.
+This can be handy to preview search results on unpublished content, in case a CMS author is logged in.
+Before constructing your `SearchQuery`, conditionally switch to the "live" stage.
 
 ### Adding DataObjects
 

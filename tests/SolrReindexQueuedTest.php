@@ -6,12 +6,14 @@ use SilverStripe\Core\Config\Config;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
+use SilverStripe\FullTextSearch\Search\Services\SearchableService;
 use SilverStripe\FullTextSearch\Solr\Reindex\Handlers\SolrReindexHandler;
 use SilverStripe\FullTextSearch\Solr\Reindex\Handlers\SolrReindexQueuedHandler;
 use SilverStripe\FullTextSearch\Solr\Reindex\Jobs\SolrReindexGroupQueuedJob;
 use SilverStripe\FullTextSearch\Solr\Reindex\Jobs\SolrReindexQueuedJob;
 use SilverStripe\FullTextSearch\Solr\Services\Solr4Service;
 use SilverStripe\FullTextSearch\Solr\Services\SolrService;
+use SilverStripe\FullTextSearch\Tests\SearchVariantVersionedTest\SearchVariantVersionedTest_Item;
 use SilverStripe\FullTextSearch\Tests\SolrReindexQueuedTest\SolrReindexQueuedTest_Service;
 use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_Index;
 use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_Item;
@@ -135,6 +137,9 @@ class SolrReindexQueuedTest extends SapphireTest
      */
     public function testReindexSegmentsGroups()
     {
+        $classesToSkip = [SolrReindexTest_Item::class];
+        Config::modify()->set(SearchableService::class, 'indexing_canview_exclude_classes', $classesToSkip);
+
         $this->createDummyData(18);
 
         // Deletes are performed in the main task prior to individual groups being processed
@@ -194,6 +199,9 @@ class SolrReindexQueuedTest extends SapphireTest
      */
     public function testRunGroup()
     {
+        $classesToSkip = [SolrReindexTest_Item::class];
+        Config::modify()->set(SearchableService::class, 'indexing_canview_exclude_classes', $classesToSkip);
+
         $this->createDummyData(18);
 
         // Just do what the SolrReindexQueuedJob would do to create each sub
