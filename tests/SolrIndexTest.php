@@ -4,7 +4,6 @@ namespace SilverStripe\FullTextSearch\Tests;
 
 use Apache_Solr_Document;
 use Page;
-use SebastianBergmann\Version;
 use SilverStripe\Assets\File;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Core\Config\Config;
@@ -14,10 +13,9 @@ use SilverStripe\Core\Kernel;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
 use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
-use SilverStripe\FullTextSearch\Search\Services\IndexableService;
+use SilverStripe\FullTextSearch\Search\Services\SearchableService;
 use SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariantSubsites;
-use SilverStripe\FullTextSearch\Solr\SolrIndex;
 use SilverStripe\FullTextSearch\Solr\Services\Solr3Service;
 use SilverStripe\FullTextSearch\Solr\Services\Solr4Service;
 use SilverStripe\FullTextSearch\Tests\SearchUpdaterTest\SearchUpdaterTest_Container;
@@ -34,7 +32,6 @@ use SilverStripe\FullTextSearch\Tests\SolrIndexTest\SolrIndexTest_ShowInSearchIn
 use SilverStripe\FullTextSearch\Tests\SolrIndexTest\SolrIndexTest_MyPage;
 use SilverStripe\FullTextSearch\Tests\SolrIndexTest\SolrIndexTest_MyDataObjectOne;
 use SilverStripe\FullTextSearch\Tests\SolrIndexTest\SolrIndexTest_MyDataObjectTwo;
-use SilverStripe\ORM\DataObject;
 use SilverStripe\Subsites\Model\Subsite;
 use SilverStripe\Versioned\Versioned;
 
@@ -409,8 +406,10 @@ class SolrIndexTest extends SapphireTest
      */
     public function testShowInSearch()
     {
-        $defaultMode = Versioned::get_reading_mode();
+        // allow anonymous users to assess draft-only content to pass canView() check (will auto-reset for next test)
+        Versioned::set_draft_site_secured(false);
         Versioned::set_reading_mode('Stage.' . Versioned::DRAFT);
+        Config::modify()->set(SearchableService::class, 'variant_state_draft_excluded', false);
 
         $serviceMock = $this->getMockBuilder(Solr4Service::class)
             ->setMethods(['addDocument', 'deleteById'])
@@ -508,10 +507,106 @@ class SolrIndexTest extends SapphireTest
                 })]
             );
 
-        IndexableService::singleton()->clearCache();
+        SearchableService::singleton()->clearCache();
+        SearchUpdater::flush_dirty_indexes();
+    }
+
+    /**
+     * Test that canView() check is used to exclude DataObjects from being added to the index
+     *
+     * Note: this code path that really being tested here is SearchUpdateProcessor->prepareIndexes()
+     * This code path is used for 'inlet' filtering on CMS->save()
+     * The results of this will show-up in SolrIndex->_addAs()
+     */
+    public function testCanView()
+    {
+        // allow anonymous users to assess draft-only content to pass canView() check (will auto-reset for next test)
+        Versioned::set_draft_site_secured(false);
+        Versioned::set_reading_mode('Stage.' . Versioned::DRAFT);
+        Config::modify()->set(SearchableService::class, 'variant_state_draft_excluded', false);
+
+        $serviceMock = $this->getMockBuilder(Solr4Service::class)
+            ->setMethods(['addDocument', 'deleteById'])
+            ->getMock();
+
+        $index = new SolrIndexTest_ShowInSearchIndex();
+        $index->setService($serviceMock);
+        FullTextSearch::force_index_list($index);
+
+        // will get added
+        $pageA = new Page();
+        $pageA->Title = 'Test Page Anyone';
+        $pageA->CanViewType = 'Anyone';
+        $pageA->write();
+
+        // will get filtered out
+        $page = new Page();
+        $page->Title = 'Test Page LoggedInUsers';
+        $page->CanViewType = 'LoggedInUsers';
+        $page->write();
+
+        // will get added
+        $fileA = new File();
+        $fileA->Title = 'Test File Anyone';
+        $fileA->CanViewType = 'Anyone';
+        $fileA->write();
+
+        // will get filtered out
+        $file = new File();
+        $file->Title = 'Test File LoggedInUsers';
+        $file->CanViewType = 'LoggedInUsers';
+        $file->write();
+
+        // will get added
+        $objOneA = new SolrIndexTest_MyDataObjectOne();
+        $objOneA->Title = 'Test MyDataObjectOne true';
+        $objOneA->ShowInSearch = true;
+        $objOneA->CanViewValue = true;
+        $objOneA->write();
+
+        // will get filtered out
+        $objOne = new SolrIndexTest_MyDataObjectOne();
+        $objOne->Title = 'Test MyDataObjectOne false';
+        $objOne->ShowInSearch = true;
+        $objOne->CanViewValue = false;
+        $objOne->write();
+
+        $callback = function (Apache_Solr_Document $doc) use ($pageA, $fileA, $objOneA): bool {
+            $validKeys = [
+                Page::class . $pageA->ID,
+                File::class . $fileA->ID,
+                SolrIndexTest_MyDataObjectOne::class . $objOneA->ID
+            ];
+            return in_array($this->createSolrDocKey($doc), $validKeys);
+        };
+
+        $serviceMock
+            ->expects($this->exactly(3))
+            ->method('addDocument')
+            ->withConsecutive(
+                [$this->callback($callback)],
+                [$this->callback($callback)],
+                [$this->callback($callback)]
+            );
+
+        // This is what actually triggers all the solr stuff
         SearchUpdater::flush_dirty_indexes();
 
-        Versioned::set_reading_mode($defaultMode);
+        // delete a solr doc by setting ShowInSearch to false
+        $pageA->ShowInSearch = false;
+        $pageA->write();
+
+        $serviceMock
+            ->expects($this->exactly(1))
+            ->method('deleteById')
+            ->withConsecutive(
+                [$this->callback(function (string $docID) use ($pageA): bool {
+                    return strpos($docID, $pageA->ID . '-' . SiteTree::class) !== false;
+                })]
+            );
+
+        SearchableService::singleton()->clearCache();
+        SearchUpdater::flush_dirty_indexes();
     }
 
     protected function createSolrDocKey(Apache_Solr_Document $doc)

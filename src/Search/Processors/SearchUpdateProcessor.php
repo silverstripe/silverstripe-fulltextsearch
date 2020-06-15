@@ -2,10 +2,12 @@
 
 namespace SilverStripe\FullTextSearch\Search\Processors;
 
-use SilverStripe\FullTextSearch\Search\Services\IndexableService;
+use SilverStripe\FullTextSearch\Search\Services\SearchableService;
+use SilverStripe\FullTextSearch\Search\Variants\SearchVariantVersioned;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
+use SilverStripe\Versioned\Versioned;
 
 abstract class SearchUpdateProcessor
 {
@@ -72,7 +74,8 @@ abstract class SearchUpdateProcessor
         $dirtyIndexes = array();
         $dirty = $this->getSource();
         $indexes = FullTextSearch::get_indexes();
-        $indexableService = IndexableService::singleton();
+        $searchableService = SearchableService::singleton();
+
         foreach ($dirty as $base => $statefulids) {
             if (!$statefulids) {
                 continue;
@@ -86,11 +89,15 @@ abstract class SearchUpdateProcessor
 
                 // Ensure that indexes for all new / updated objects are included
                 $objs = DataObject::get($base)->byIDs(array_keys($ids));
+
+                /** @var DataObject $obj */
                 foreach ($objs as $obj) {
                     foreach ($ids[$obj->ID] as $index) {
-                        if (!$indexes[$index]->variantStateExcluded($state)) {
-                            // Remove any existing records from index if ShowInSearch is changed to false
-                            if (!$indexableService->isIndexable($obj)) {
+                        if (!$searchableService->variantStateExcluded($state) &&
+                            !$indexes[$index]->variantStateExcluded($state)
+                        ) {
+                            // Remove any existing data from index if the object is no longer indexable
+                            if (!$searchableService->isIndexable($obj)) {
                                 $indexes[$index]->delete($base, $obj->ID, $state);
                             } else {
                                 $indexes[$index]->add($obj);
@@ -104,7 +111,9 @@ abstract class SearchUpdateProcessor
                 // Generate list of records that do not exist and should be removed
                 foreach ($ids as $id => $fromindexes) {
                     foreach ($fromindexes as $index) {
-                        if (!$indexes[$index]->variantStateExcluded($state)) {
+                        if (!$searchableService->variantStateExcluded($state) &&
+                            !$indexes[$index]->variantStateExcluded($state)
+                        ) {
                             $indexes[$index]->delete($base, $id, $state);
                             $dirtyIndexes[$index] = $indexes[$index];
                         }

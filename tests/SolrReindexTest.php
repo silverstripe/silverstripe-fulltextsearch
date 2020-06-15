@@ -10,6 +10,7 @@ use SilverStripe\Core\Config\Config;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
+use SilverStripe\FullTextSearch\Search\Services\SearchableService;
 use SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariantVersioned;
@@ -18,6 +19,7 @@ use SilverStripe\FullTextSearch\Solr\Reindex\Handlers\SolrReindexImmediateHandle
 use SilverStripe\FullTextSearch\Solr\Services\Solr4Service;
 use SilverStripe\FullTextSearch\Solr\Services\SolrService;
 use SilverStripe\FullTextSearch\Solr\Tasks\Solr_Reindex;
+use SilverStripe\FullTextSearch\Tests\SearchVariantVersionedTest\SearchVariantVersionedTest_Item;
 use SilverStripe\FullTextSearch\Tests\SolrIndexTest\SolrIndexTest_MyDataObjectOne;
 use SilverStripe\FullTextSearch\Tests\SolrIndexTest\SolrIndexTest_MyDataObjectTwo;
 use SilverStripe\FullTextSearch\Tests\SolrIndexTest\SolrIndexTest_MyPage;
@@ -235,6 +237,9 @@ class SolrReindexTest extends SapphireTest
      */
     public function testRunGroup()
     {
+        $classesToSkip = [SolrReindexTest_Item::class];
+        Config::modify()->set(SearchableService::class, 'indexing_canview_exclude_classes', $classesToSkip);
+
         $this->service->method('deleteByQuery')
             ->with('+(ClassHierarchy:' . SolrReindexTest_Item::class . ') +_query_:"{!frange l=2 u=2}mod(ID, 6)" +(_testvariant:"1")');
 
@@ -266,6 +271,9 @@ class SolrReindexTest extends SapphireTest
      */
     public function testRunAllGroups()
     {
+        $classesToSkip = [SolrReindexTest_Item::class];
+        Config::modify()->set(SearchableService::class, 'indexing_canview_exclude_classes', $classesToSkip);
+
         $this->service->method('deleteByQuery')
             ->withConsecutive(
                 ['+(ClassHierarchy:' . SolrReindexTest_Item::class . ') +_query_:"{!frange l=0 u=0}mod(ID, 6)" +(_testvariant:"1")'],
@@ -305,8 +313,10 @@ class SolrReindexTest extends SapphireTest
      */
     public function testShowInSearch()
     {
-        $defaultMode = Versioned::get_reading_mode();
+        // allow anonymous users to assess draft-only content to pass canView() check (will auto-reset for next test)
+        Versioned::set_draft_site_secured(false);
         Versioned::set_reading_mode('Stage.' . Versioned::DRAFT);
+        Config::modify()->set(SearchableService::class, 'variant_state_draft_excluded', false);
 
         // will get added
         $pageA = new Page();
@@ -394,8 +404,89 @@ class SolrReindexTest extends SapphireTest
         $handler->runGroup($logger, $index, $state, SiteTree::class, 1, 0);
         $handler->runGroup($logger, $index, $state, File::class, 1, 0);
         $handler->runGroup($logger, $index, $state, SolrIndexTest_MyDataObjectOne::class, 1, 0);
+    }
 
-        Versioned::set_reading_mode($defaultMode);
+    /**
+     * Test that CanView filtering is working correctly
+     */
+    public function testCanView()
+    {
+        // allow anonymous users to assess draft-only content to pass canView() check (will auto-reset for next test)
+        Versioned::set_draft_site_secured(false);
+        Versioned::set_reading_mode('Stage.' . Versioned::DRAFT);
+        Config::modify()->set(SearchableService::class, 'variant_state_draft_excluded', false);
+
+        // will get added
+        $pageA = new Page();
+        $pageA->Title = 'Test Page Anyone';
+        $pageA->CanViewType = 'Anyone';
+        $pageA->write();
+
+        // will get filtered out
+        $page = new Page();
+        $page->Title = 'Test Page LoggedInUsers';
+        $page->CanViewType = 'LoggedInUsers';
+        $page->write();
+
+        // will get added
+        $fileA = new File();
+        $fileA->Title = 'Test File Anyone';
+        $fileA->CanViewType = 'Anyone';
+        $fileA->write();
+
+        // will get filtered out
+        $file = new File();
+        $file->Title = 'Test File LoggedInUsers';
+        $file->CanViewType = 'LoggedInUsers';
+        $file->write();
+
+        // will get added
+        $objOneA = new SolrIndexTest_MyDataObjectOne();
+        $objOneA->Title = 'Test MyDataObjectOne true';
+        $objOneA->CanViewValue = true;
+        $objOneA->ShowInSearch = true;
+        $objOneA->write();
+
+        // will get filtered out
+        $objOne = new SolrIndexTest_MyDataObjectOne();
+        $objOne->Title = 'Test MyDataObjectOne false';
+        $objOne->CanViewValue = false;
+        $objOneA->ShowInSearch = true;
+        $objOne->write();
+
+        $serviceMock = $this->getMockBuilder(Solr4Service::class)
+            ->setMethods(['addDocument', 'deleteByQuery'])
+            ->getMock();
+
+        $index = new SolrIndexTest_ShowInSearchIndex();
+        $index->setService($serviceMock);
+        FullTextSearch::force_index_list($index);
+
+        $callback = function (Apache_Solr_Document $doc) use ($pageA, $fileA, $objOneA): bool {
+            $validKeys = [
+                Page::class . $pageA->ID,
+                File::class . $fileA->ID,
+                SolrIndexTest_MyDataObjectOne::class . $objOneA->ID,
+            ];
+            $solrDocKey = $this->createSolrDocKey($doc);
+            return in_array($this->createSolrDocKey($doc), $validKeys);
+        };
+
+        $serviceMock
+            ->expects($this->exactly(3))
+            ->method('addDocument')
+            ->withConsecutive(
+                [$this->callback($callback)],
+                [$this->callback($callback)],
+                [$this->callback($callback)]
+            );
+
+        $logger = new SolrReindexTest_RecordingLogger();
+        $state = [SearchVariantVersioned::class => Versioned::DRAFT];
+        $handler = Injector::inst()->get(SolrReindexImmediateHandler::class);
+        $handler->runGroup($logger, $index, $state, SiteTree::class, 1, 0);
+        $handler->runGroup($logger, $index, $state, File::class, 1, 0);
+        $handler->runGroup($logger, $index, $state, SolrIndexTest_MyDataObjectOne::class, 1, 0);
     }
 
     protected function createSolrDocKey(Apache_Solr_Document $doc)

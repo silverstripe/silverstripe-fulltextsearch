@@ -13,6 +13,7 @@ use SilverStripe\Dev\SapphireTest;
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
 use SilverStripe\FullTextSearch\Search\Processors\SearchUpdateImmediateProcessor;
 use SilverStripe\FullTextSearch\Search\Processors\SearchUpdateProcessor;
+use SilverStripe\FullTextSearch\Search\Services\SearchableService;
 use SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariantSubsites;
 use SilverStripe\FullTextSearch\Solr\Services\Solr4Service;
@@ -107,6 +108,10 @@ class SolrIndexSubsitesTest extends SapphireTest
 
     public function testPublishing()
     {
+        $classesToSkip = [SiteTree::class, File::class];
+        Config::modify()->set(SearchableService::class, 'indexing_canview_exclude_classes', $classesToSkip);
+        Config::modify()->set(SearchableService::class, 'variant_state_draft_excluded', false);
+
         // Setup mocks
         $serviceMock = $this->getServiceMock();
         self::$index->setService($serviceMock);
