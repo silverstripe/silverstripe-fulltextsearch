@@ -42,11 +42,6 @@
     "bin": [
         "bin/fulltextsearch_quickstart"
     ],
-    "extra": {
-        "branch-alias": {
-            "3.x-dev": "3.7.x-dev"
-        }
-    },
     "scripts": {
         "lint": "phpcs -s src/ tests/",
         "lint-clean": "phpcbf src/ tests/"
