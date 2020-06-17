@@ -8,6 +8,7 @@ use SilverStripe\Dev\SapphireTest;
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
 use SilverStripe\FullTextSearch\Search\Processors\SearchUpdateProcessor;
 use SilverStripe\FullTextSearch\Search\Processors\SearchUpdateImmediateProcessor;
+use SilverStripe\FullTextSearch\Search\Services\SearchableService;
 use SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater;
 use SilverStripe\FullTextSearch\Tests\SearchUpdaterTest\SearchUpdaterTest_Container;
 use SilverStripe\FullTextSearch\Tests\SearchUpdaterTest\SearchUpdaterTest_HasOne;
@@ -49,6 +50,9 @@ class SearchUpdaterTest extends SapphireTest
 
     public function testHasOneHook()
     {
+        $classesToSkip = [SearchUpdaterTest_Container::class];
+        Config::modify()->set(SearchableService::class, 'indexing_canview_exclude_classes', $classesToSkip);
+
         $hasOne = new SearchUpdaterTest_HasOne();
         $hasOne->write();
 
@@ -127,6 +131,9 @@ class SearchUpdaterTest extends SapphireTest
 
     public function testHasManyHook()
     {
+        $classesToSkip = [SearchUpdaterTest_Container::class];
+        Config::modify()->set(SearchableService::class, 'indexing_canview_exclude_classes', $classesToSkip);
+
         $container1 = new SearchUpdaterTest_Container();
         $container1->write();
 

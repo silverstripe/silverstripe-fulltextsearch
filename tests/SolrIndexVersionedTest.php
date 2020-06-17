@@ -6,6 +6,7 @@ use Apache_Solr_Document;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Core\Injector\Injector;
+use SilverStripe\FullTextSearch\Search\Services\SearchableService;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
 use SilverStripe\FullTextSearch\Search\SearchIntrospection;
@@ -112,6 +113,10 @@ class SolrIndexVersionedTest extends SapphireTest
 
     public function testPublishing()
     {
+        $classesToSkip = [SearchVariantVersionedTest_Item::class, SolrIndexVersionedTest_Object::class];
+        Config::modify()->set(SearchableService::class, 'indexing_canview_exclude_classes', $classesToSkip);
+        Config::modify()->set(SearchableService::class, 'variant_state_draft_excluded', false);
+
         // Check that write updates Stage
         Versioned::set_stage(Versioned::DRAFT);
 
@@ -166,6 +171,10 @@ class SolrIndexVersionedTest extends SapphireTest
 
     public function testDelete()
     {
+        $classesToSkip = [SearchVariantVersionedTest_Item::class];
+        Config::modify()->set(SearchableService::class, 'indexing_canview_exclude_classes', $classesToSkip);
+        Config::modify()->set(SearchableService::class, 'variant_state_draft_excluded', false);
+
         // Delete the live record (not the stage)
         Versioned::set_stage(Versioned::DRAFT);
 

@@ -9,7 +9,7 @@ use SilverStripe\FullTextSearch\Search\Indexes\SearchIndex;
 use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
 use SilverStripe\FullTextSearch\Search\Queries\SearchQuery_Range;
 use SilverStripe\FullTextSearch\Search\SearchIntrospection;
-use SilverStripe\FullTextSearch\Search\Services\IndexableService;
+use SilverStripe\FullTextSearch\Search\Services\SearchableService;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariant_Caller;
 use SilverStripe\FullTextSearch\Solr\Services\SolrService;
@@ -778,15 +778,14 @@ abstract class SolrIndex extends SearchIndex
             \Apache_Solr_Service::METHOD_POST
         );
 
-        $indexableService = IndexableService::singleton();
+        $searchableService = SearchableService::singleton();
 
         $results = new ArrayList();
         if ($res->getHttpStatus() >= 200 && $res->getHttpStatus() < 300) {
             foreach ($res->response->docs as $doc) {
                 $result = DataObject::get_by_id($doc->ClassName, $doc->ID);
                 if ($result) {
-                    // Filter out any results previously added to the solr index where ShowInSearch == false
-                    if (!$indexableService->isIndexable($result)) {
+                    if (!$searchableService->isViewable($result)) {
                         continue;
                     }
 

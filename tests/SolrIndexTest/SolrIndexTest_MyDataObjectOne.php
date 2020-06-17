@@ -9,8 +9,14 @@ class SolrIndexTest_MyDataObjectOne extends DataObject implements TestOnly
 {
     private static $db = [
         'Title' => 'Varchar(255)',
-        'ShowInSearch' => 'Boolean'
+        'ShowInSearch' => 'Boolean',
+        'CanViewValue' => 'Boolean(true)',
     ];
 
     private static $table_name = 'SolrIndexTestMyDataObjectOne';
+
+    public function canView($member = null)
+    {
+        return $this->CanViewValue;
+    }
 }

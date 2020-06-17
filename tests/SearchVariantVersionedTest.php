@@ -7,6 +7,7 @@ use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
 use SilverStripe\FullTextSearch\Search\Indexes\SearchIndex_Recording;
+use SilverStripe\FullTextSearch\Search\Services\SearchableService;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariantVersioned;
 use SilverStripe\FullTextSearch\Tests\SearchVariantVersionedTest\SearchVariantVersionedTest_Index;
 use SilverStripe\FullTextSearch\Tests\SearchVariantVersionedTest\SearchVariantVersionedTest_Item;
@@ -45,6 +46,9 @@ class SearchVariantVersionedTest extends SapphireTest
     public function testPublishing()
     {
         // Check that write updates Stage
+        $classesToSkip = [SearchVariantVersionedTest_Item::class];
+        Config::modify()->set(SearchableService::class, 'indexing_canview_exclude_classes', $classesToSkip);
+        Config::modify()->set(SearchableService::class, 'variant_state_draft_excluded', false);
 
         $item = new SearchVariantVersionedTest_Item(array('TestText' => 'Foo'));
         $item->write();

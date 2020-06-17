@@ -7,6 +7,7 @@ use SilverStripe\Core\Config\Config;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
+use SilverStripe\FullTextSearch\Search\Services\SearchableService;
 use SilverStripe\FullTextSearch\Tests\BatchedProcessorTest\BatchedProcessor_QueuedJobService;
 use SilverStripe\FullTextSearch\Tests\BatchedProcessorTest\BatchedProcessorTest_Index;
 use SilverStripe\FullTextSearch\Tests\BatchedProcessorTest\BatchedProcessorTest_Object;
@@ -120,6 +121,9 @@ class BatchedProcessorTest extends SapphireTest
      */
     public function testBatching()
     {
+        Config::modify()->set(SearchableService::class, 'indexing_canview_exclude_classes', [SiteTree::class]);
+        Config::modify()->set(SearchableService::class, 'variant_state_draft_excluded', false);
+
         $index = singleton(BatchedProcessorTest_Index::class);
         $index->reset();
         $processor = $this->generateDirtyIds();
