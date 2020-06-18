@@ -25,9 +25,10 @@ before_script:
   - echo 'memory_limit=2G' >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
 
   - composer validate
-  - composer require symbiote/silverstripe-queuedjobs:^4.0 --no-update
-  - if [[ $SUBSITES ]]; then composer require silverstripe/subsites:2.3.x-dev --no-update; fi
-  - if [[ $DB == "PGSQL" ]]; then composer require silverstripe/postgresql:2.3.x-dev --no-update; fi
+  - composer require symbiote/silverstripe-queuedjobs:^4 --no-update
+  - if [[ $SUBSITES ]]; then composer require silverstripe/subsites:^2 --no-update; fi
+  - if [[ $DB == "PGSQL" ]]; then composer require silverstripe/postgresql:^2 --no-update; fi
+  - composer require --no-update sminnee/phpunit-mock-objects:^3
   - composer require silverstripe/installer "$INSTALLER_VERSION" --no-update
   - composer install --prefer-dist --no-interaction --no-progress --no-suggest --optimize-autoloader --verbose --profile
 
