@@ -1,40 +1,53 @@
 language: php
 
-dist: trusty
+dist: xenial
 
-env:
-  global:
-    - COMPOSER_ROOT_VERSION="3.7.x-dev"
+services:
+  - mysql
+  - postgresql
+
+cache:
+  directories:
+    - $HOME/.composer/cache/files
 
 matrix:
   include:
     - php: 7.1
-      env: DB=MYSQL INSTALLER_VERSION=4.2.x-dev PHPCS_TEST=1 PHPUNIT_TEST=1
-    - php: 7.1
-      env: DB=PGSQL INSTALLER_VERSION=4.3.x-dev PHPUNIT_TEST=1
+      env: DB=MYSQL INSTALLER_VERSION=4.2.x-dev PHPUNIT_TEST=1 PHPCS_TEST=1 PDO=1
     - php: 7.2
-      env: DB=MYSQL INSTALLER_VERSION=4.3.x-dev PHPUNIT_COVERAGE_TEST=1
+      env: DB=PGSQL INSTALLER_VERSION=4.3.x-dev PHPUNIT_COVERAGE_TEST=1
     - php: 7.3
-      env: DB=MYSQL INSTALLER_VERSION=4.4.x-dev PHPUNIT_TEST=1 SUBSITES=1
-    - php: 7.3
+      env: DB=MYSQL INSTALLER_VERSION=4.4.x-dev PHPUNIT_TEST=1
+    - php: 7.4
+      env: DB=MYSQL INSTALLER_VERSION=4.5.x-dev PHPUNIT_TEST=1 SUBSITES=1
+    - php: 7.4
       env: DB=MYSQL INSTALLER_VERSION=4.6.x-dev PHPUNIT_TEST=1
+    - php: 7.4
+      env: DB=MYSQL INSTALLER_VERSION=4.x-dev PHPUNIT_TEST=1
 
 before_script:
-  - phpenv rehash
-  - phpenv config-rm xdebug.ini
-  - echo 'memory_limit=2G' >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
+  # Extra $PATH
+  - export PATH=~/.composer/vendor/bin:$PATH
 
+  # Init PHP
+  - phpenv rehash
+  - phpenv config-rm xdebug.ini || true
+  - echo 'memory_limit = 2G' >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
+  - echo 'always_populate_raw_post_data = -1' >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
+
+  # Install composer requirements
+  # sminnee/phpunit-mock-objects is a fix for running phpunit 5 on php 7.4+
   - composer validate
-  - composer require symbiote/silverstripe-queuedjobs:^4.0 --no-update
-  - if [[ $SUBSITES ]]; then composer require silverstripe/subsites:2.3.x-dev --no-update; fi
-  - if [[ $DB == "PGSQL" ]]; then composer require silverstripe/postgresql:2.3.x-dev --no-update; fi
-  - composer require silverstripe/installer "$INSTALLER_VERSION" --no-update
+  - composer require --no-update silverstripe/installer:$INSTALLER_VERSION sminnee/phpunit-mock-objects:^3 symbiote/silverstripe-queuedjobs:^4 silverstripe/recipe-testing:^1 symbiote/silverstripe-queuedjobs:^4
+  - if [[ $DB == PGSQL ]]; then composer require --no-update silverstripe/postgresql:^2; fi
+  - if [[ $SUBSITES ]]; then composer require --no-update silverstripe/subsites:^2; fi
   - composer install --prefer-dist --no-interaction --no-progress --no-suggest --optimize-autoloader --verbose --profile
 
 script:
-  - if [[ $PHPUNIT_TEST ]]; then vendor/bin/phpunit; fi
+  # Run tests
+  - if [[ $PHPCS_TEST ]]; then vendor/bin/phpcs -s src/ tests/ *.php --ignore=host-map.php; fi
   - if [[ $PHPUNIT_COVERAGE_TEST ]]; then phpdbg -qrr vendor/bin/phpunit --coverage-clover=coverage.xml; fi
-  - if [[ $PHPCS_TEST ]]; then vendor/bin/phpcs src tests; fi
+  - if [[ $PHPUNIT_TEST ]]; then vendor/bin/phpunit tests/; fi
 
 after_success:
-  - if [[ $PHPUNIT_COVERAGE_TEST ]]; then bash <(curl -s https://codecov.io/bash) -f coverage.xml; fi
+  - if [[ $PHPUNIT_COVERAGE_TEST ]]; then bash <(curl -s https://codecov.io/bash) -f coverage.xml -F php; fi
