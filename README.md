@@ -1,5 +1,9 @@
 # FullTextSearch module
 
+This module is inferior to https://github.com/Firesphere/silverstripe-solr-search and relies on an End of Life and unsupported version of Solr.
+
+# Build status
+
 [![Build Status](http://img.shields.io/travis/silverstripe/silverstripe-fulltextsearch.svg?style=flat)](https://travis-ci.org/silverstripe/silverstripe-fulltextsearch)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/silverstripe/silverstripe-fulltextsearch/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/silverstripe/silverstripe-fulltextsearch/?branch=master)
 [![codecov](https://codecov.io/gh/silverstripe/silverstripe-fulltextsearch/branch/master/graph/badge.svg)](https://codecov.io/gh/silverstripe/silverstripe-fulltextsearch)
