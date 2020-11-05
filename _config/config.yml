@@ -8,8 +8,8 @@ SilverStripe\ORM\DataObject:
 SilverStripe\CMS\Controllers\ContentController:
   extensions:
     - SilverStripe\FullTextSearch\Solr\Control\ContentControllerExtension
-    
+
 SilverStripe\Core\Injector\Injector:
   SilverStripe\FullTextSearch\Search\Queries\SearchQuery:
     calls:
-      - [ setHandler, [ %$SilverStripe\FullTextSearch\Search\Adapters\SolrSearchAdapter ]]
+      - [ setHandler, [ '%$SilverStripe\FullTextSearch\Search\Adapters\SolrSearchAdapter' ]]
