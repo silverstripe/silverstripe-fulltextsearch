@@ -1,6 +1,6 @@
 # FullTextSearch module
 
-[![Build Status](http://img.shields.io/travis/silverstripe/silverstripe-fulltextsearch.svg?style=flat)](https://travis-ci.org/silverstripe/silverstripe-fulltextsearch)
+[![Build Status](https://api.travis-ci.com/silverstripe/silverstripe-fulltextsearch.svg?branch=3)](https://travis-ci.com/silverstripe/silverstripe-fulltextsearch)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/silverstripe/silverstripe-fulltextsearch/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/silverstripe/silverstripe-fulltextsearch/?branch=master)
 [![codecov](https://codecov.io/gh/silverstripe/silverstripe-fulltextsearch/branch/master/graph/badge.svg)](https://codecov.io/gh/silverstripe/silverstripe-fulltextsearch)
 [![SilverStripe supported module](https://img.shields.io/badge/silverstripe-supported-0071C4.svg)](https://www.silverstripe.org/software/addons/silverstripe-commercially-supported-module-list/)
