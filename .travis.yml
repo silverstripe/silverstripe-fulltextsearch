@@ -15,4 +15,4 @@ jobs:
         - DB=MYSQL
         - REQUIRE_INSTALLER=4.x-dev
         - PHPUNIT_TEST=1
-        - REQUIRE_EXTRA="symbiote/silverstripe-queuedjobs:^4.0 silverstripe/subsites:2.3.x-dev"
+        - REQUIRE_EXTRA="symbiote/silverstripe-queuedjobs:^4 silverstripe/subsites:^2"
