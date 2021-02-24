@@ -203,7 +203,7 @@ abstract class SolrIndex extends SearchIndex
         // Add the fulltext collation field
 
         $df = $this->getDefaultField();
-        $xml[] = "<field name='{$df}' type='htmltext' indexed='true' stored='{$stored}' multiValued='true' />" ;
+        $xml[] = "<field name='{$df}' type='htmltext' indexed='true' stored='true' multiValued='true' />" ;
 
         // Add the user-specified fields
 
