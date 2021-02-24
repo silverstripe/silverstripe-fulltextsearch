@@ -204,7 +204,7 @@ abstract class SearchIndex extends ViewableData
                 $type = null;
                 $fieldoptions = $options;
 
-                $fields = DataObject::getSchema()->databaseFields($class);
+                $fields = DataObject::getSchema()->databaseFields($dataclass);
 
                 if (isset($fields[$field])) {
                     $type = $fields[$field];
