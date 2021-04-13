@@ -27,7 +27,7 @@ class Solr
      *
      * indexstore => an array with
      *
-     *   mode - a classname which implements SolrConfigStore, or 'file' or 'webdav'
+     *   mode - a classname which implements SolrConfigStore, or 'file', 'webdav' or 'post'
      *
      *   When mode == SolrConfigStore_File or file (indexes should be written on a local filesystem)
      *      path - The (locally accessible) path to write the index configurations to.
@@ -38,6 +38,13 @@ class Solr
      *      path (default: /solrindex) - The suburl on the solr host that is set up to accept index configurations via webdav
      *      port (default: none) - The port for WebDAV if different from the Solr port
      *      remotepath - The path that the Solr server will read the index configurations from
+     *
+     *   When mode == SolrConfigStore_POST or 'post' (indexes should stored on a remote Solr server via post)
+     *   This mode will require custom software on the remote solr server which handles receiving the post and
+     *   passing on that information to solr. It is up to the user of this mode to write such software.
+     *      path (default: /solrindex) - The suburl on the solr host that is set up to accept index configurations
+     *      port (default: none) - The port on the remote server which is set up to receive the post information
+     *
      */
     protected static $solr_options = array();
 
@@ -298,6 +305,8 @@ class Solr_Configure extends Solr_BuildTask
             return new SolrConfigStore_File($indexstore);
         } elseif ($mode == 'webdav') {
             return new SolrConfigStore_WebDAV($indexstore);
+        } elseif ($mode == 'post') {
+            return new SolrConfigStore_POST($indexstore);
         } elseif (ClassInfo::exists($mode) && ClassInfo::classImplements($mode, 'SolrConfigStore')) {
             return new $mode($indexstore);
         } else {
