@@ -2,6 +2,7 @@
 
 namespace SilverStripe\FullTextSearch\Search\Queries;
 
+use SilverStripe\Core\Injector\Injectable;
 use SilverStripe\Dev\Deprecation;
 
 /**
@@ -10,6 +11,8 @@ use SilverStripe\Dev\Deprecation;
  */
 class SearchQuery_Range
 {
+    use Injectable;
+    
     public $start = null;
     public $end = null;
 
