@@ -13,7 +13,7 @@ class SolrConfigStore_File implements SolrConfigStore
     public function __construct($config)
     {
         $this->local = $config['path'];
-        $this->remote = isset($config['remotepath']) ? $config['remotepath'] : $config['path'];
+        $this->remote = !empty($config['remotepath']) ? $config['remotepath'] : $config['path'];
     }
 
     public function getTargetDir($index)

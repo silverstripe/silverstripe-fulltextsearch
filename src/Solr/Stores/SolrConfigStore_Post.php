@@ -26,12 +26,12 @@ class SolrConfigStore_Post implements SolrConfigStore
 
         $this->url = implode('', [
             'http://',
-            isset($config['auth']) ? $config['auth'] . '@' : '',
+            !empty($config['auth']) ? $config['auth'] . '@' : '',
             $options['host'] . ':' . $options['port'],
             $config['path']
         ]);
 
-        if (isset($config['remotepath'])) {
+        if (!empty($config['remotepath'])) {
             $this->remote = $config['remotepath'];
         }
     }

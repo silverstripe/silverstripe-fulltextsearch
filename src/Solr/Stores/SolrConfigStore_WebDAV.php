@@ -18,11 +18,14 @@ class SolrConfigStore_WebDAV implements SolrConfigStore
 
         $this->url = implode('', array(
             'http://',
-            isset($config['auth']) ? $config['auth'] . '@' : '',
-            $options['host'] . ':' . (isset($config['port']) ? $config['port'] : $options['port']),
+            !empty($config['auth']) ? $config['auth'] . '@' : '',
+            $options['host'] . ':' . (!empty($config['port']) ? $config['port'] : $options['port']),
             $config['path']
         ));
-        $this->remote = $config['remotepath'];
+
+        if (!empty($config['remotepath'])) {
+            $this->remote = $config['remotepath'];
+        }
     }
 
     public function getTargetDir($index)
