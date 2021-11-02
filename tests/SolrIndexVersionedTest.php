@@ -36,7 +36,7 @@ class SolrIndexVersionedTest extends SapphireTest
         SolrIndexVersionedTest_Object::class,
     ];
 
-    protected function setUp()
+    protected function setUp(): void
     {
         // Need to be set before parent::setUp() since they're executed before the tests start
         Config::modify()->set(SearchVariantSubsites::class, 'enabled', false);
@@ -58,7 +58,7 @@ class SolrIndexVersionedTest extends SapphireTest
         Versioned::set_stage(Versioned::DRAFT);
     }
 
-    protected function tearDown()
+    protected function tearDown(): void
     {
         Versioned::set_reading_mode($this->oldMode);
         parent::tearDown();

@@ -57,7 +57,7 @@ class SolrReindexTest extends SapphireTest
      */
     protected $service = null;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -111,7 +111,7 @@ class SolrReindexTest extends SapphireTest
         return $serviceMock->getMock();
     }
 
-    protected function tearDown()
+    protected function tearDown(): void
     {
         FullTextSearch::force_index_list();
         SolrReindexTest_Variant::disable();
@@ -259,7 +259,8 @@ class SolrReindexTest extends SapphireTest
 
         // Test that items in this variant / group are re-indexed
         // 120 divided into 6 groups should be 20 at least (max 21)
-        $this->assertEquals(21, count($ids), 'Group size is about 20', 1);
+        $c = count($ids);
+        $this->assertTrue($c === 20 || $c === 21, 'Group size is about 20');
         foreach ($ids as $id) {
             // Each id should be % 6 == 2
             $this->assertEquals(2, $id % 6, "ID $id Should match pattern ID % 6 = 2");

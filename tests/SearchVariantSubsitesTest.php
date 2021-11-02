@@ -18,13 +18,13 @@ class SearchVariantSubsiteTest extends SapphireTest
 {
     private static $index = null;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 
         // Check versioned available
         if (!class_exists(Subsite::class)) {
-            return $this->markTestSkipped('The subsites module is not installed');
+            $this->markTestSkipped('The subsites module is not installed');
         }
 
         if (self::$index === null) {

@@ -42,7 +42,7 @@ class BatchedProcessorTest extends SapphireTest
         ],
     ];
 
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         // Disable illegal extensions if skipping this test
         if (class_exists(Subsite::class) || !interface_exists(QueuedJob::class)) {
@@ -51,7 +51,7 @@ class BatchedProcessorTest extends SapphireTest
         parent::setUpBeforeClass();
     }
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -82,7 +82,7 @@ class BatchedProcessorTest extends SapphireTest
         SearchUpdater::$processor = new SearchUpdateQueuedJobProcessor();
     }
 
-    protected function tearDown()
+    protected function tearDown(): void
     {
         if ($this->oldProcessor) {
             SearchUpdater::$processor = $this->oldProcessor;

@@ -37,7 +37,7 @@ class SolrIndexSubsitesTest extends SapphireTest
 
     protected $server = null;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         // Prevent parent::setUp() crashing on db build
         if (!class_exists(Subsite::class)) {
@@ -64,7 +64,7 @@ class SolrIndexSubsitesTest extends SapphireTest
         SearchUpdater::clear_dirty_indexes();
     }
 
-    protected function tearDown()
+    protected function tearDown(): void
     {
         if ($this->server) {
             $_SERVER = $this->server;
@@ -221,6 +221,9 @@ class SolrIndexSubsitesTest extends SapphireTest
     public function testCorrectSubsiteIDOnFileWrite()
     {
         $subsiteIDs = ['0'] + $this->allFixtureIDs(Subsite::class);
+        $subsiteIDs = array_map(function ($v) {
+            return (string) $v;
+        }, $subsiteIDs);
         $mockWrites = [
             '35910:File:a:0:{}' => [
                 'base' => File::class,
@@ -253,7 +256,7 @@ class SolrIndexSubsitesTest extends SapphireTest
             $this->assertCount(count($subsiteIDs), $mockWrite['statefulids']);
             foreach ($mockWrite['statefulids'] as $statefulIDs) {
                 $this->assertContains(
-                    $statefulIDs['state'][SearchVariantSubsites::class],
+                    (string) $statefulIDs['state'][SearchVariantSubsites::class],
                     $subsiteIDs,
                     sprintf(
                         'Failed to assert that %s is in list of valid subsites: %s',

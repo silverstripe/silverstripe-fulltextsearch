@@ -27,7 +27,7 @@ class SearchVariantVersionedTest extends SapphireTest
         SearchVariantVersionedTest_Item::class
     );
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 

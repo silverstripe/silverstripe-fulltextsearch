@@ -21,7 +21,7 @@ class SearchUpdaterTest extends SapphireTest
 
     private static $index = null;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -43,6 +43,7 @@ class SearchUpdaterTest extends SapphireTest
     {
         $item = new SearchUpdaterTest_Container();
         $item->write();
+        $this->assertTrue(true);
 
         // TODO: Make sure changing field1 updates item.
         // TODO: Get updating just field2 to not update item (maybe not possible - variants complicate)

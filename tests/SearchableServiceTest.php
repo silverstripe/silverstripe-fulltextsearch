@@ -15,7 +15,7 @@ class SearchableServiceTest extends SapphireTest
 
     protected $usesDatabase = true;
 
-    public function setup()
+    protected function setUp(): void
     {
         parent::setup();
         SearchableService::singleton()->clearCache();
