@@ -46,13 +46,13 @@ class SolrReindexQueuedTest extends SapphireTest
      */
     protected $service = null;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 
         if (!interface_exists(QueuedJob::class)) {
             $this->skipTest = true;
-            return $this->markTestSkipped("These tests need the QueuedJobs module installed to run");
+            $this->markTestSkipped("These tests need the QueuedJobs module installed to run");
         }
 
         // Set queued handler for reindex
@@ -106,7 +106,7 @@ class SolrReindexQueuedTest extends SapphireTest
         return $serviceMock;
     }
 
-    protected function tearDown()
+    protected function tearDown(): void
     {
         FullTextSearch::force_index_list();
         SolrReindexTest_Variant::disable();

@@ -4,6 +4,7 @@ namespace SilverStripe\FullTextSearch\Tests;
 
 use Apache_Solr_Document;
 use Page;
+use PHPUnit\Framework\MockObject\MockObject;
 use SilverStripe\Assets\File;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Core\Config\Config;
@@ -143,7 +144,7 @@ class SolrIndexTest extends SapphireTest
      */
     public function testBoostedQuery()
     {
-        /** @var Solr3Service|PHPUnit_Framework_MockObject_MockObject $serviceMock */
+        /** @var Solr3Service|MockObject $serviceMock */
         $serviceMock = $this->getMockBuilder(Solr3Service::class)
             ->setMethods(['search'])
             ->getMock();
@@ -179,7 +180,7 @@ class SolrIndexTest extends SapphireTest
             Config::modify()->set(SearchVariantSubsites::class, 'enabled', false);
         }
 
-        /** @var Solr3Service|PHPUnit_Framework_MockObject_MockObject $serviceMock */
+        /** @var Solr3Service|MockObject $serviceMock */
         $serviceMock = $this->getMockBuilder(Solr3Service::class)
             ->setMethods(['search'])
             ->getMock();
@@ -336,11 +337,11 @@ class SolrIndexTest extends SapphireTest
         $index->addStoredField('Field1');
         $index->addFulltextField('Field2');
         $schema = $index->getFieldDefinitions();
-        $this->assertContains(
+        $this->assertStringContainsString(
             "<field name='" . SearchUpdaterTest_Container::class . "_Field1' type='text' indexed='true' stored='true'",
             $schema
         );
-        $this->assertContains(
+        $this->assertStringContainsString(
             "<field name='" . SearchUpdaterTest_Container::class . "_Field2' type='text' indexed='true' stored='false'",
             $schema
         );
@@ -350,11 +351,11 @@ class SolrIndexTest extends SapphireTest
         $index2->addAllFulltextFields();
         $index2->addStoredField('Field2');
         $schema2 = $index2->getFieldDefinitions();
-        $this->assertContains(
+        $this->assertStringContainsString(
             "<field name='" . SearchUpdaterTest_Container::class . "_Field1' type='text' indexed='true' stored='false'",
             $schema2
         );
-        $this->assertContains(
+        $this->assertStringContainsString(
             "<field name='" . SearchUpdaterTest_Container::class . "_Field2' type='text' indexed='true' stored='true'",
             $schema2
         );
