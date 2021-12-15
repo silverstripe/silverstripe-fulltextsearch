@@ -33,7 +33,9 @@ class WebDAV
             return true;
         }
 
-        user_error("Got error from webdav server - " . $code, E_USER_ERROR);
+        $err = curl_error($ch);
+
+        user_error("Got error from webdav server - " . $err, E_USER_ERROR);
     }
 
     public static function mkdir($url)
