@@ -501,7 +501,7 @@ abstract class SearchIndex extends ViewableData
         $errorHandler = function ($no, $str) {
             throw new Exception('HTML Parse Error: ' . $str);
         };
-        set_error_handler($errorHandler, E_ALL);
+        set_error_handler($errorHandler, E_ALL & ~(E_DEPRECATED | E_USER_DEPRECATED));
 
         try {
             foreach ($field['lookup_chain'] as $step) {
