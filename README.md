@@ -5,7 +5,7 @@
 [![codecov](https://codecov.io/gh/silverstripe/silverstripe-fulltextsearch/branch/master/graph/badge.svg)](https://codecov.io/gh/silverstripe/silverstripe-fulltextsearch)
 [![SilverStripe supported module](https://img.shields.io/badge/silverstripe-supported-0071C4.svg)](https://www.silverstripe.org/software/addons/silverstripe-commercially-supported-module-list/)
 
-Adds support for fulltext search engines like Sphinx and Solr to SilverStripe CMS.
+Adds support for fulltext search engines like Sphinx and Solr to Silverstripe CMS.
 Compatible with PHP 7.2
 
 ## Important notes when upgrading to fulltextsearch 3.7.0+
@@ -86,9 +86,9 @@ it's recommended you update your implementation to call `SearchableService::isVi
 
 ## Requirements
 
-* SilverStripe 4.0+
+* Silverstripe 4.0+
 
-**Note:** For SilverStripe 3.x, please use the [2.x release line](https://github.com/silverstripe/silverstripe-fulltextsearch/tree/2).
+**Note:** For Silverstripe 3.x, please use the [2.x release line](https://github.com/silverstripe/silverstripe-fulltextsearch/tree/2).
 
 ## Documentation
 
