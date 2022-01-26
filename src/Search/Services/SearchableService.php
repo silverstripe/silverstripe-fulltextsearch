@@ -151,12 +151,12 @@ class SearchableService
                 // Anonymous member canView() for indexing
                 if (!$this->classSkipsCanViewCheck($objClass)) {
                     $value = Member::actAs(null, function () use ($obj) {
-                        return $obj->canView();
+                        return (bool) $obj->canView();
                     });
                 }
             } else {
                 // Current member canView() check for retrieving search results
-                $value = $obj->canView();
+                $value = (bool) $obj->canView();
             }
         }
         $this->extend('updateIsSearchable', $obj, $indexing, $value);
