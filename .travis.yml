@@ -5,12 +5,11 @@ import:
 
 env:
   global:
-    - COMPOSER_ROOT_VERSION="3.x-dev"
     - REQUIRE_EXTRA="symbiote/silverstripe-queuedjobs:^4.0"
 
 jobs:
   include:
-    - php: 7.3
+    - php: 7.4
       env:
         - DB=MYSQL
         - REQUIRE_INSTALLER=4.x-dev
