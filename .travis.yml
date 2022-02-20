@@ -5,7 +5,6 @@ import:
 
 env:
   global:
-    - COMPOSER_ROOT_VERSION="3.x-dev"
     - REQUIRE_EXTRA="symbiote/silverstripe-queuedjobs:^4.0"
 
 jobs:
