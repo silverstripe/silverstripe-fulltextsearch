@@ -75,17 +75,12 @@ class SolrReindexImmediateHandler extends SolrReindexBase
         $taskName
     ) {
         $indexClass = get_class($indexInstance);
-
-        // Build script parameters
-        $indexClassEscaped = $indexClass;
         $statevar = json_encode($state);
 
         if (strpos(PHP_OS, "WIN") !== false) {
             $statevar = '"' . str_replace('"', '\\"', $statevar) . '"';
         } else {
             $statevar = "'" . $statevar . "'";
-            $class = addslashes($class);
-            $indexClassEscaped = addslashes($indexClass);
         }
 
         $php = Environment::getEnv('SS_PHP_BIN') ?: Config::inst()->get(static::class, 'php_bin');
@@ -93,11 +88,12 @@ class SolrReindexImmediateHandler extends SolrReindexBase
         // Build script line
         $frameworkPath = ModuleLoader::getModule('silverstripe/framework')->getPath();
         $scriptPath = sprintf("%s%scli-script.php", $frameworkPath, DIRECTORY_SEPARATOR);
-        $scriptTask = "{$php} {$scriptPath} dev/tasks/{$taskName}";
 
         $cmd = [
-            $scriptTask,
-            "index={$indexClassEscaped}",
+            $php,
+            $scriptPath,
+            "dev/tasks/{$taskName}",
+            "index={$indexClass}",
             "class={$class}",
             "group={$group}",
             "groups={$groups}",
