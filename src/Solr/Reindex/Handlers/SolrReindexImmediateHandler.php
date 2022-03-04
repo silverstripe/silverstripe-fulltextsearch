@@ -79,12 +79,6 @@ class SolrReindexImmediateHandler extends SolrReindexBase
         // Build script parameters
         $statevar = json_encode($state);
 
-        if (strpos(PHP_OS, "WIN") !== false) {
-            $statevar = '"' . str_replace('"', '\\"', $statevar) . '"';
-        } else {
-            $statevar = "'" . $statevar . "'";
-        }
-
         $php = Environment::getEnv('SS_PHP_BIN') ?: Config::inst()->get(static::class, 'php_bin');
 
         // Build script line
