@@ -5,6 +5,7 @@ namespace SilverStripe\FullTextSearch\Search\Processors;
 use SilverStripe\FullTextSearch\Search\Services\SearchableService;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariantVersioned;
 use SilverStripe\ORM\DataObject;
+use SilverStripe\ORM\DB;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
 use SilverStripe\Versioned\Versioned;
@@ -154,6 +155,9 @@ abstract class SearchUpdateProcessor
      */
     public function process()
     {
+        if (!DB::is_active()) {
+            return false;
+        }
         // Generate and commit all instances
         $indexes = $this->prepareIndexes();
         foreach ($indexes as $index) {
