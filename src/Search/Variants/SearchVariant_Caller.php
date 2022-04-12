@@ -19,7 +19,7 @@ class SearchVariant_Caller
         $values = array();
 
         foreach ($this->variants as $variant) {
-            if (method_exists($variant, $method)) {
+            if (method_exists($variant, $method ?? '')) {
                 $value = $variant->$method(...$args);
                 if ($value !== null) {
                     $values[] = $value;

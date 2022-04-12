@@ -62,7 +62,7 @@ class SolrSearchQueryWriterIn extends AbstractSearchQueryWriter
 
             $conditions[] = sprintf(
                 '%s%s%s',
-                addslashes($searchCriterion->getTarget()),
+                addslashes($searchCriterion->getTarget() ?? ''),
                 $this->getComparisonConjunction(),
                 $value
             );

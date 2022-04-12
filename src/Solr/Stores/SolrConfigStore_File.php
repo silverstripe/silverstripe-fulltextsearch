@@ -20,8 +20,8 @@ class SolrConfigStore_File implements SolrConfigStore
     {
         $targetDir = "{$this->local}/{$index}/conf";
 
-        if (!is_dir($targetDir)) {
-            $worked = @mkdir($targetDir, 0770, true);
+        if (!is_dir($targetDir ?? '')) {
+            $worked = @mkdir($targetDir ?? '', 0770, true);
 
             if (!$worked) {
                 throw new \RuntimeException(
@@ -36,7 +36,7 @@ class SolrConfigStore_File implements SolrConfigStore
     public function uploadFile($index, $file)
     {
         $targetDir = $this->getTargetDir($index);
-        copy($file, $targetDir . '/' . basename($file));
+        copy($file ?? '', $targetDir . '/' . basename($file ?? ''));
     }
 
     public function uploadString($index, $filename, $string)

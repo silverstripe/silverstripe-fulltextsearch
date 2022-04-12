@@ -17,7 +17,7 @@ class WebDAV
     public static function exists($url)
     {
         // WebDAV expects that checking a directory exists has a trailing slash
-        if (substr($url, -1) != '/') {
+        if (substr($url ?? '', -1) != '/') {
             $url .= '/';
         }
 
@@ -42,7 +42,7 @@ class WebDAV
 
     public static function mkdir($url)
     {
-        $ch = self::curl_init(rtrim($url, '/') . '/', 'MKCOL');
+        $ch = self::curl_init(rtrim($url ?? '', '/') . '/', 'MKCOL');
 
         curl_exec($ch);
         $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -72,13 +72,13 @@ class WebDAV
     public static function upload_from_string($string, $url)
     {
         $fh = tmpfile();
-        fwrite($fh, $string);
+        fwrite($fh, $string ?? '');
         fseek($fh, 0);
         return self::put($fh, $url);
     }
 
     public static function upload_from_file($string, $url)
     {
-        return self::put(fopen($string, 'rb'), $url);
+        return self::put(fopen($string ?? '', 'rb'), $url);
     }
 }

@@ -90,7 +90,7 @@ class MonologFactory implements SearchLogFactory
     {
         return Injector::inst()->createWithArgs(
             Logger::class,
-            array(strtolower($name))
+            array(strtolower($name ?? ''))
         );
     }
 

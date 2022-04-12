@@ -86,7 +86,7 @@ class Solr_Reindex extends Solr_BuildTask
                     continue;
                 }
                 //check the indexname matches the index passed to the request
-                if (!strcasecmp(singleton($solrIndexClass)->getIndexName(), $index)) {
+                if (!strcasecmp(singleton($solrIndexClass)->getIndexName() ?? '', $index ?? '')) {
                     //if we match, set the correct index name and move on
                     $index = $solrIndexClass;
                     break;
@@ -104,7 +104,7 @@ class Solr_Reindex extends Solr_BuildTask
             // Run grouped batches (id % groups = group)
             $group = $request->getVar('group');
             $indexInstance = singleton($index);
-            $state = json_decode($request->getVar('variantstate'), true);
+            $state = json_decode($request->getVar('variantstate') ?? '', true);
 
             $handler->runGroup($this->getLogger(), $indexInstance, $state, $class, $groups, $group);
             return;

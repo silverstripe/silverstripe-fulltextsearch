@@ -24,7 +24,7 @@ class SolrService extends SolrService_Core
      */
     protected function coreCommand($command, $core, $params = array())
     {
-        $command = strtoupper($command);
+        $command = strtoupper($command ?? '');
         $params = array_merge($params, array('action' => $command, 'wt' => 'json'));
         $params[$command === 'CREATE' ? 'name' : 'core'] = $core;
 

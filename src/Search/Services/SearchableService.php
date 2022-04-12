@@ -199,11 +199,11 @@ class SearchableService
         if (empty($skipClasses)) {
             return false;
         }
-        if (in_array($class, $skipClasses)) {
+        if (in_array($class, $skipClasses ?? [])) {
             return true;
         }
         foreach ($skipClasses as $skipClass) {
-            if (in_array($skipClass, class_parents($class))) {
+            if (in_array($skipClass, class_parents($class) ?? [])) {
                 return true;
             }
         }

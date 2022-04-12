@@ -106,7 +106,7 @@ class SearchUpdater
                     'command' => $command,
                     'fields' => array()
                 );
-            } elseif (is_subclass_of($class, $writes[$key]['class'])) {
+            } elseif (is_subclass_of($class, $writes[$key]['class'] ?? '')) {
                 // Otherwise update the class label if it's more specific than the currently recorded one
                 $writes[$key]['class'] = $class;
             }
@@ -118,7 +118,7 @@ class SearchUpdater
         }
 
         // Trim non-delete records without fields
-        foreach (array_keys($writes) as $key) {
+        foreach (array_keys($writes ?? []) as $key) {
             if ($writes[$key]['command'] !== 'delete' && empty($writes[$key]['fields'])) {
                 unset($writes[$key]);
             }

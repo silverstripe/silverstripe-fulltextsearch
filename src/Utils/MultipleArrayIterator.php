@@ -14,7 +14,7 @@ class MultipleArrayIterator implements Iterator
 
         $this->arrays = array();
         foreach ($args as $arg) {
-            if (is_array($arg) && count($arg)) {
+            if (is_array($arg) && count($arg ?? [])) {
                 $this->arrays[] = $arg;
             }
         }
@@ -22,6 +22,7 @@ class MultipleArrayIterator implements Iterator
         $this->rewind();
     }
 
+    #[\ReturnTypeWillChange]
     public function rewind()
     {
         $this->active = $this->arrays;
@@ -30,16 +31,19 @@ class MultipleArrayIterator implements Iterator
         }
     }
 
+    #[\ReturnTypeWillChange]
     public function current()
     {
         return $this->active ? current($this->active[0]) : false;
     }
 
+    #[\ReturnTypeWillChange]
     public function key()
     {
         return $this->active ? key($this->active[0]) : false;
     }
 
+    #[\ReturnTypeWillChange]
     public function next()
     {
         if (!$this->active) {
@@ -54,8 +58,9 @@ class MultipleArrayIterator implements Iterator
         }
     }
 
+    #[\ReturnTypeWillChange]
     public function valid()
     {
-        return $this->active && (current($this->active[0]) !== false);
+        return $this->active && (current($this->active[0] ?? []) !== false);
     }
 }

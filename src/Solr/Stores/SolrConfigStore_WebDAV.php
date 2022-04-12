@@ -46,7 +46,7 @@ class SolrConfigStore_WebDAV implements SolrConfigStore
     public function uploadFile($index, $file)
     {
         $targetDir = $this->getTargetDir($index);
-        WebDAV::upload_from_file($file, $targetDir . '/' . basename($file));
+        WebDAV::upload_from_file($file, $targetDir . '/' . basename($file ?? ''));
     }
 
     public function uploadString($index, $filename, $string)

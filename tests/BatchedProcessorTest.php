@@ -133,28 +133,28 @@ class BatchedProcessorTest extends SapphireTest
         $this->assertEquals(9, $data->totalSteps);
         $this->assertEquals(0, $data->currentStep);
         $this->assertEmpty($data->isComplete);
-        $this->assertEquals(0, count($index->getAdded()));
+        $this->assertEquals(0, count($index->getAdded() ?? []));
 
         // Advance state
         for ($pass = 1; $pass <= 8; $pass++) {
             $processor->process();
             $data = $processor->getJobData();
             $this->assertEquals($pass, $data->currentStep);
-            $this->assertEquals($pass * 5, count($index->getAdded()));
+            $this->assertEquals($pass * 5, count($index->getAdded() ?? []));
         }
 
         // Last run should have two hanging items
         $processor->process();
         $data = $processor->getJobData();
         $this->assertEquals(9, $data->currentStep);
-        $this->assertEquals(42, count($index->getAdded()));
+        $this->assertEquals(42, count($index->getAdded() ?? []));
         $this->assertTrue($data->isComplete);
 
         // Check any additional queued jobs
         $processor->afterComplete();
         $service = singleton(QueuedJobService::class);
         $jobs = $service->getJobs();
-        $this->assertEquals(1, count($jobs));
+        $this->assertEquals(1, count($jobs ?? []));
         $this->assertInstanceOf(SearchUpdateCommitJobProcessor::class, $jobs[0]['job']);
     }
 
@@ -242,7 +242,7 @@ class BatchedProcessorTest extends SapphireTest
         }
         $data = $processor->getJobData();
         $this->assertEquals(8, $data->currentStep);
-        $this->assertEquals(42, count($index->getAdded()));
+        $this->assertEquals(42, count($index->getAdded() ?? []));
         $this->assertTrue($data->isComplete);
     }
 }

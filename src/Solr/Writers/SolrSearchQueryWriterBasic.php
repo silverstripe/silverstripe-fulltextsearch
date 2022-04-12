@@ -20,7 +20,7 @@ class SolrSearchQueryWriterBasic extends AbstractSearchQueryWriter
         return sprintf(
             '%s(%s%s%s)',
             $this->getComparisonPolarity($searchCriterion->getComparison()),
-            addslashes($searchCriterion->getTarget()),
+            addslashes($searchCriterion->getTarget() ?? ''),
             $this->getComparisonConjunction(),
             $searchCriterion->getQuoteValue($searchCriterion->getValue())
         );

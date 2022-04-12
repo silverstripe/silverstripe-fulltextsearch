@@ -185,7 +185,7 @@ class SolrWritersTest extends SapphireTest
 
         $index = new SolrIndexTest_FakeIndex();
 
-        $this->assertTrue(in_array($expected, $index->getFiltersComponent($query)));
+        $this->assertTrue(in_array($expected, $index->getFiltersComponent($query) ?? []));
     }
 
     /**
@@ -235,6 +235,6 @@ class SolrWritersTest extends SapphireTest
 
         $index = new SolrIndexTest_FakeIndex();
 
-        $this->assertTrue(in_array($expected, $index->getFiltersComponent($query)));
+        $this->assertTrue(in_array($expected, $index->getFiltersComponent($query) ?? []));
     }
 }

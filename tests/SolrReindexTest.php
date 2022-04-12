@@ -250,8 +250,8 @@ class SolrReindexTest extends SapphireTest
         $state = array(SolrReindexTest_Variant::class => '1');
         $this->getHandler()->runGroup($logger, $this->index, $state, SolrReindexTest_Item::class, 6, 2);
         $idMessage = $logger->filterMessages('Updated ');
-        $this->assertNotEmpty(preg_match('/^Updated (?<ids>[,\d]+)/i', $idMessage[0], $matches));
-        $ids = array_unique(explode(',', $matches['ids']));
+        $this->assertNotEmpty(preg_match('/^Updated (?<ids>[,\d]+)/i', $idMessage[0] ?? '', $matches));
+        $ids = array_unique(explode(',', $matches['ids'] ?? ''));
 
         // Test successful
         $this->assertNotEmpty($logger->getMessages('Adding ' . SolrReindexTest_Item::class));
@@ -259,7 +259,7 @@ class SolrReindexTest extends SapphireTest
 
         // Test that items in this variant / group are re-indexed
         // 120 divided into 6 groups should be 20 at least (max 21)
-        $c = count($ids);
+        $c = count($ids ?? []);
         $this->assertTrue($c === 20 || $c === 21, 'Group size is about 20');
         foreach ($ids as $id) {
             // Each id should be % 6 == 2
@@ -301,12 +301,12 @@ class SolrReindexTest extends SapphireTest
         // Count all ids updated
         $ids = array();
         foreach ($logger->filterMessages('Updated ') as $message) {
-            $this->assertNotEmpty(preg_match('/^Updated (?<ids>[,\d]+)/', $message, $matches));
-            $ids = array_unique(array_merge($ids, explode(',', $matches['ids'])));
+            $this->assertNotEmpty(preg_match('/^Updated (?<ids>[,\d]+)/', $message ?? '', $matches));
+            $ids = array_unique(array_merge($ids, explode(',', $matches['ids'] ?? '')));
         }
 
         // Check ids
-        $this->assertEquals(120, count($ids));
+        $this->assertEquals(120, count($ids ?? []));
     }
 
     /**
@@ -385,7 +385,7 @@ class SolrReindexTest extends SapphireTest
                 SolrIndexTest_MyDataObjectOne::class . $objOneA->ID,
                 SolrIndexTest_MyDataObjectTwo::class . $objTwoA->ID
             ];
-            return in_array($this->createSolrDocKey($doc), $validKeys);
+            return in_array($this->createSolrDocKey($doc), $validKeys ?? []);
         };
 
         $serviceMock
@@ -470,7 +470,7 @@ class SolrReindexTest extends SapphireTest
                 SolrIndexTest_MyDataObjectOne::class . $objOneA->ID,
             ];
             $solrDocKey = $this->createSolrDocKey($doc);
-            return in_array($this->createSolrDocKey($doc), $validKeys);
+            return in_array($this->createSolrDocKey($doc), $validKeys ?? []);
         };
 
         $serviceMock

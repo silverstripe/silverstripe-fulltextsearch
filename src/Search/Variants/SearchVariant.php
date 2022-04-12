@@ -202,7 +202,7 @@ abstract class SearchVariant
             // Merge the variants applicable to the current class into the list of common variants, using
             // the variant instance to replace any previous versions for the same class name (should be singleton
             // anyway).
-            $commonVariants = array_replace($commonVariants, $variantsForClass);
+            $commonVariants = array_replace($commonVariants ?? [], $variantsForClass);
         }
 
         // Cache for future calls
@@ -322,7 +322,7 @@ abstract class SearchVariant
         $merged = array_values(array_unique(array_merge($left, $right)));
 
         // If there is only one item, return it as a single string
-        if (count($merged) === 1) {
+        if (count($merged ?? []) === 1) {
             return reset($merged);
         }
         return $merged;

@@ -21,7 +21,7 @@ class SolrSearchQueryWriterRange extends AbstractSearchQueryWriter
         return sprintf(
             '%s(%s:%s%s%s%s%s)',
             $this->getComparisonPolarity($searchCriterion->getComparison()),
-            addslashes($searchCriterion->getTarget()),
+            addslashes($searchCriterion->getTarget() ?? ''),
             $this->getOpenComparisonContainer($searchCriterion->getComparison()),
             $this->getLeftComparison($searchCriterion),
             $this->getComparisonConjunction(),
