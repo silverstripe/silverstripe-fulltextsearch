@@ -67,7 +67,7 @@ class FullTextSearch
                 }
 
                 if ($hidden) {
-                    $candidates = array_diff($candidates, $hidden);
+                    $candidates = array_diff($candidates ?? [], $hidden);
                 }
 
                 // Create all indexes
@@ -86,7 +86,7 @@ class FullTextSearch
 
                 $valid = array();
                 foreach ($all as $indexclass => $instance) {
-                    if (is_subclass_of($indexclass, $class)) {
+                    if (is_subclass_of($indexclass, $class ?? '')) {
                         $valid[$indexclass] = $instance;
                     }
                 }

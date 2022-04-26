@@ -89,7 +89,7 @@ abstract class SearchUpdateBatchedProcessor extends SearchUpdateProcessor
         }
 
         // Don't re-process completed queue
-        if ($this->currentBatch >= count($this->batches)) {
+        if ($this->currentBatch >= count($this->batches ?? [])) {
             return true;
         }
 
@@ -138,14 +138,14 @@ abstract class SearchUpdateBatchedProcessor extends SearchUpdateProcessor
                 while ($ids) {
                     // Estimate maximum number of items to take for this iteration, allowing for the soft cap
                     $take = $batchSize - $currentSize;
-                    if (count($ids) <= $take + $softCap) {
+                    if (count($ids ?? []) <= $take + $softCap) {
                         $take += $softCap;
                     }
-                    $items = array_slice($ids, 0, $take, true);
-                    $ids = array_slice($ids, count($items), null, true);
+                    $items = array_slice($ids ?? [], 0, $take, true);
+                    $ids = array_slice($ids ?? [], count($items ?? []), null, true);
 
                     // Update batch
-                    $currentSize += count($items);
+                    $currentSize += count($items ?? []);
                     $merge = array(
                         $base => array(
                             $stateKey => array(

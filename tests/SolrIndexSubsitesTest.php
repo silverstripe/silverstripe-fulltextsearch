@@ -223,7 +223,7 @@ class SolrIndexSubsitesTest extends SapphireTest
         $subsiteIDs = ['0'] + $this->allFixtureIDs(Subsite::class);
         $subsiteIDs = array_map(function ($v) {
             return (string) $v;
-        }, $subsiteIDs);
+        }, $subsiteIDs ?? []);
         $mockWrites = [
             '35910:File:a:0:{}' => [
                 'base' => File::class,
@@ -253,7 +253,7 @@ class SolrIndexSubsitesTest extends SapphireTest
         $tmpMockWrites = $mockWrites;
         $variant->extractManipulationWriteState($tmpMockWrites);
         foreach ($tmpMockWrites as $mockWrite) {
-            $this->assertCount(count($subsiteIDs), $mockWrite['statefulids']);
+            $this->assertCount(count($subsiteIDs ?? []), $mockWrite['statefulids']);
             foreach ($mockWrite['statefulids'] as $statefulIDs) {
                 $this->assertContains(
                     (string) $statefulIDs['state'][SearchVariantSubsites::class],

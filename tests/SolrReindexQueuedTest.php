@@ -233,9 +233,9 @@ class SolrReindexQueuedTest extends SapphireTest
 
         // Check IDs
         $idMessage = $logger->filterMessages('Updated ');
-        $this->assertNotEmpty(preg_match('/^Updated (?<ids>[,\d]+)/i', $idMessage[0], $matches));
-        $ids = array_unique(explode(',', $matches['ids']));
-        $this->assertEquals(6, count($ids));
+        $this->assertNotEmpty(preg_match('/^Updated (?<ids>[,\d]+)/i', $idMessage[0] ?? '', $matches));
+        $ids = array_unique(explode(',', $matches['ids'] ?? ''));
+        $this->assertEquals(6, count($ids ?? []));
         foreach ($ids as $id) {
             // Each id should be % 3 == 0
             $this->assertEquals(0, $id % 3, "ID $id Should match pattern ID % 3 = 0");

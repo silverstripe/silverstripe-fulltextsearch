@@ -97,7 +97,7 @@ class SearchUpdateCommitJobProcessor implements QueuedJob
 
         if ($dirty) {
             $indexes = FullTextSearch::get_indexes();
-            static::$dirty_indexes = array_keys($indexes);
+            static::$dirty_indexes = array_keys($indexes ?? []);
         }
         return $id;
     }
@@ -126,7 +126,7 @@ class SearchUpdateCommitJobProcessor implements QueuedJob
     {
         if (empty($this->indexes)) {
             $indexes = FullTextSearch::get_indexes();
-            $this->indexes = array_keys($indexes);
+            $this->indexes = array_keys($indexes ?? []);
         }
         return $this->indexes;
     }
@@ -135,7 +135,7 @@ class SearchUpdateCommitJobProcessor implements QueuedJob
     {
         // If we've indexed exactly as many as we would like, we are done
         return $this->skipped
-            || (count($this->getAllIndexes()) <= count($this->completed));
+            || (count($this->getAllIndexes() ?? []) <= count($this->completed ?? []));
     }
 
     public function prepareForRestart()
@@ -213,7 +213,7 @@ class SearchUpdateCommitJobProcessor implements QueuedJob
     {
         // Skip index if this is already complete
         $name = get_class($index);
-        if (in_array($name, $this->completed)) {
+        if (in_array($name, $this->completed ?? [])) {
             $this->addMessage("Skipping already comitted index {$name}");
             return;
         }
@@ -240,8 +240,8 @@ class SearchUpdateCommitJobProcessor implements QueuedJob
     public function getJobData()
     {
         $data = new stdClass();
-        $data->totalSteps = count($this->getAllIndexes());
-        $data->currentStep = count($this->completed);
+        $data->totalSteps = count($this->getAllIndexes() ?? []);
+        $data->currentStep = count($this->completed ?? []);
         $data->isComplete = $this->jobFinished();
         $data->messages = $this->messages;
 
@@ -265,7 +265,7 @@ class SearchUpdateCommitJobProcessor implements QueuedJob
 
     public function addMessage($message, $severity = 'INFO')
     {
-        $severity = strtoupper($severity);
+        $severity = strtoupper($severity ?? '');
         $this->messages[] = '[' . date('Y-m-d H:i:s') . "][$severity] $message";
     }
 

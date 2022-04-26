@@ -55,7 +55,7 @@ abstract class SearchUpdateProcessor
                 $forclass[$statekey] = array('state' => $state, 'ids' => array($id => array($index)));
             } elseif (!isset($forclass[$statekey]['ids'][$id])) {
                 $forclass[$statekey]['ids'][$id] = array($index);
-            } elseif (array_search($index, $forclass[$statekey]['ids'][$id]) === false) {
+            } elseif (array_search($index, $forclass[$statekey]['ids'][$id] ?? []) === false) {
                 $forclass[$statekey]['ids'][$id][] = $index;
                 // dirty count stays the same
             }
@@ -89,7 +89,7 @@ abstract class SearchUpdateProcessor
                 SearchVariant::activate_state($state);
 
                 // Ensure that indexes for all new / updated objects are included
-                $objs = DataObject::get($base)->byIDs(array_keys($ids));
+                $objs = DataObject::get($base)->byIDs(array_keys($ids ?? []));
 
                 /** @var DataObject $obj */
                 foreach ($objs as $obj) {

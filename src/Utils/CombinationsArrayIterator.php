@@ -18,20 +18,21 @@ class CombinationsArrayIterator implements Iterator
         $this->arrays = array();
         $this->keys = array();
 
-        $keys = array_keys($args);
-        $values = array_values($args);
+        $keys = array_keys($args ?? []);
+        $values = array_values($args ?? []);
 
         foreach ($values as $i => $arg) {
-            if (is_array($arg) && count($arg)) {
+            if (is_array($arg) && count($arg ?? [])) {
                 $this->arrays[] = $arg;
                 $this->keys[] = $keys[$i];
             }
         }
 
-        $this->numArrays = count($this->arrays);
+        $this->numArrays = count($this->arrays ?? []);
         $this->rewind();
     }
 
+    #[\ReturnTypeWillChange]
     public function rewind()
     {
         if (!$this->numArrays) {
@@ -46,11 +47,13 @@ class CombinationsArrayIterator implements Iterator
         }
     }
 
+    #[\ReturnTypeWillChange]
     public function valid()
     {
         return $this->isValid;
     }
 
+    #[\ReturnTypeWillChange]
     public function next()
     {
         $this->k++;
@@ -68,15 +71,17 @@ class CombinationsArrayIterator implements Iterator
         }
     }
 
+    #[\ReturnTypeWillChange]
     public function current()
     {
         $res = array();
         for ($i = 0; $i < $this->numArrays; $i++) {
-            $res[$this->keys[$i]] = current($this->arrays[$i]);
+            $res[$this->keys[$i]] = current($this->arrays[$i] ?? []);
         }
         return $res;
     }
 
+    #[\ReturnTypeWillChange]
     public function key()
     {
         return $this->k;

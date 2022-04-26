@@ -81,9 +81,9 @@ abstract class SolrReindexBase implements SolrReindexHandler
 
         // Apply filter
         if (!is_array($filterClasses)) {
-            $filterClasses = explode(',', $filterClasses);
+            $filterClasses = explode(',', $filterClasses ?? '');
         }
-        return array_intersect_key($classes, array_combine($filterClasses, $filterClasses));
+        return array_intersect_key($classes ?? [], array_combine($filterClasses ?? [], $filterClasses ?? []));
     }
 
     /**

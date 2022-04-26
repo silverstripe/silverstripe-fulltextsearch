@@ -478,7 +478,7 @@ class SolrIndexTest extends SapphireTest
                 SolrIndexTest_MyDataObjectOne::class . $objOneA->ID,
                 SolrIndexTest_MyDataObjectTwo::class . $objTwoA->ID
             ];
-            return in_array($this->createSolrDocKey($doc), $validKeys);
+            return in_array($this->createSolrDocKey($doc), $validKeys ?? []);
         };
 
         $serviceMock
@@ -504,7 +504,7 @@ class SolrIndexTest extends SapphireTest
             ->method('deleteById')
             ->withConsecutive(
                 [$this->callback(function (string $docID) use ($pageA): bool {
-                    return strpos($docID, $pageA->ID . '-' . SiteTree::class) !== false;
+                    return strpos($docID ?? '', $pageA->ID . '-' . SiteTree::class) !== false;
                 })]
             );
 
@@ -578,7 +578,7 @@ class SolrIndexTest extends SapphireTest
                 File::class . $fileA->ID,
                 SolrIndexTest_MyDataObjectOne::class . $objOneA->ID
             ];
-            return in_array($this->createSolrDocKey($doc), $validKeys);
+            return in_array($this->createSolrDocKey($doc), $validKeys ?? []);
         };
 
         $serviceMock
@@ -602,7 +602,7 @@ class SolrIndexTest extends SapphireTest
             ->method('deleteById')
             ->withConsecutive(
                 [$this->callback(function (string $docID) use ($pageA): bool {
-                    return strpos($docID, $pageA->ID . '-' . SiteTree::class) !== false;
+                    return strpos($docID ?? '', $pageA->ID . '-' . SiteTree::class) !== false;
                 })]
             );
 

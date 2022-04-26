@@ -49,9 +49,9 @@ class SolrReindexTest_RecordingLogger extends Logger implements TestOnly
     public function filterMessages($containing)
     {
         return array_values(array_filter(
-            $this->getMessages(),
+            $this->getMessages() ?? [],
             function ($content) use ($containing) {
-                return stripos($content, $containing) !== false;
+                return stripos($content ?? '', $containing ?? '') !== false;
             }
         ));
     }
@@ -69,6 +69,6 @@ class SolrReindexTest_RecordingLogger extends Logger implements TestOnly
         } else {
             $messages = $this->getMessages();
         }
-        return count($messages);
+        return count($messages ?? []);
     }
 }

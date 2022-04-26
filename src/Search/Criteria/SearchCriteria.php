@@ -222,7 +222,7 @@ class SearchCriteria implements SearchCriteriaInterface
     protected function getConjunction($key)
     {
         $conjunctions = $this->getConjunctions();
-        if (!array_key_exists($key, $conjunctions)) {
+        if (!array_key_exists($key, $conjunctions ?? [])) {
             return null;
         }
 

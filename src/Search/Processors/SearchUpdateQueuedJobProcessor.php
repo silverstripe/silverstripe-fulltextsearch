@@ -45,7 +45,7 @@ class SearchUpdateQueuedJobProcessor extends SearchUpdateBatchedProcessor implem
 
     public function jobFinished()
     {
-        return $this->currentBatch >= count($this->batches);
+        return $this->currentBatch >= count($this->batches ?? []);
     }
 
     public function setup()
@@ -68,7 +68,7 @@ class SearchUpdateQueuedJobProcessor extends SearchUpdateBatchedProcessor implem
     public function getJobData()
     {
         $data = new stdClass();
-        $data->totalSteps = count($this->batches);
+        $data->totalSteps = count($this->batches ?? []);
         $data->currentStep = $this->currentBatch;
         $data->isComplete = $this->jobFinished();
         $data->messages = $this->messages;
@@ -91,7 +91,7 @@ class SearchUpdateQueuedJobProcessor extends SearchUpdateBatchedProcessor implem
 
     public function addMessage($message, $severity = 'INFO')
     {
-        $severity = strtoupper($severity);
+        $severity = strtoupper($severity ?? '');
         $this->messages[] = '[' . date('Y-m-d H:i:s') . "][$severity] $message";
     }
 

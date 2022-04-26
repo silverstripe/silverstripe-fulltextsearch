@@ -109,7 +109,7 @@ class SolrReindexImmediateHandler extends SolrReindexBase
 
         $res = $process->getOutput();
         if ($logger) {
-            $logger->info(preg_replace('/\r\n|\n/', '$0  ', $res));
+            $logger->info(preg_replace('/\r\n|\n/', '$0  ', $res ?? ''));
         }
 
         // If we're in dev mode, commit more often for fun and profit

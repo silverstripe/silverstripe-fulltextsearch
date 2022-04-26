@@ -70,7 +70,7 @@ abstract class SearchIndex extends ViewableData
      */
     protected function getSourceName($source)
     {
-        $source = explode(self::config()->get('class_delimiter'), $source);
+        $source = explode(self::config()->get('class_delimiter') ?? '', $source ?? '');
 
         return $source[0];
     }
@@ -102,7 +102,7 @@ abstract class SearchIndex extends ViewableData
      */
     public function fieldData($field, $forceType = null, $extraOptions = [])
     {
-        $fullfield = str_replace(".", "_", $field);
+        $fullfield = str_replace(".", "_", $field ?? '');
         $sources = $this->getClasses();
 
         foreach ($sources as $source => $options) {
@@ -112,8 +112,8 @@ abstract class SearchIndex extends ViewableData
 
         $found = [];
 
-        if (strpos($field, '.') !== false) {
-            $lookups = explode(".", $field);
+        if (strpos($field ?? '', '.') !== false) {
+            $lookups = explode(".", $field ?? '');
             $field = array_pop($lookups);
 
             foreach ($lookups as $lookup) {
@@ -133,7 +133,7 @@ abstract class SearchIndex extends ViewableData
                             // we only want to include base class for relation, omit classes that inherited the relation
                             $relationList = Config::inst()->get($dataclass, 'has_one', Config::UNINHERITED);
                             $relationList = (!is_null($relationList)) ? $relationList : [];
-                            if (!array_key_exists($lookup, $relationList)) {
+                            if (!array_key_exists($lookup, $relationList ?? [])) {
                                 continue;
                             }
 
@@ -146,7 +146,7 @@ abstract class SearchIndex extends ViewableData
                             // we only want to include base class for relation, omit classes that inherited the relation
                             $relationList = Config::inst()->get($dataclass, 'has_many', Config::UNINHERITED);
                             $relationList = (!is_null($relationList)) ? $relationList : [];
-                            if (!array_key_exists($lookup, $relationList)) {
+                            if (!array_key_exists($lookup, $relationList ?? [])) {
                                 continue;
                             }
 
@@ -160,7 +160,7 @@ abstract class SearchIndex extends ViewableData
                             // we only want to include base class for relation, omit classes that inherited the relation
                             $relationList = Config::inst()->get($dataclass, 'many_many', Config::UNINHERITED);
                             $relationList = (!is_null($relationList)) ? $relationList : [];
-                            if (!array_key_exists($lookup, $relationList)) {
+                            if (!array_key_exists($lookup, $relationList ?? [])) {
                                 continue;
                             }
 
@@ -199,7 +199,7 @@ abstract class SearchIndex extends ViewableData
             $class = $this->getSourceName($class);
             $dataclasses = SearchIntrospection::hierarchy($class, $options['include_children']);
 
-            while (count($dataclasses)) {
+            while (count($dataclasses ?? [])) {
                 $dataclass = array_shift($dataclasses);
                 $type = null;
                 $fieldoptions = $options;
@@ -228,9 +228,9 @@ abstract class SearchIndex extends ViewableData
 
                 if ($type) {
                     // Don't search through child classes of a class we matched on. TODO: Should we?
-                    $dataclasses = array_diff($dataclasses, array_values(ClassInfo::subclassesFor($dataclass)));
+                    $dataclasses = array_diff($dataclasses ?? [], array_values(ClassInfo::subclassesFor($dataclass) ?? []));
                     // Trim arguments off the type string
-                    if (preg_match('/^(\w+)\(/', $type, $match)) {
+                    if (preg_match('/^(\w+)\(/', $type ?? '', $match)) {
                         $type = $match[1];
                     }
                     // Get the origin
@@ -412,7 +412,7 @@ abstract class SearchIndex extends ViewableData
 
     public function buildDependancyList()
     {
-        $this->dependancyList = array_keys($this->getClasses());
+        $this->dependancyList = array_keys($this->getClasses() ?? []);
 
         foreach ($this->getFieldsIterator() as $name => $field) {
             if (!isset($field['class'])) {
@@ -434,7 +434,7 @@ abstract class SearchIndex extends ViewableData
             $this->derivedFields = array();
 
             foreach ($this->getFieldsIterator() as $name => $field) {
-                if (count($field['lookup_chain']) < 2) {
+                if (count($field['lookup_chain'] ?? []) < 2) {
                     continue;
                 }
 
@@ -445,7 +445,7 @@ abstract class SearchIndex extends ViewableData
                     $this->derivedFields[$key]['fields'][$fieldname] = $fieldname;
                     SearchIntrospection::add_unique_by_ancestor($this->derivedFields['classes'], $field['class']);
                 } else {
-                    $chain = array_reverse($field['lookup_chain']);
+                    $chain = array_reverse($field['lookup_chain'] ?? []);
                     array_shift($chain);
 
                     $this->derivedFields[$key] = array(
@@ -473,7 +473,7 @@ abstract class SearchIndex extends ViewableData
     {
         ksort($state);
         $parts = array('id' => $id, 'base' => $base, 'state' => json_encode($state));
-        return implode('-', array_values($parts));
+        return implode('-', array_values($parts ?? []));
     }
 
     /**
@@ -586,7 +586,7 @@ abstract class SearchIndex extends ViewableData
 
         // First, if this object is directly contained in the index, add it
         foreach ($this->classes as $searchclass => $options) {
-            if ($searchclass == $class || ($options['include_children'] && is_subclass_of($class, $searchclass))) {
+            if ($searchclass == $class || ($options['include_children'] && is_subclass_of($class, $searchclass ?? ''))) {
                 $base = DataObject::getSchema()->baseDataClass($searchclass);
                 $dirty[$base] = array();
                 foreach ($statefulids as $statefulid) {
@@ -605,7 +605,7 @@ abstract class SearchIndex extends ViewableData
             if (!SearchIntrospection::is_subclass_of($class, $derivation['classes'])) {
                 continue;
             }
-            if (!array_intersect_key($fields, $derivation['fields'])) {
+            if (!array_intersect_key($fields ?? [], $derivation['fields'])) {
                 continue;
             }
 

@@ -21,7 +21,7 @@ class SearchIntrospection
     public static function is_subclass_of($class, $of)
     {
         $ancestry = isset(self::$ancestry[$class]) ? self::$ancestry[$class] : (self::$ancestry[$class] = ClassInfo::ancestry($class));
-        return is_array($of) ? (bool)array_intersect($of, $ancestry) : array_key_exists($of, $ancestry);
+        return is_array($of) ? (bool)array_intersect($of, $ancestry) : array_key_exists($of, $ancestry ?? []);
     }
 
     protected static $hierarchy = array();
@@ -40,12 +40,12 @@ class SearchIntrospection
         $key = "$class!" . ($includeSubclasses ? 'sc' : 'an') . '!' . ($dataOnly ? 'do' : 'al');
 
         if (!isset(self::$hierarchy[$key])) {
-            $classes = array_values(ClassInfo::ancestry($class));
+            $classes = array_values(ClassInfo::ancestry($class) ?? []);
             if ($includeSubclasses) {
-                $classes = array_unique(array_merge($classes, array_values(ClassInfo::subclassesFor($class))));
+                $classes = array_unique(array_merge($classes, array_values(ClassInfo::subclassesFor($class) ?? [])));
             }
 
-            $idx = array_search(DataObject::class, $classes);
+            $idx = array_search(DataObject::class, $classes ?? []);
             if ($idx !== false) {
                 array_splice($classes, 0, $idx+1);
             }
@@ -76,7 +76,7 @@ class SearchIntrospection
 
         // Strip out any subclasses of $class already in the list
         $children = ClassInfo::subclassesFor($class);
-        $list = array_diff($list, $children);
+        $list = array_diff($list ?? [], $children);
 
         // Then add the class in
         $list[] = $class;

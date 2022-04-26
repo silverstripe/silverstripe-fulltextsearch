@@ -94,7 +94,7 @@ class Solr
         $module = ModuleLoader::getModule('silverstripe/fulltextsearch');
         $modulePath = $module->getPath();
 
-        if (version_compare($version, '4', '>=')) {
+        if (version_compare($version ?? '', '4', '>=')) {
             $versionDefaults = [
                 'service'       => Solr4Service::class,
                 'extraspath'    => $modulePath . '/conf/solr/4/extras/',
