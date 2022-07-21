@@ -106,7 +106,7 @@ class BatchedProcessorTest extends SapphireTest
             $processor->addDirtyIDs(
                 BatchedProcessorTest_Object::class,
                 array(array(
-                    'id' => $id,
+                    'id' => $object->ID,
                     'state' => array(SearchVariantVersioned::class => 'Stage')
                 )),
                 BatchedProcessorTest_Index::class
