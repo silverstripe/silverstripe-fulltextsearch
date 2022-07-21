@@ -1,0 +1,20 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  # Every Wednesday at 2:10pm UTC
+  schedule:
+    - cron: '10 14 * * 3'
+
+jobs:
+  ci:
+    name: CI
+    # Only run cron on the silverstripe account
+    if: (github.event_name == 'schedule' && startsWith(github.repository, 'silverstripe/')) || (github.event_name != 'schedule')
+    uses: silverstripe/gha-ci/.github/workflows/ci.yml@v1
+    with:
+      extra_jobs: |
+        - name_suffix: subsites
+          composer_require_extra: silverstripe/subsites:^2
