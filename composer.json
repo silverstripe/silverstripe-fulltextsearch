@@ -32,7 +32,8 @@
     "require-dev": {
         "silverstripe/cms": "^4.0",
         "phpunit/phpunit": "^9.5",
-        "squizlabs/php_codesniffer": "^3.0"
+        "squizlabs/php_codesniffer": "^3.0",
+        "symbiote/silverstripe-queuedjobs": "^4.9"
     },
     "autoload": {
         "psr-4": {
