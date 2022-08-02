@@ -1,9 +1,7 @@
 # FullTextSearch module
 
 [![CI](https://github.com/silverstripe/silverstripe-fulltextsearch/actions/workflows/ci.yml/badge.svg)](https://github.com/silverstripe/silverstripe-fulltextsearch/actions/workflows/ci.yml)
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/silverstripe/silverstripe-fulltextsearch/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/silverstripe/silverstripe-fulltextsearch/?branch=master)
-[![codecov](https://codecov.io/gh/silverstripe/silverstripe-fulltextsearch/branch/master/graph/badge.svg)](https://codecov.io/gh/silverstripe/silverstripe-fulltextsearch)
-[![SilverStripe supported module](https://img.shields.io/badge/silverstripe-supported-0071C4.svg)](https://www.silverstripe.org/software/addons/silverstripe-commercially-supported-module-list/)
+[![Silverstripe supported module](https://img.shields.io/badge/silverstripe-supported-0071C4.svg)](https://www.silverstripe.org/software/addons/silverstripe-commercially-supported-module-list/)
 
 Adds support for fulltext search engines like Sphinx and Solr to Silverstripe CMS.
 Compatible with PHP 7.2
