@@ -26,7 +26,7 @@
         "monolog/monolog": "~1.15",
         "ptcinc/solr-php-client": "^1.0",
         "symfony/process": "^3.2",
-        "tractorcow/silverstripe-proxy-db" : "~0.1"
+        "tractorcow/silverstripe-proxy-db": "~0.1"
     },
     "require-dev": {
         "silverstripe/cms": "^4.0",
@@ -42,11 +42,7 @@
     "bin": [
         "bin/fulltextsearch_quickstart"
     ],
-    "extra": {
-        "branch-alias": {
-            "dev-master": "4.x-dev"
-        }
-    },
+    "extra": {},
     "scripts": {
         "lint": "phpcs -s src/ tests/",
         "lint-clean": "phpcbf src/ tests/"
