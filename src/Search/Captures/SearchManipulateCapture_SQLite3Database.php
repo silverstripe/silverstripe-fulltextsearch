@@ -2,6 +2,7 @@
 
 namespace SilverStripe\FullTextSearch\Search\Captures;
 
+use SilverStripe\Dev\Deprecation;
 use SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater;
 use SilverStripe\SQLite\SQLite3Database;
 
@@ -10,13 +11,18 @@ if (!class_exists(SQLite3Database::class)) {
 }
 
 /**
- * @deprecated 3.1...4.0 Please use tractorcow/silverstripe-proxy-db to proxy the database connector instead
+ * @deprecated 3.1.0 Use tractorcow/silverstripe-proxy-db to proxy the database connector instead
  */
 
 class SearchManipulateCapture_SQLite3Database extends SQLite3Database
 {
 
     public $isManipulationCapture = true;
+
+    public function __construct()
+    {
+        Deprecation::notice('3.1.0', 'Use tractorcow/silverstripe-proxy-db to proxy the database connector instead', Deprecation::SCOPE_CLASS);
+    }
 
     public function manipulate($manipulation)
     {
