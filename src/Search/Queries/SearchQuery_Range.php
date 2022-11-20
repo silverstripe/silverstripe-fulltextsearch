@@ -40,22 +40,22 @@ class SearchQuery_Range
     }
 
     /**
-     * @deprecated
+     * @deprecated 4.0.0 Use setStart() instead
      * @codeCoverageIgnore
      */
     public function start($start)
     {
-        Deprecation::notice('4.0', 'Use setStart() instead');
+        Deprecation::notice('4.0.0', 'Use setStart() instead');
         return $this->setStart($start);
     }
 
     /**
-     * @deprecated
+     * @deprecated 4.0.0 Use setEnd() instead
      * @codeCoverageIgnore
      */
     public function end($end)
     {
-        Deprecation::notice('4.0', 'Use setEnd() instead');
+        Deprecation::notice('4.0.0', 'Use setEnd() instead');
         return $this->setEnd($end);
     }
 }

@@ -284,81 +284,81 @@ class SearchQuery extends ViewableData
 
     /**
      * @codeCoverageIgnore
-     * @deprecated
+     * @deprecated 4.0.0 Use addSearchTerm() instead
      */
     public function search($text, $fields = null, $boost = [])
     {
-        Deprecation::notice('4.0', 'Use addSearchTerm() instead');
+        Deprecation::notice('4.0.0', 'Use addSearchTerm() instead');
         return $this->addSearchTerm($text, $fields, $boost);
     }
 
     /**
      * @codeCoverageIgnore
-     * @deprecated
+     * @deprecated 4.0.0 Use addFuzzySearchTerm() instead
      */
     public function fuzzysearch($text, $fields = null, $boost = [])
     {
-        Deprecation::notice('4.0', 'Use addFuzzySearchTerm() instead');
+        Deprecation::notice('4.0.0', 'Use addFuzzySearchTerm() instead');
         return $this->addFuzzySearchTerm($text, $fields, $boost);
     }
 
     /**
      * @codeCoverageIgnore
-     * @deprecated
+     * @deprecated 4.0.0 Use addClassFilter() instead
      */
     public function inClass($class, $includeSubclasses = true)
     {
-        Deprecation::notice('4.0', 'Use addClassFilter() instead');
+        Deprecation::notice('4.0.0', 'Use addClassFilter() instead');
         return $this->addClassFilter($class, $includeSubclasses);
     }
 
     /**
      * @codeCoverageIgnore
-     * @deprecated
+     * @deprecated 4.0.0 Use addFilter() instead
      */
     public function filter($field, $values)
     {
-        Deprecation::notice('4.0', 'Use addFilter() instead');
+        Deprecation::notice('4.0.0', 'Use addFilter() instead');
         return $this->addFilter($field, $values);
     }
 
     /**
      * @codeCoverageIgnore
-     * @deprecated
+     * @deprecated 4.0.0 Use addExclude() instead
      */
     public function exclude($field, $values)
     {
-        Deprecation::notice('4.0', 'Use addExclude() instead');
+        Deprecation::notice('4.0.0', 'Use addExclude() instead');
         return $this->addExclude($field, $values);
     }
 
     /**
      * @codeCoverageIgnore
-     * @deprecated
+     * @deprecated 4.0.0 Use setStart() instead
      */
     public function start($start)
     {
-        Deprecation::notice('4.0', 'Use setStart() instead');
+        Deprecation::notice('4.0.0', 'Use setStart() instead');
         return $this->setStart($start);
     }
 
     /**
      * @codeCoverageIgnore
-     * @deprecated
+     * @deprecated 4.0.0 Use setLimit() instead
      */
     public function limit($limit)
     {
-        Deprecation::notice('4.0', 'Use setLimit() instead');
+        Deprecation::notice('4.0.0', 'Use setLimit() instead');
         return $this->setLimit($limit);
     }
 
     /**
      * @codeCoverageIgnore
-     * @deprecated
+     * @deprecated 4.0.0 Use setPageSize() instead
      */
     public function page($page)
     {
-        Deprecation::notice('4.0', 'Use setPageSize() instead');
+        Deprecation::notice('4.0.0', 'Use setPageSize() instead');
         return $this->setPageSize($page);
     }
 
