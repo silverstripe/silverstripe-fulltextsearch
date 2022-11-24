@@ -31,7 +31,7 @@ class SearchVariantSubsiteTest extends SapphireTest
             self::$index = singleton(static::class);
         }
 
-        Config::inst()->update(Injector::class, SearchUpdateProcessor::class, [
+        Config::inst()->merge(Injector::class, SearchUpdateProcessor::class, [
             'class' => SearchUpdateImmediateProcessor::class
         ]);
 
