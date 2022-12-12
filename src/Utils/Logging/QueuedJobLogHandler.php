@@ -3,6 +3,7 @@
 namespace SilverStripe\FullTextSearch\Utils\Logging;
 
 use Monolog\Handler\AbstractProcessingHandler;
+use Monolog\LogRecord;
 use Monolog\Logger;
 use Symbiote\QueuedJobs\Services\QueuedJob;
 
@@ -53,7 +54,7 @@ class QueuedJobLogHandler extends AbstractProcessingHandler
         return $this->queuedJob;
     }
 
-    protected function write(array $record)
+    protected function write(LogRecord $record): void
     {
         // Write formatted message
         $this->getQueuedJob()->addMessage($record['formatted']);

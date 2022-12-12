@@ -21,19 +21,19 @@
         }
     ],
     "require": {
-        "php": "^7.4 || ^8.0",
-        "silverstripe/framework": "^4.10",
-        "monolog/monolog": "~1.15",
+        "php": "^8.1",
+        "silverstripe/framework": "^5",
+        "monolog/monolog": "^3.2",
         "silverstripe/solr-php-client": "^1.0",
-        "symfony/process": "^3.4 || ^4",
-        "tractorcow/silverstripe-proxy-db": "^1",
+        "symfony/process": "^6.2",
+        "silverstripe/silverstripe-proxy-db": "^2",
         "ext-curl": "*"
     },
     "require-dev": {
-        "silverstripe/cms": "^4.0",
+        "silverstripe/cms": "^5",
         "phpunit/phpunit": "^9.5",
-        "squizlabs/php_codesniffer": "^3.0",
-        "symbiote/silverstripe-queuedjobs": "^4.9"
+        "squizlabs/php_codesniffer": "^3",
+        "symbiote/silverstripe-queuedjobs": "^5"
     },
     "autoload": {
         "psr-4": {
