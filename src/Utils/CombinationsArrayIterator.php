@@ -32,29 +32,26 @@ class CombinationsArrayIterator implements Iterator
         $this->rewind();
     }
 
-    #[\ReturnTypeWillChange]
-    public function rewind()
+    public function rewind(): void
     {
         if (!$this->numArrays) {
             $this->isValid = false;
         } else {
             $this->isValid = true;
             $this->k = 0;
-            
+
             for ($i = 0; $i < $this->numArrays; $i++) {
                 reset($this->arrays[$i]);
             }
         }
     }
 
-    #[\ReturnTypeWillChange]
-    public function valid()
+    public function valid(): bool
     {
         return $this->isValid;
     }
 
-    #[\ReturnTypeWillChange]
-    public function next()
+    public function next(): void
     {
         $this->k++;
 
@@ -71,8 +68,7 @@ class CombinationsArrayIterator implements Iterator
         }
     }
 
-    #[\ReturnTypeWillChange]
-    public function current()
+    public function current(): mixed
     {
         $res = array();
         for ($i = 0; $i < $this->numArrays; $i++) {
@@ -81,8 +77,7 @@ class CombinationsArrayIterator implements Iterator
         return $res;
     }
 
-    #[\ReturnTypeWillChange]
-    public function key()
+    public function key(): mixed
     {
         return $this->k;
     }
