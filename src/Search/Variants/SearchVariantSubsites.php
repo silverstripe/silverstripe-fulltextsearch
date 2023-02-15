@@ -49,7 +49,7 @@ class SearchVariantSubsites extends SearchVariant
 
     public function currentState()
     {
-        return (string) SubsiteState::singleton()->getSubsiteId();
+        return SubsiteState::singleton()->getSubsiteId();
     }
 
     public function reindexStates()
@@ -74,8 +74,8 @@ class SearchVariantSubsites extends SearchVariant
 
         if (is_numeric($state)) {
             $state = (int) $state;
-        } else {
-            throw new InvalidArgumentException("Invalid state ID. State ID should be number.");
+        } elseif ($state !== null) {
+            throw new InvalidArgumentException("Invalid state ID. State ID should be number or null.");
         }
 
         // Note: Setting directly to the SubsiteState because we don't want the subsite ID to be persisted
