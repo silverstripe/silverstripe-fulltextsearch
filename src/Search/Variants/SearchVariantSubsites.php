@@ -2,6 +2,7 @@
 
 namespace SilverStripe\FullTextSearch\Search\Variants;
 
+use InvalidArgumentException;
 use SilverStripe\Assets\File;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\FullTextSearch\Search\Indexes\SearchIndex;
@@ -69,6 +70,12 @@ class SearchVariantSubsites extends SearchVariant
     {
         if (!$this->appliesToEnvironment()) {
             return;
+        }
+
+        if (is_numeric($state)) {
+            $state = (int) $state;
+        } else {
+            throw new InvalidArgumentException("Invalid state ID. State ID should be number.");
         }
 
         // Note: Setting directly to the SubsiteState because we don't want the subsite ID to be persisted
