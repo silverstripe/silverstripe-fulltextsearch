@@ -22,7 +22,7 @@
     ],
     "require": {
         "php": "^7.4 || ^8.0",
-        "silverstripe/framework": "^4.10",
+        "silverstripe/framework": "4.13.x-dev",
         "monolog/monolog": "~1.15",
         "silverstripe/solr-php-client": "^1.0",
         "symfony/process": "^3.4 || ^4",
