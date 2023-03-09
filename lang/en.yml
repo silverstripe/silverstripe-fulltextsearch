@@ -2,3 +2,13 @@ en:
   SilverStripe\FullTextSearch\Solr\Forms\SearchForm:
     GO: Go
     SEARCH: Search
+  SolrResultsPage:
+    DidYouMean: 'Did you mean'
+    NoResults: 'Sorry, your search query did not return any results.'
+    Page: Page
+    ReadMore: 'Read more about'
+    SearchQuery: 'You searched for'
+    ViewNextPage: 'View the next page'
+    ViewPageNumber: 'View page number'
+    ViewPreviousPage: 'View the previous page'
+    of: of
