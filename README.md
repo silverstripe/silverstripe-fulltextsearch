@@ -4,32 +4,18 @@
 [![Silverstripe supported module](https://img.shields.io/badge/silverstripe-supported-0071C4.svg)](https://www.silverstripe.org/software/addons/silverstripe-commercially-supported-module-list/)
 
 Adds support for fulltext search engines like Sphinx and Solr to Silverstripe CMS.
-Compatible with PHP 7.2
 
-## Important notes when upgrading to fulltextsearch 3.7.0+
+## Installation
 
-There are some significant changes from previous versions:
-
-Draft content will no longer be automatically added to the search index.  This new behaviour was previously an
-opt-in behaviour that was enabled by adding the following line to a search index:
-
+```sh
+composer require silverstripe/fulltextsearch
 ```
-$this->excludeVariantState([SearchVariantVersioned::class => Versioned::DRAFT]);
-```
-
-A new `canView()` check against an anonymous user (i.e. someone not logged in) and a `ShowInSearch` check is now
-performed by default against all records (DataObjects) before being added to the search index, and also before being
-shown in search results. This may mean that some records that were previously being indexed and shown in search results
-will no longer appear due to these additional checks.
-
-These additional checks have been added with data security in mind, and it's assumed that records failing these
-checks probably should not be indexed in the first place.
 
 # Enable indexing of draft content:
 
 You can index draft content with the following yml configuration:
 
-```
+```yaml
 SilverStripe\FullTextSearch\Search\Services\SearchableService:
   variant_state_draft_excluded: false
 ```
@@ -49,7 +35,7 @@ also disable the check for descendants of the specified DataObjects. Ensure that
 is correctly performing a `canView()` check at query time before disabling the pre-index check, as this may result in
 leakage of private data.
 
-```
+```yaml
 SilverStripe\FullTextSearch\Search\Services\SearchableService:
   indexing_canview_exclude_classes:
     - Some\Org\MyDataObject
@@ -58,7 +44,7 @@ SilverStripe\FullTextSearch\Search\Services\SearchableService:
 ```
 
 You can also use the `updateIsSearchable` extension point on `SearchableService` to modify the result of the method
-after the `ShowInSearch` and `canView()` checks have run. 
+after the `ShowInSearch` and `canView()` checks have run.
 
 It is highly recommend you run a [solr_reindex](https://github.com/silverstripe/silverstripe-fulltextsearch/blob/3/docs/en/03_configuration.md#solr-reindex)
 on your production site after upgrading from 3.6 or earlier to purge any old data that should no longer be in the search index.
@@ -81,12 +67,6 @@ module which is fairly time-intensive, then the relative performance impact of t
 cached in memory so there is virtually no performance penalty calling it a second time.
 - If your implementation is very custom and does not subclass nor make use of either `SolrIndex` or `SearchForm`, then
 it's recommended you update your implementation to call `SearchableService::isViewable()`.
-
-## Requirements
-
-* Silverstripe 4.0+
-
-**Note:** For Silverstripe 3.x, please use the [2.x release line](https://github.com/silverstripe/silverstripe-fulltextsearch/tree/2).
 
 ## Documentation
 
