@@ -105,6 +105,9 @@ abstract class SearchVariant
                     $ref = new ReflectionClass($variantclass);
                     if ($ref->isInstantiable()) {
                         $variant = singleton($variantclass);
+                        // reassign actual class since Injector could be involved when creating the singleton
+                        $variantclass = get_class($variant);
+
                         if ($variant->appliesToEnvironment()) {
                             $concrete[$variantclass] = $variant;
                         }
