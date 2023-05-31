@@ -1,0 +1,14 @@
+nl:
+  SilverStripe\FullTextSearch\Solr\Forms\SearchForm:
+    GO: Zoek
+    SEARCH: Zoeken
+  SolrResultsPage:
+    DidYouMean: 'Bedoelde je'
+    NoResults: 'Helaas, deze zoekterm heeft geen resultaten opgeleverd.'
+    Page: Pagina
+    ReadMore: 'Lees meer over'
+    SearchQuery: 'Er is gezocht op'
+    ViewNextPage: 'Bekijk volgende pagina'
+    ViewPageNumber: 'Bekijk pagina'
+    ViewPreviousPage: 'Bekijk volgende pagina'
+    of: van

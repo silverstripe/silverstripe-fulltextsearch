@@ -1,0 +1,14 @@
+sv:
+  SilverStripe\FullTextSearch\Solr\Forms\SearchForm:
+    GO: Gå
+    SEARCH: Sök
+  SolrResultsPage:
+    DidYouMean: 'Menade du'
+    NoResults: 'Förlåt, din sökfråga gav inga resultat.'
+    Page: Sida
+    ReadMore: 'Läs mera om'
+    SearchQuery: 'Du sökte efter'
+    ViewNextPage: 'Visa nästa sida'
+    ViewPageNumber: 'Visa sidnummer'
+    ViewPreviousPage: 'Visa föregående sida'
+    of: av
