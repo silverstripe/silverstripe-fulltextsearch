@@ -1,0 +1,14 @@
+sl:
+  SilverStripe\FullTextSearch\Solr\Forms\SearchForm:
+    GO: Išči
+    SEARCH: Iskanje
+  SolrResultsPage:
+    DidYouMean: 'Ste morda mislili'
+    NoResults: 'Fraze, ki ste jo iskali, nismo našli.'
+    Page: Stran
+    ReadMore: 'Več o'
+    SearchQuery: 'Iskali ste'
+    ViewNextPage: Naslednja
+    ViewPageNumber: 'Skoči na stran'
+    ViewPreviousPage: Prejšnja
+    of: od

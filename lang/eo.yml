@@ -1,0 +1,14 @@
+eo:
+  SilverStripe\FullTextSearch\Solr\Forms\SearchForm:
+    GO: Iri
+    SEARCH: Serĉi
+  SolrResultsPage:
+    DidYouMean: 'Ĉu vi intencis'
+    NoResults: 'Bedaŭrinde via serĉpeto ne liveris rezultojn.'
+    Page: Paĝo
+    ReadMore: 'Legi pli pri'
+    SearchQuery: 'Vi serĉis por'
+    ViewNextPage: 'Vidi la sekvan paĝon'
+    ViewPageNumber: 'Vidi paĝnumeron'
+    ViewPreviousPage: 'Vidi la antaŭan paĝon'
+    of: de
