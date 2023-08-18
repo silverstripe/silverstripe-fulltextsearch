@@ -3,12 +3,12 @@ fi:
     GO: Hae
     SEARCH: Haku
   SolrResultsPage:
-    SearchQuery: 'Hakusanasi oli'
     DidYouMean: Tarkoititko
-    ReadMore: 'Lue lisää'
     NoResults: 'Pahoittelut, mutta hakusi ei tuottanut yhtään osumaa.'
     Page: Sivu
-    of: /
-    ViewPreviousPage: 'Katso edellinen sivu'
+    ReadMore: 'Lue lisää'
+    SearchQuery: 'Hakusanasi oli'
     'View page number': 'Siirry sivulle'
     ViewNextPage: 'Katso seuraava sivu'
+    ViewPreviousPage: 'Katso edellinen sivu'
+    of: /
