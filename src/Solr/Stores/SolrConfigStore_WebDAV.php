@@ -15,12 +15,12 @@ class SolrConfigStore_WebDAV implements SolrConfigStore
     /**
      * @var string
      */
-    protected $remote = '';
+    public $remote;
 
     /**
      * @var string
      */
-    protected $url = '';
+    public $url;
 
     /**
      * @param array $config
