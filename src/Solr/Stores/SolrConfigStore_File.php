@@ -13,12 +13,12 @@ class SolrConfigStore_File implements SolrConfigStore
     /**
      * @var string
      */
-    protected $remote = '';
+    public $remote;
 
     /**
      * @var string
      */
-    protected $local = '';
+    public $local;
 
     /**
      * @param array $config
