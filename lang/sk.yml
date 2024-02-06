@@ -1,0 +1,14 @@
+sk:
+  SilverStripe\FullTextSearch\Solr\Forms\SearchForm:
+    GO: Choď
+    SEARCH: Hľadať
+  SolrResultsPage:
+    DidYouMean: 'Mysleli ste'
+    NoResults: 'Ľutujeme, váš vyhľadávací dopyt nevrátil žiadne výsledky.'
+    Page: Stránka
+    ReadMore: 'Prečítajte si viac o'
+    SearchQuery: 'Hľadali ste'
+    ViewNextPage: 'Zobraziť ďalšiu stránku'
+    ViewPageNumber: 'Zobraziť číslo stránky'
+    ViewPreviousPage: 'Zobraziť predchádzajúcu stránku'
+    of: z
