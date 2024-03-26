@@ -10,6 +10,19 @@ namespace SilverStripe\FullTextSearch\Solr\Stores;
  */
 class SolrConfigStore_File implements SolrConfigStore
 {
+    /**
+     * @var string
+     */
+    public $remote;
+
+    /**
+     * @var string
+     */
+    public $local;
+
+    /**
+     * @param array $config
+     */
     public function __construct($config)
     {
         $this->local = $config['path'];

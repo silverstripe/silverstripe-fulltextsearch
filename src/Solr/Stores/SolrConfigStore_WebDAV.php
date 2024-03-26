@@ -12,6 +12,19 @@ use SilverStripe\FullTextSearch\Utils\WebDAV;
  */
 class SolrConfigStore_WebDAV implements SolrConfigStore
 {
+    /**
+     * @var string
+     */
+    public $remote;
+
+    /**
+     * @var string
+     */
+    public $url;
+
+    /**
+     * @param array $config
+     */
     public function __construct($config)
     {
         $options = Solr::solr_options();
