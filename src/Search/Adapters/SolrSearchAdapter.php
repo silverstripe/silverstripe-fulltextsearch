@@ -35,15 +35,12 @@ class SolrSearchAdapter implements SearchAdapterInterface
      */
     public function getConjunctionFor($conjunction)
     {
-        switch ($conjunction) {
-            case SearchCriteria::CONJUNCTION_AND:
-            case SearchCriteria::CONJUNCTION_OR:
-                return sprintf(' %s ', $conjunction);
-            default:
-                throw new InvalidArgumentException(
-                    sprintf('Invalid conjunction supplied to SolrSearchAdapter: "%s".', $conjunction)
-                );
-        }
+        return match ($conjunction) {
+            SearchCriteria::CONJUNCTION_AND, SearchCriteria::CONJUNCTION_OR => sprintf(' %s ', $conjunction),
+            default => throw new InvalidArgumentException(
+                sprintf('Invalid conjunction supplied to SolrSearchAdapter: "%s".', $conjunction)
+            ),
+        };
     }
 
     /**

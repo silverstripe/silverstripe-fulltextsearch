@@ -44,7 +44,7 @@ class SearchVariantVersioned extends SearchVariant
             'lookup_chain' => [
                 [
                     'call' => 'variant',
-                    'variant' => get_class($this),
+                    'variant' => static::class,
                     'method' => 'currentState'
                 ]
             ]
@@ -72,7 +72,7 @@ class SearchVariantVersioned extends SearchVariant
 
             if (ClassInfo::exists($class) && $this->appliesTo($class, false)) {
                 $manipulation[$table]['class'] = $class;
-                $manipulation[$table]['state'][get_class($this)] = $stage;
+                $manipulation[$table]['state'][static::class] = $stage;
             }
         }
     }
@@ -87,7 +87,7 @@ class SearchVariantVersioned extends SearchVariant
             $table = $class;
 
             foreach ($ids as $i => $statefulid) {
-                $ids[$i]['state'][get_class($this)] = $suffix ?: Versioned::DRAFT;
+                $ids[$i]['state'][static::class] = $suffix ?: Versioned::DRAFT;
             }
         }
     }

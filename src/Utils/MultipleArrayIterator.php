@@ -12,7 +12,7 @@ class MultipleArrayIterator implements Iterator
     {
         $args = func_get_args();
 
-        $this->arrays = array();
+        $this->arrays = [];
         foreach ($args as $arg) {
             if (is_array($arg) && count($arg ?? [])) {
                 $this->arrays[] = $arg;

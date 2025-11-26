@@ -17,7 +17,7 @@ class WebDAV
     public static function exists($url)
     {
         // WebDAV expects that checking a directory exists has a trailing slash
-        if (substr($url ?? '', -1) != '/') {
+        if (!str_ends_with($url ?? '', '/')) {
             $url .= '/';
         }
 

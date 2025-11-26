@@ -35,7 +35,7 @@ class MonologFactory implements SearchLogFactory
 
     public function getQueuedJobLogger($job)
     {
-        $logger = $this->getLoggerFor(get_class($job));
+        $logger = $this->getLoggerFor($job::class);
         $handler = $this->getJobHandler($job);
         $logger->pushHandler($handler);
         return $logger;
@@ -56,7 +56,7 @@ class MonologFactory implements SearchLogFactory
         $stream = Director::is_cli() ? $stream : 'php://output';
         $handler = Injector::inst()->createWithArgs(
             StreamHandler::class,
-            array($stream, $level, $bubble)
+            [$stream, $level, $bubble]
         );
         $handler->setFormatter($formatter);
         return $handler;
@@ -76,7 +76,7 @@ class MonologFactory implements SearchLogFactory
         }
         return Injector::inst()->createWithArgs(
             LineFormatter::class,
-            array($format)
+            [$format]
         );
     }
 
@@ -90,7 +90,7 @@ class MonologFactory implements SearchLogFactory
     {
         return Injector::inst()->createWithArgs(
             Logger::class,
-            array(strtolower($name ?? ''))
+            [strtolower($name ?? '')]
         );
     }
 
@@ -104,7 +104,7 @@ class MonologFactory implements SearchLogFactory
     {
         return Injector::inst()->createWithArgs(
             QueuedJobLogHandler::class,
-            array($job, Logger::INFO)
+            [$job, Logger::INFO]
         );
     }
 }

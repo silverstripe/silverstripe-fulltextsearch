@@ -2,6 +2,7 @@
 
 namespace SilverStripe\FullTextSearch\Search\Criteria;
 
+use Exception;
 use SilverStripe\FullTextSearch\Search\Adapters\SearchAdapterInterface;
 use SilverStripe\FullTextSearch\Search\Queries\AbstractSearchQueryWriter;
 
@@ -26,14 +27,14 @@ class SearchCriteria implements SearchCriteriaInterface
      *
      * @var SearchCriteriaInterface[]
      */
-    protected $clauses = array();
+    protected $clauses = [];
 
     /**
      * The conjunctions used between Criteria (AND/OR).
      *
      * @var string[]
      */
-    protected $conjunctions = array();
+    protected $conjunctions = [];
 
     /**
      * @var SearchAdapterInterface|null
@@ -104,14 +105,14 @@ class SearchCriteria implements SearchCriteriaInterface
     /**
      * @param string $ps Current prepared statement.
      * @return void
-     * @throws \Exception
+     * @throws Exception
      */
     public function appendPreparedStatementTo(&$ps)
     {
         $adapter = $this->getAdapter();
 
         if (!$adapter instanceof SearchAdapterInterface) {
-            throw new \Exception('No adapter has been applied to SearchCriteria');
+            throw new Exception('No adapter has been applied to SearchCriteria');
         }
 
         $ps .= $adapter->getOpenComparisonContainer();

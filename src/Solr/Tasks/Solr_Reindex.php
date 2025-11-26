@@ -2,12 +2,12 @@
 
 namespace SilverStripe\FullTextSearch\Solr\Tasks;
 
+use Override;
+use SilverStripe\PolyExecution\PolyOutput;
 use ReflectionClass;
 use SilverStripe\Core\ClassInfo;
 use SilverStripe\Core\Injector\Injector;
-use SilverStripe\Dev\Debug;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
-use SilverStripe\ORM\DataList;
 use SilverStripe\FullTextSearch\Solr\Reindex\Handlers\SolrReindexHandler;
 use SilverStripe\FullTextSearch\Solr\SolrIndex;
 
@@ -52,7 +52,8 @@ class Solr_Reindex extends Solr_BuildTask
     /**
      * @param SS_HTTPRequest $request
      */
-    public function run($request)
+    #[Override]
+    public function run($request, PolyOutput $output)
     {
         parent::run($request);
 
@@ -111,7 +112,7 @@ class Solr_Reindex extends Solr_BuildTask
         }
 
         // If run at the top level, delegate to appropriate handler
-        $taskName = $this->config()->segment ?: get_class($this);
+        $taskName = $this->config()->segment ?: static::class;
         $handler->triggerReindex($this->getLogger(), $this->config()->recordsPerRequest, $taskName, $class);
     }
 }

@@ -2,6 +2,7 @@
 
 namespace SilverStripe\FullTextSearch\Solr\Reindex\Jobs;
 
+use Override;
 use Symbiote\QueuedJobs\Services\QueuedJob;
 
 if (!interface_exists(QueuedJob::class)) {
@@ -20,13 +21,6 @@ if (!interface_exists(QueuedJob::class)) {
 class SolrReindexGroupQueuedJob extends SolrReindexQueuedJobBase
 {
     /**
-     * Name of index to reindex
-     *
-     * @var string
-     */
-    protected $indexName;
-
-    /**
      * Variant state that this group belongs to
      *
      * @var type
@@ -34,36 +28,30 @@ class SolrReindexGroupQueuedJob extends SolrReindexQueuedJobBase
     protected $state;
 
     /**
+     * @param string $indexName
+     * @param string $class
+     * @param int $groups
+     * @param int $group
+     */
+    public function __construct(/**
+     * Name of index to reindex
+     */
+    protected $indexName = null, $state = null, /**
      * Single class name to index
-     *
-     * @var string
      */
-    protected $class;
-
-    /**
+    protected $class = null, /**
      * Total number of groups
-     *
-     * @var int
      */
-    protected $groups;
-
-    /**
+    protected $groups = null, /**
      * Group index
-     *
-     * @var int
      */
-    protected $group;
-
-    public function __construct($indexName = null, $state = null, $class = null, $groups = null, $group = null)
+    protected $group = null)
     {
         parent::__construct();
-        $this->indexName = $indexName;
         $this->state = $state;
-        $this->class = $class;
-        $this->groups = $groups;
-        $this->group = $group;
     }
 
+    #[Override]
     public function getJobData()
     {
         $data = parent::getJobData();
@@ -78,6 +66,7 @@ class SolrReindexGroupQueuedJob extends SolrReindexQueuedJobBase
         return $data;
     }
 
+    #[Override]
     public function setJobData($totalSteps, $currentStep, $isComplete, $jobData, $messages)
     {
         parent::setJobData($totalSteps, $currentStep, $isComplete, $jobData, $messages);

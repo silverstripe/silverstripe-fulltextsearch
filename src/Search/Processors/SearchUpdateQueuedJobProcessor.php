@@ -2,6 +2,7 @@
 
 namespace SilverStripe\FullTextSearch\Search\Processors;
 
+use Override;
 use SilverStripe\Core\Config\Config;
 use stdClass;
 use Symbiote\QueuedJobs\Services\QueuedJob;
@@ -20,8 +21,9 @@ class SearchUpdateQueuedJobProcessor extends SearchUpdateBatchedProcessor implem
      */
     private static $reindex_queue = QueuedJob::QUEUED;
 
-    protected $messages = array();
+    protected $messages = [];
 
+    #[Override]
     public function triggerProcessing()
     {
         parent::triggerProcessing();
@@ -35,12 +37,12 @@ class SearchUpdateQueuedJobProcessor extends SearchUpdateBatchedProcessor implem
 
     public function getSignature()
     {
-        return md5(get_class($this) . time() . mt_rand(0, 100000));
+        return md5(static::class . time() . mt_rand(0, 100000));
     }
 
     public function getJobType()
     {
-        return Config::inst()->get(__CLASS__, 'reindex_queue');
+        return Config::inst()->get(self::class, 'reindex_queue');
     }
 
     public function jobFinished()
@@ -95,6 +97,7 @@ class SearchUpdateQueuedJobProcessor extends SearchUpdateBatchedProcessor implem
         $this->messages[] = '[' . date('Y-m-d H:i:s') . "][$severity] $message";
     }
 
+    #[Override]
     public function process()
     {
         $result = parent::process();

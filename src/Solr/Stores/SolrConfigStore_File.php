@@ -2,6 +2,8 @@
 
 namespace SilverStripe\FullTextSearch\Solr\Stores;
 
+use RuntimeException;
+
 /**
  * Class SolrConfigStore_File
  *
@@ -37,7 +39,7 @@ class SolrConfigStore_File implements SolrConfigStore
             $worked = @mkdir($targetDir ?? '', 0770, true);
 
             if (!$worked) {
-                throw new \RuntimeException(
+                throw new RuntimeException(
                     sprintf('Failed creating target directory %s, please check permissions', $targetDir)
                 );
             }

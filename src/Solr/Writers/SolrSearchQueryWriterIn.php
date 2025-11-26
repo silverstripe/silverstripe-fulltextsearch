@@ -33,12 +33,10 @@ class SolrSearchQueryWriterIn extends AbstractSearchQueryWriter
      */
     protected function getComparisonPolarity($comparison)
     {
-        switch ($comparison) {
-            case SearchCriterion::NOT_IN:
-                return '-';
-            default:
-                return '+';
-        }
+        return match ($comparison) {
+            SearchCriterion::NOT_IN => '-',
+            default => '+',
+        };
     }
 
     /**
@@ -48,7 +46,7 @@ class SolrSearchQueryWriterIn extends AbstractSearchQueryWriter
      */
     protected function getInComparisonString(SearchCriterion $searchCriterion)
     {
-        $conditions = array();
+        $conditions = [];
 
         if (!is_array($searchCriterion->getValue())) {
             throw new InvalidArgumentException('Invalid value type for Criterion IN');

@@ -1,7 +1,8 @@
 <?php
 namespace SilverStripe\FullTextSearch\Solr\Tasks;
 
-use Monolog\Handler\StreamHandler;
+use SilverStripe\PolyExecution\PolyOutput;
+use Override;
 use Psr\Log\LoggerInterface;
 use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Core\Injector\Injector;
@@ -55,9 +56,10 @@ class Solr_BuildTask extends BuildTask
      *
      * @param HTTPRequest $request
      */
-    public function run($request)
+    #[Override]
+    public function run($request, PolyOutput $output)
     {
-        $name = get_class($this);
+        $name = static::class;
         $verbose = $request->getVar('verbose');
 
         // Set new logger

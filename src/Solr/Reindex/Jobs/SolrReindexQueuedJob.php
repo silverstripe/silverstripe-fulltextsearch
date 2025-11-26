@@ -2,6 +2,7 @@
 
 namespace SilverStripe\FullTextSearch\Solr\Reindex\Jobs;
 
+use Override;
 use Symbiote\QueuedJobs\Services\QueuedJob;
 
 if (!interface_exists(QueuedJob::class)) {
@@ -14,35 +15,26 @@ if (!interface_exists(QueuedJob::class)) {
 class SolrReindexQueuedJob extends SolrReindexQueuedJobBase
 {
     /**
-     * Size of each batch to run
-     *
-     * @var int
+     * @param int $batchSize
+     * @param string $taskName
+     * @param mixed[]|string $classes
      */
-    protected $batchSize;
-
-    /**
+    public function __construct(/**
+     * Size of each batch to run
+     */
+    protected $batchSize = null, /**
      * Name of devtask Which invoked this
      * Not necessary for re-index processing performed entirely by queuedjobs
-     *
-     * @var string
      */
-    protected $taskName;
-
-    /**
+    protected $taskName = null, /**
      * List of classes to filter
-     *
-     * @var array|string
      */
-    protected $classes;
-
-    public function __construct($batchSize = null, $taskName = null, $classes = null)
+    protected $classes = null)
     {
-        $this->batchSize = $batchSize;
-        $this->taskName = $taskName;
-        $this->classes = $classes;
         parent::__construct();
     }
 
+    #[Override]
     public function getJobData()
     {
         $data = parent::getJobData();
@@ -55,6 +47,7 @@ class SolrReindexQueuedJob extends SolrReindexQueuedJobBase
         return $data;
     }
 
+    #[Override]
     public function setJobData($totalSteps, $currentStep, $isComplete, $jobData, $messages)
     {
         parent::setJobData($totalSteps, $currentStep, $isComplete, $jobData, $messages);

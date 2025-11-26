@@ -3,12 +3,10 @@
 namespace SilverStripe\FullTextSearch\Search\Processors;
 
 use SilverStripe\FullTextSearch\Search\Services\SearchableService;
-use SilverStripe\FullTextSearch\Search\Variants\SearchVariantVersioned;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\DB;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
-use SilverStripe\Versioned\Versioned;
 
 abstract class SearchUpdateProcessor
 {
@@ -38,13 +36,13 @@ abstract class SearchUpdateProcessor
 
     public function __construct()
     {
-        $this->dirty = array();
+        $this->dirty = [];
     }
 
     public function addDirtyIDs($class, $statefulids, $index)
     {
         $base = DataObject::getSchema()->baseDataClass($class);
-        $forclass = isset($this->dirty[$base]) ? $this->dirty[$base] : array();
+        $forclass = $this->dirty[$base] ?? [];
 
         foreach ($statefulids as $statefulid) {
             $id = $statefulid['id'];
@@ -52,9 +50,9 @@ abstract class SearchUpdateProcessor
             $statekey = serialize($state);
 
             if (!isset($forclass[$statekey])) {
-                $forclass[$statekey] = array('state' => $state, 'ids' => array($id => array($index)));
+                $forclass[$statekey] = ['state' => $state, 'ids' => [$id => [$index]]];
             } elseif (!isset($forclass[$statekey]['ids'][$id])) {
-                $forclass[$statekey]['ids'][$id] = array($index);
+                $forclass[$statekey]['ids'][$id] = [$index];
             } elseif (array_search($index, $forclass[$statekey]['ids'][$id] ?? []) === false) {
                 $forclass[$statekey]['ids'][$id][] = $index;
                 // dirty count stays the same
@@ -72,7 +70,7 @@ abstract class SearchUpdateProcessor
     protected function prepareIndexes()
     {
         $originalState = SearchVariant::current_state();
-        $dirtyIndexes = array();
+        $dirtyIndexes = [];
         $dirty = $this->getSource();
         $indexes = FullTextSearch::get_indexes();
         $searchableService = SearchableService::singleton();

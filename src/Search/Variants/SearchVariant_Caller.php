@@ -7,16 +7,13 @@ namespace SilverStripe\FullTextSearch\Search\Variants;
  */
 class SearchVariant_Caller
 {
-    protected $variants = null;
-
-    public function __construct($variants)
+    public function __construct(protected $variants)
     {
-        $this->variants = $variants;
     }
 
     public function call($method, &...$args)
     {
-        $values = array();
+        $values = [];
 
         foreach ($this->variants as $variant) {
             if (method_exists($variant, $method ?? '')) {

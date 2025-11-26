@@ -2,6 +2,7 @@
 
 namespace SilverStripe\FullTextSearch\Search\Services;
 
+use Exception;
 use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Core\Extensible;
 use SilverStripe\Core\Injector\Injectable;
@@ -150,9 +151,7 @@ class SearchableService
             if ($indexing) {
                 // Anonymous member canView() for indexing
                 if (!$this->classSkipsCanViewCheck($objClass)) {
-                    $value = Member::actAs(null, function () use ($obj) {
-                        return (bool) $obj->canView();
-                    });
+                    $value = Member::actAs(null, fn() => (bool) $obj->canView());
                 }
             } else {
                 // Current member canView() check for retrieving search results
@@ -177,7 +176,7 @@ class SearchableService
         if (method_exists($obj, 'getUniqueKey')) {
             try {
                 $uniqueKey = $obj->getUniqueKey();
-            } catch (\Exception $e) {
+            } catch (Exception) {
                 $uniqueKey = '';
             }
         }

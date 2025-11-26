@@ -3,6 +3,7 @@
 namespace SilverStripe\FullTextSearch\Search\Variants;
 
 use InvalidArgumentException;
+use Override;
 use SilverStripe\Assets\File;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\FullTextSearch\Search\Indexes\SearchIndex;
@@ -24,6 +25,7 @@ if (!class_exists(Subsite::class)) {
 
 class SearchVariantSubsites extends SearchVariant
 {
+    #[Override]
     public function appliesToEnvironment()
     {
         return class_exists(Subsite::class) && parent::appliesToEnvironment();
@@ -49,7 +51,7 @@ class SearchVariantSubsites extends SearchVariant
 
     public function currentState()
     {
-        return SubsiteState::singleton()->getSubsiteId();
+        return (string) SubsiteState::singleton()->getSubsiteId();
     }
 
     public function reindexStates()
@@ -86,7 +88,7 @@ class SearchVariantSubsites extends SearchVariant
 
     public function alterDefinition($class, $index)
     {
-        $self = get_class($this);
+        $self = static::class;
 
         if (!$this->appliesTo($class, true)) {
             return;
@@ -132,7 +134,7 @@ class SearchVariantSubsites extends SearchVariant
      */
     public function extractManipulationWriteState(&$writes)
     {
-        $self = get_class($this);
+        $self = static::class;
         $tableName = DataObject::getSchema()->tableName(Subsite::class);
         $query = SQLSelect::create('"ID"', '"' . $tableName . '"');
         $subsites = array_merge(['0'], $query->execute()->column());
@@ -155,7 +157,7 @@ class SearchVariantSubsites extends SearchVariant
             }
 
             $next = [];
-            foreach ($write['statefulids'] as $i => $statefulid) {
+            foreach ($write['statefulids'] as $statefulid) {
                 foreach ($subsitesForWrite as $subsiteID) {
                     $next[] = [
                         'id' => $statefulid['id'],

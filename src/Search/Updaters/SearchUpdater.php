@@ -4,16 +4,11 @@ namespace SilverStripe\FullTextSearch\Search\Updaters;
 
 use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Core\Injector\Injector;
-use SilverStripe\Dev\SapphireTest;
-use SilverStripe\ORM\Connect\Database;
 use SilverStripe\ORM\DataObject;
-use SilverStripe\ORM\DB;
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
 use SilverStripe\FullTextSearch\Search\SearchIntrospection;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
 use SilverStripe\FullTextSearch\Search\Processors\SearchUpdateProcessor;
-
-use ReflectionClass;
 
 /**
  * This class is responsible for capturing changes to DataObjects and triggering index updates of the resulting dirty
@@ -71,16 +66,16 @@ class SearchUpdater
             if (!isset($manipulation[$table]['class'])) {
                 $manipulation[$table]['class'] = DataObject::getSchema()->tableClass($table);
             }
-            $manipulation[$table]['state'] = array();
+            $manipulation[$table]['state'] = [];
         }
 
         SearchVariant::call('extractManipulationState', $manipulation);
 
         // Then combine the manipulation back into object field sets
 
-        $writes = array();
+        $writes = [];
 
-        foreach ($manipulation as $table => $details) {
+        foreach ($manipulation as $details) {
             if (!isset($details['id'])) {
                 continue;
             }
@@ -89,23 +84,23 @@ class SearchUpdater
             $state = $details['state'];
             $class = $details['class'];
             $command = $details['command'];
-            $fields = isset($details['fields']) ? $details['fields'] : array();
+            $fields = $details['fields'] ?? [];
 
             $base = DataObject::getSchema()->baseDataClass($class);
             $key = "$id:$base:" . serialize($state);
 
-            $statefulids = array(array('id' => $id, 'state' => $state));
+            $statefulids = [['id' => $id, 'state' => $state]];
 
             // Is this the first table for this particular object? Then add an item to $writes
             if (!isset($writes[$key])) {
-                $writes[$key] = array(
+                $writes[$key] = [
                     'base' => $base,
                     'class' => $class,
                     'id' => $id,
                     'statefulids' => $statefulids,
                     'command' => $command,
-                    'fields' => array()
-                );
+                    'fields' => []
+                ];
             } elseif (is_subclass_of($class, $writes[$key]['class'] ?? '')) {
                 // Otherwise update the class label if it's more specific than the currently recorded one
                 $writes[$key]['class'] = $class;
@@ -163,7 +158,7 @@ class SearchUpdater
 
         // If we do have some work to do register the shutdown function to actually do the work
         if (self::$processor && !self::$registered && self::config()->get('flush_on_shutdown')) {
-            register_shutdown_function(array(SearchUpdater::class, "flush_dirty_indexes"));
+            register_shutdown_function([SearchUpdater::class, "flush_dirty_indexes"]);
             self::$registered = true;
         }
     }

@@ -34,12 +34,10 @@ class SolrSearchQueryWriterBasic extends AbstractSearchQueryWriter
      */
     protected function getComparisonPolarity($comparison)
     {
-        switch ($comparison) {
-            case SearchCriterion::NOT_EQUAL:
-                return '-';
-            default:
-                return '+';
-        }
+        return match ($comparison) {
+            SearchCriterion::NOT_EQUAL => '-',
+            default => '+',
+        };
     }
 
     /**

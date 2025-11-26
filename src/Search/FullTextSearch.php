@@ -4,7 +4,6 @@ namespace SilverStripe\FullTextSearch\Search;
 
 use SilverStripe\Core\ClassInfo;
 use SilverStripe\Core\Config\Config;
-use SilverStripe\ORM\DataObject;
 use SilverStripe\FullTextSearch\Search\Indexes\SearchIndex;
 use ReflectionClass;
 
@@ -15,7 +14,7 @@ class FullTextSearch
 {
     protected static $all_indexes = null;
 
-    protected static $indexes_by_subclass = array();
+    protected static $indexes_by_subclass = [];
 
     /**
      * Optional list of index names to limit to. If left empty, all subclasses of SearchIndex
@@ -24,7 +23,7 @@ class FullTextSearch
      * @var array
      * @config
      */
-    private static $indexes = array();
+    private static $indexes = [];
 
     /**
      * Get all the instantiable search indexes (so all the user created indexes, but not the connector or library level
@@ -39,17 +38,17 @@ class FullTextSearch
     {
         if ($rebuild) {
             self::$all_indexes = null;
-            self::$indexes_by_subclass = array();
+            self::$indexes_by_subclass = [];
         }
 
         if (!$class) {
             if (self::$all_indexes === null) {
                 // Get declared indexes, or otherwise default to all subclasses of SearchIndex
-                $classes = Config::inst()->get(__CLASS__, 'indexes')
+                $classes = Config::inst()->get(self::class, 'indexes')
                     ?: ClassInfo::subclassesFor(SearchIndex::class);
 
-                $hidden = array();
-                $candidates = array();
+                $hidden = [];
+                $candidates = [];
                 foreach ($classes as $class) {
                     // Check if this index is disabled
                     $hides = $class::config()->hide_ancestor;
@@ -71,7 +70,7 @@ class FullTextSearch
                 }
 
                 // Create all indexes
-                $concrete = array();
+                $concrete = [];
                 foreach ($candidates as $class) {
                     $concrete[$class] = singleton($class);
                 }
@@ -84,7 +83,7 @@ class FullTextSearch
             if (!isset(self::$indexes_by_subclass[$class])) {
                 $all = self::get_indexes();
 
-                $valid = array();
+                $valid = [];
                 foreach ($all as $indexclass => $instance) {
                     if (is_subclass_of($indexclass, $class ?? '')) {
                         $valid[$indexclass] = $instance;
@@ -127,8 +126,8 @@ class FullTextSearch
         }
 
         // Reset to empty first
-        self::$all_indexes = array();
-        self::$indexes_by_subclass = array();
+        self::$all_indexes = [];
+        self::$indexes_by_subclass = [];
 
         // And parse out alternative type combos for arguments and add to allIndexes
         foreach ($indexes as $class => $index) {
@@ -137,7 +136,7 @@ class FullTextSearch
                 $index = singleton($class);
             }
             if (is_numeric($class)) {
-                $class = get_class($index);
+                $class = $index::class;
             }
 
             self::$all_indexes[$class] = $index;

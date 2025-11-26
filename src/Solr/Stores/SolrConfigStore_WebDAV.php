@@ -29,12 +29,12 @@ class SolrConfigStore_WebDAV implements SolrConfigStore
     {
         $options = Solr::solr_options();
 
-        $this->url = implode('', array(
+        $this->url = implode('', [
             'http://',
             !empty($config['auth']) ? $config['auth'] . '@' : '',
             $options['host'] . ':' . (!empty($config['port']) ? $config['port'] : $options['port']),
             $config['path']
-        ));
+        ]);
 
         if (!empty($config['remotepath'])) {
             $this->remote = $config['remotepath'];

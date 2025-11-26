@@ -2,6 +2,7 @@
 
 namespace SilverStripe\FullTextSearch\Solr\Forms;
 
+use SilverStripe\Model\ArrayData;
 use SilverStripe\Control\RequestHandler;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\Form;
@@ -12,13 +13,12 @@ use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
 use SilverStripe\FullTextSearch\Search\Services\SearchableService;
 use SilverStripe\FullTextSearch\Solr\SolrIndex;
 use SilverStripe\ORM\DataObject;
-use SilverStripe\View\ArrayData;
 
 class SearchForm extends Form
 {
-    private static $casting = array(
+    private static $casting = [
         'SearchQuery' => 'Text'
-    );
+    ];
 
     /**
      * @param RequestHandler $controller
@@ -35,13 +35,13 @@ class SearchForm extends Form
     ) {
         if (!$fields) {
             $fields = FieldList::create(
-                TextField::create('Search', _t(__CLASS__.'.SEARCH', 'Search'))
+                TextField::create('Search', _t(self::class.'.SEARCH', 'Search'))
             );
         }
 
         if (!$actions) {
             $actions = FieldList::create(
-                FormAction::create("results", _t(__CLASS__.'.GO', 'Go'))
+                FormAction::create("results", _t(self::class.'.GO', 'Go'))
             );
         }
 

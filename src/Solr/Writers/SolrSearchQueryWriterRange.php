@@ -38,12 +38,10 @@ class SolrSearchQueryWriterRange extends AbstractSearchQueryWriter
      */
     protected function getComparisonPolarity($comparison)
     {
-        switch ($comparison) {
-            case SearchCriterion::ISNULL:
-                return '-';
-            default:
-                return '+';
-        }
+        return match ($comparison) {
+            SearchCriterion::ISNULL => '-',
+            default => '+',
+        };
     }
 
     /**
@@ -55,18 +53,11 @@ class SolrSearchQueryWriterRange extends AbstractSearchQueryWriter
      */
     protected function getLeftComparison(SearchCriterion $searchCriterion)
     {
-        switch ($searchCriterion->getComparison()) {
-            case SearchCriterion::GREATER_EQUAL:
-            case SearchCriterion::GREATER_THAN:
-                return $searchCriterion->getValue();
-            case SearchCriterion::ISNULL:
-            case SearchCriterion::ISNOTNULL:
-            case SearchCriterion::LESS_EQUAL:
-            case SearchCriterion::LESS_THAN:
-                return '*';
-            default:
-                throw new InvalidArgumentException('Invalid comparison for RangeCriterion');
-        }
+        return match ($searchCriterion->getComparison()) {
+            SearchCriterion::GREATER_EQUAL, SearchCriterion::GREATER_THAN => $searchCriterion->getValue(),
+            SearchCriterion::ISNULL, SearchCriterion::ISNOTNULL, SearchCriterion::LESS_EQUAL, SearchCriterion::LESS_THAN => '*',
+            default => throw new InvalidArgumentException('Invalid comparison for RangeCriterion'),
+        };
     }
 
     /**
@@ -78,18 +69,11 @@ class SolrSearchQueryWriterRange extends AbstractSearchQueryWriter
      */
     protected function getRightComparison(SearchCriterion $searchCriterion)
     {
-        switch ($searchCriterion->getComparison()) {
-            case SearchCriterion::GREATER_EQUAL:
-            case SearchCriterion::GREATER_THAN:
-            case SearchCriterion::ISNULL:
-            case SearchCriterion::ISNOTNULL:
-                return '*';
-            case SearchCriterion::LESS_EQUAL:
-            case SearchCriterion::LESS_THAN:
-                return $searchCriterion->getValue();
-            default:
-                throw new InvalidArgumentException('Invalid comparison for RangeCriterion');
-        }
+        return match ($searchCriterion->getComparison()) {
+            SearchCriterion::GREATER_EQUAL, SearchCriterion::GREATER_THAN, SearchCriterion::ISNULL, SearchCriterion::ISNOTNULL => '*',
+            SearchCriterion::LESS_EQUAL, SearchCriterion::LESS_THAN => $searchCriterion->getValue(),
+            default => throw new InvalidArgumentException('Invalid comparison for RangeCriterion'),
+        };
     }
 
     /**
@@ -111,18 +95,11 @@ class SolrSearchQueryWriterRange extends AbstractSearchQueryWriter
      */
     protected function getOpenComparisonContainer($comparison)
     {
-        switch ($comparison) {
-            case SearchCriterion::GREATER_EQUAL:
-            case SearchCriterion::LESS_EQUAL:
-            case SearchCriterion::ISNULL:
-            case SearchCriterion::ISNOTNULL:
-                return '[';
-            case SearchCriterion::GREATER_THAN:
-            case SearchCriterion::LESS_THAN:
-                return '{';
-            default:
-                throw new InvalidArgumentException('Invalid comparison for RangeCriterion');
-        }
+        return match ($comparison) {
+            SearchCriterion::GREATER_EQUAL, SearchCriterion::LESS_EQUAL, SearchCriterion::ISNULL, SearchCriterion::ISNOTNULL => '[',
+            SearchCriterion::GREATER_THAN, SearchCriterion::LESS_THAN => '{',
+            default => throw new InvalidArgumentException('Invalid comparison for RangeCriterion'),
+        };
     }
 
     /**
@@ -134,17 +111,10 @@ class SolrSearchQueryWriterRange extends AbstractSearchQueryWriter
      */
     protected function getCloseComparisonContainer($comparison)
     {
-        switch ($comparison) {
-            case SearchCriterion::GREATER_EQUAL:
-            case SearchCriterion::LESS_EQUAL:
-            case SearchCriterion::ISNULL:
-            case SearchCriterion::ISNOTNULL:
-                return ']';
-            case SearchCriterion::GREATER_THAN:
-            case SearchCriterion::LESS_THAN:
-                return '}';
-            default:
-                throw new InvalidArgumentException('Invalid comparison for RangeCriterion');
-        }
+        return match ($comparison) {
+            SearchCriterion::GREATER_EQUAL, SearchCriterion::LESS_EQUAL, SearchCriterion::ISNULL, SearchCriterion::ISNOTNULL => ']',
+            SearchCriterion::GREATER_THAN, SearchCriterion::LESS_THAN => '}',
+            default => throw new InvalidArgumentException('Invalid comparison for RangeCriterion'),
+        };
     }
 }

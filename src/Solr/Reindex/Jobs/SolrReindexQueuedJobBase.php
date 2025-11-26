@@ -2,7 +2,6 @@
 
 namespace SilverStripe\FullTextSearch\Solr\Reindex\Jobs;
 
-use Monolog\Logger;
 use Psr\Log\LoggerInterface;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\FullTextSearch\Solr\Reindex\Handlers\SolrReindexHandler;
@@ -43,7 +42,7 @@ abstract class SolrReindexQueuedJobBase implements QueuedJob
     public function __construct()
     {
         $this->isComplete = false;
-        $this->messages = array();
+        $this->messages = [];
     }
 
     /**
@@ -140,7 +139,7 @@ abstract class SolrReindexQueuedJobBase implements QueuedJob
 
     public function getSignature()
     {
-        return sha1(get_class($this) . time() . mt_rand(0, 100000));
+        return sha1(static::class . time() . mt_rand(0, 100000));
     }
 
     public function addMessage($message)

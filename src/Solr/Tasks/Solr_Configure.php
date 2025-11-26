@@ -1,6 +1,8 @@
 <?php
 namespace SilverStripe\FullTextSearch\Solr\Tasks;
 
+use Override;
+use SilverStripe\PolyExecution\PolyOutput;
 use Exception;
 use SilverStripe\Core\ClassInfo;
 use SilverStripe\FullTextSearch\Solr\Solr;
@@ -15,7 +17,8 @@ class Solr_Configure extends Solr_BuildTask
     private static $segment = 'Solr_Configure';
     protected $enabled = true;
 
-    public function run($request)
+    #[Override]
+    public function run($request, PolyOutput $output)
     {
         parent::run($request);
 

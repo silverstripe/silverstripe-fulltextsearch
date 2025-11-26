@@ -2,12 +2,16 @@
 
 namespace SilverStripe\FullTextSearch\Solr\Services;
 
+use Override;
+use Apache_Solr_Document;
+
 class Solr4Service_Core extends SolrService_Core
 {
     /**
      * Replace underlying commit function to remove waitFlush in 4.0+, since it's been deprecated and 4.4 throws errors
      * if you pass it
      */
+    #[Override]
     public function commit($expungeDeletes = false, $waitFlush = null, $waitSearcher = true, $timeout = 3600)
     {
         if ($waitFlush) {
@@ -25,20 +29,22 @@ class Solr4Service_Core extends SolrService_Core
      * @inheritdoc
      * @see Solr4Service_Core::addDocuments
      */
+    #[Override]
     public function addDocument(
-        \Apache_Solr_Document $document,
+        Apache_Solr_Document $document,
         $allowDups = false,
         $overwritePending = true,
         $overwriteCommitted = true,
         $commitWithin = 0
     ) {
-        return $this->addDocuments(array($document), $allowDups, $overwritePending, $overwriteCommitted, $commitWithin);
+        return $this->addDocuments([$document], $allowDups, $overwritePending, $overwriteCommitted, $commitWithin);
     }
 
     /**
      * Solr 4.0 compat http://wiki.apache.org/solr/UpdateXmlMessages#Optional_attributes_for_.22add.22
      * Remove allowDups, overwritePending and overwriteComitted
      */
+    #[Override]
     public function addDocuments(
         $documents,
         $allowDups = false,
@@ -52,7 +58,7 @@ class Solr4Service_Core extends SolrService_Core
 
         $rawPost = "<add overwrite=\"{$overwriteVal}\"{$commitWithinString}>";
         foreach ($documents as $document) {
-            if ($document instanceof \Apache_Solr_Document) {
+            if ($document instanceof Apache_Solr_Document) {
                 $rawPost .= $this->_documentToXmlFragment($document);
             }
         }

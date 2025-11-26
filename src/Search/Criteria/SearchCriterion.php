@@ -2,6 +2,7 @@
 
 namespace SilverStripe\FullTextSearch\Search\Criteria;
 
+use Exception;
 use SilverStripe\Core\Injector\Injectable;
 use SilverStripe\FullTextSearch\Search\Adapters\SearchAdapterInterface;
 use SilverStripe\FullTextSearch\Search\Queries\AbstractSearchQueryWriter;
@@ -163,14 +164,14 @@ class SearchCriterion implements SearchCriteriaInterface
     /**
      * @param string $ps
      * @return void
-     * @throws \Exception
+     * @throws Exception
      */
     public function appendPreparedStatementTo(&$ps)
     {
         $adapter = $this->getAdapter();
 
         if (!$adapter instanceof SearchAdapterInterface) {
-            throw new \Exception('No adapter has been applied to SearchCriteria');
+            throw new Exception('No adapter has been applied to SearchCriteria');
         }
 
         $ps .= $adapter->generateQueryString($this);

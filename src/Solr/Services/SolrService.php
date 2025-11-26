@@ -22,10 +22,10 @@ class SolrService extends SolrService_Core
      * @param array $params
      * @return Apache_Solr_Response
      */
-    protected function coreCommand($command, $core, $params = array())
+    protected function coreCommand($command, $core, $params = [])
     {
         $command = strtoupper($command ?? '');
-        $params = array_merge($params, array('action' => $command, 'wt' => 'json'));
+        $params = array_merge($params, ['action' => $command, 'wt' => 'json']);
         $params[$command === 'CREATE' ? 'name' : 'core'] = $core;
 
         return $this->_sendRawGet($this->_constructUrl('admin/cores', $params));
@@ -56,7 +56,7 @@ class SolrService extends SolrService_Core
      */
     public function coreCreate($core, $instancedir, $config = null, $schema = null, $datadir = null)
     {
-        $args = array('instanceDir' => $instancedir);
+        $args = ['instanceDir' => $instancedir];
         if ($config) {
             $args['config'] = $config;
         }
@@ -89,7 +89,7 @@ class SolrService extends SolrService_Core
      */
     public function serviceForCore($core)
     {
-        $klass = Config::inst()->get(get_called_class(), 'core_class');
+        $klass = Config::inst()->get(static::class, 'core_class');
         return new $klass($this->_host, $this->_port, $this->_path . $core, $this->_httpTransport);
     }
 }

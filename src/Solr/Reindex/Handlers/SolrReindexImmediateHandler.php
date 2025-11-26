@@ -2,6 +2,7 @@
 
 namespace SilverStripe\FullTextSearch\Solr\Reindex\Handlers;
 
+use Override;
 use Psr\Log\LoggerInterface;
 use SilverStripe\Control\Director;
 use SilverStripe\Core\Config\Config;
@@ -36,6 +37,7 @@ class SolrReindexImmediateHandler extends SolrReindexBase
         $this->runReindex($logger, $batchSize, $taskName, $classes);
     }
 
+    #[Override]
     protected function processIndex(
         LoggerInterface $logger,
         SolrIndex $indexInstance,
@@ -74,7 +76,7 @@ class SolrReindexImmediateHandler extends SolrReindexBase
         $group,
         $taskName
     ) {
-        $indexClass = get_class($indexInstance);
+        $indexClass = $indexInstance::class;
 
         // Build script parameters
         $statevar = json_encode($state);

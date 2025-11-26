@@ -2,10 +2,10 @@
 
 namespace SilverStripe\FullTextSearch\Search\Extensions;
 
+use SilverStripe\Core\Extension;
 use SilverStripe\Core\ClassInfo;
 use SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
-use SilverStripe\ORM\DataExtension;
 use SilverStripe\ORM\DataObject;
 
 /**
@@ -15,7 +15,7 @@ use SilverStripe\ORM\DataObject;
  * indexed.  This causes the object to be marked for deletion from the index.
  */
 
-class SearchUpdater_ObjectHandler extends DataExtension
+class SearchUpdater_ObjectHandler extends Extension
 {
     public function onAfterDelete()
     {
@@ -26,21 +26,21 @@ class SearchUpdater_ObjectHandler extends DataExtension
 
         // Force SearchUpdater to mark this record as dirty
         // Note: Some extensions require entire hierarchy passed to augmentWrite()
-        $manipulation = array();
+        $manipulation = [];
         foreach (ClassInfo::ancestry($this->owner) as $class) {
             if (!is_subclass_of($class, DataObject::class)) {
                 continue;
             }
 
             $tableName = DataObject::getSchema()->tableName($class);
-            $manipulation[$tableName] = array(
-                'fields' => array(),
+            $manipulation[$tableName] = [
+                'fields' => [],
                 'id' => $this->owner->ID,
                 'class' => $class,
                 // Note: 'delete' command not actually handled by manipulations,
                 // but added so that SearchUpdater can detect the deletion
                 'command' => 'delete'
-            );
+            ];
         }
 
         $this->owner->extend('augmentWrite', $manipulation);
@@ -63,20 +63,20 @@ class SearchUpdater_ObjectHandler extends DataExtension
         $base = DataObject::getSchema()->baseDataClass($class);
         $key = "$id:$base:" . serialize($state);
 
-        $statefulids = array(array(
+        $statefulids = [[
             'id' => $id,
             'state' => $state
-        ));
+        ]];
 
-        $writes = array(
-            $key => array(
+        $writes = [
+            $key => [
                 'base' => $base,
                 'class' => $class,
                 'id' => $id,
                 'statefulids' => $statefulids,
-                'fields' => array()
-            )
-        );
+                'fields' => []
+            ]
+        ];
 
         SearchUpdater::process_writes($writes);
     }

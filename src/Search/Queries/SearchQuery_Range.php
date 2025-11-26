@@ -11,14 +11,9 @@ use SilverStripe\Core\Injector\Injectable;
 class SearchQuery_Range
 {
     use Injectable;
-    
-    public $start = null;
-    public $end = null;
 
-    public function __construct($start = null, $end = null)
+    public function __construct(public $start = null, public $end = null)
     {
-        $this->start = $start;
-        $this->end = $end;
     }
 
     public function setStart($start)

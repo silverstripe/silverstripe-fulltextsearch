@@ -9,20 +9,20 @@ use SilverStripe\FullTextSearch\Search\Indexes\SearchIndex;
  */
 abstract class SearchIndex_Recording extends SearchIndex
 {
-    public $added = array();
-    public $deleted = array();
+    public $added = [];
+    public $deleted = [];
     public $committed = false;
 
     public function reset()
     {
-        $this->added = array();
-        $this->deleted = array();
+        $this->added = [];
+        $this->deleted = [];
         $this->committed = false;
     }
 
     public function add($object)
     {
-        $res = array();
+        $res = [];
 
         $res['ID'] = $object->ID;
 
@@ -34,12 +34,12 @@ abstract class SearchIndex_Recording extends SearchIndex
         $this->added[] = $res;
     }
 
-    public function getAdded($fields = array())
+    public function getAdded($fields = [])
     {
-        $res = array();
+        $res = [];
 
         foreach ($this->added as $added) {
-            $filtered = array();
+            $filtered = [];
             foreach ($fields as $field) {
                 if (isset($added[$field])) {
                     $filtered[$field] = $added[$field];
@@ -53,7 +53,7 @@ abstract class SearchIndex_Recording extends SearchIndex
 
     public function delete($base, $id, $state)
     {
-        $this->deleted[] = array('base' => $base, 'id' => $id, 'state' => $state);
+        $this->deleted[] = ['base' => $base, 'id' => $id, 'state' => $state];
     }
 
     public function commit()
@@ -63,7 +63,7 @@ abstract class SearchIndex_Recording extends SearchIndex
 
     public function getIndexName()
     {
-        return get_class($this);
+        return static::class;
     }
 
     public function getIsCommitted()

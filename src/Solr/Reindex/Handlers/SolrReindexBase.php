@@ -5,7 +5,6 @@ namespace SilverStripe\FullTextSearch\Solr\Reindex\Handlers;
 use Psr\Log\LoggerInterface;
 use SilverStripe\Core\Environment;
 use SilverStripe\FullTextSearch\Search\Services\SearchableService;
-use SilverStripe\FullTextSearch\Search\Variants\SearchVariantVersioned;
 use SilverStripe\FullTextSearch\Solr\Solr;
 use SilverStripe\FullTextSearch\Solr\SolrIndex;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
@@ -13,7 +12,6 @@ use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\DataList;
 use SilverStripe\ORM\DB;
-use SilverStripe\Versioned\Versioned;
 
 /**
  * Base class for re-indexing of solr content
@@ -192,7 +190,7 @@ abstract class SolrReindexBase implements SolrReindexHandler
 
         // Process selected records in this class
         $items = $this->getRecordsInGroup($indexInstance, $class, $groups, $group);
-        $processed = array();
+        $processed = [];
         foreach ($items as $item) {
             $processed[] = $item->ID;
 
@@ -273,7 +271,7 @@ abstract class SolrReindexBase implements SolrReindexHandler
     protected function clearRecords(SolrIndex $indexInstance, $class, $groups = null, $group = null)
     {
         // Clear by classname
-        $conditions = array("+(ClassHierarchy:{$class})");
+        $conditions = ["+(ClassHierarchy:{$class})"];
 
         // If grouping, delete from this group only
         if ($groups) {

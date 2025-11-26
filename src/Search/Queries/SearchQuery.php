@@ -2,18 +2,21 @@
 
 namespace SilverStripe\FullTextSearch\Search\Queries;
 
+use Override;
+use Psr\Container\NotFoundExceptionInterface;
 use SilverStripe\FullTextSearch\Search\Adapters\SearchAdapterInterface;
 use SilverStripe\FullTextSearch\Search\Criteria\SearchCriteria;
 use SilverStripe\FullTextSearch\Search\Criteria\SearchCriteriaInterface;
-use SilverStripe\View\ViewableData;
+use SilverStripe\Model\ModelData;
 use stdClass;
+use Stringable;
 
 /**
  * Represents a search query
  *
  * API very much still in flux.
  */
-class SearchQuery extends ViewableData
+class SearchQuery extends ModelData implements Stringable
 {
     public static $missing = null;
     public static $present = null;
@@ -43,10 +46,9 @@ class SearchQuery extends ViewableData
     protected $adapter = null;
 
     /** These are the API functions */
-
     /**
      * SearchQuery constructor.
-     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     public function __construct()
     {
@@ -149,7 +151,7 @@ class SearchQuery extends ViewableData
      */
     public function addFilter($field, $values)
     {
-        $requires = isset($this->require[$field]) ? $this->require[$field] : [];
+        $requires = $this->require[$field] ?? [];
         $values = is_array($values) ? $values : [$values];
         $this->require[$field] = array_merge($requires, $values);
         return $this;
@@ -172,7 +174,7 @@ class SearchQuery extends ViewableData
      */
     public function addExclude($field, $values)
     {
-        $excludes = isset($this->exclude[$field]) ? $this->exclude[$field] : [];
+        $excludes = $this->exclude[$field] ?? [];
         $values = is_array($values) ? $values : [$values];
         $this->exclude[$field] = array_merge($excludes, $values);
         return $this;
@@ -276,7 +278,8 @@ class SearchQuery extends ViewableData
         return $this->adapter;
     }
 
-    public function __toString()
+    #[Override]
+    public function __toString(): string
     {
         return "Search Query\n";
     }

@@ -15,8 +15,8 @@ class CombinationsArrayIterator implements Iterator
 
     public function __construct($args)
     {
-        $this->arrays = array();
-        $this->keys = array();
+        $this->arrays = [];
+        $this->keys = [];
 
         $keys = array_keys($args ?? []);
         $values = array_values($args ?? []);
@@ -70,7 +70,7 @@ class CombinationsArrayIterator implements Iterator
 
     public function current(): mixed
     {
-        $res = array();
+        $res = [];
         for ($i = 0; $i < $this->numArrays; $i++) {
             $res[$this->keys[$i]] = current($this->arrays[$i] ?? []);
         }

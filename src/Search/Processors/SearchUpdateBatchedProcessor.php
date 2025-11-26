@@ -2,6 +2,7 @@
 
 namespace SilverStripe\FullTextSearch\Search\Processors;
 
+use Override;
 use SilverStripe\Core\Config\Configurable;
 
 /**
@@ -55,7 +56,7 @@ abstract class SearchUpdateBatchedProcessor extends SearchUpdateProcessor
     {
         parent::__construct();
 
-        $this->batches = array();
+        $this->batches = [];
         $this->setBatch(0);
     }
 
@@ -69,6 +70,7 @@ abstract class SearchUpdateBatchedProcessor extends SearchUpdateProcessor
         $this->currentBatch = $batch;
     }
 
+    #[Override]
     protected function getSource()
     {
         if (isset($this->batches[$this->currentBatch])) {
@@ -81,6 +83,7 @@ abstract class SearchUpdateBatchedProcessor extends SearchUpdateProcessor
      *
      * @return boolean
      */
+    #[Override]
     public function process()
     {
         // Skip blank queues
@@ -112,13 +115,13 @@ abstract class SearchUpdateBatchedProcessor extends SearchUpdateProcessor
         // Measure batch_size
         $batchSize = static::config()->get('batch_size');
         if ($batchSize === 0) {
-            return array($source);
+            return [$source];
         }
         $softCap = static::config()->get('batch_soft_cap');
 
         // Clear batches
-        $batches = array();
-        $current = array();
+        $batches = [];
+        $current = [];
         $currentSize = 0;
 
         // Build batches from data
@@ -146,18 +149,18 @@ abstract class SearchUpdateBatchedProcessor extends SearchUpdateProcessor
 
                     // Update batch
                     $currentSize += count($items ?? []);
-                    $merge = array(
-                        $base => array(
-                            $stateKey => array(
+                    $merge = [
+                        $base => [
+                            $stateKey => [
                                 'state' => $state,
                                 'ids' => $items
-                            )
-                        )
-                    );
+                            ]
+                        ]
+                    ];
                     $current = $current ? array_merge_recursive($current, $merge) : $merge;
                     if ($currentSize >= $batchSize) {
                         $batches[] = $current;
-                        $current = array();
+                        $current = [];
                         $currentSize = 0;
                     }
                 }

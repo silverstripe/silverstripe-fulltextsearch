@@ -2,7 +2,6 @@
 
 namespace SilverStripe\FullTextSearch\Solr;
 
-use SilverStripe\Control\Director;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Core\Manifest\Module;
 use SilverStripe\Core\Manifest\ModuleLoader;
@@ -52,7 +51,7 @@ class Solr
      *      port (default: none) - The port for WebDAV if different from the Solr port
      *      remotepath - The path that the Solr server will read the index configurations from
      */
-    protected static $solr_options = array();
+    protected static $solr_options = [];
 
     /** A cache of solr_options with the defaults all merged in */
     protected static $merged_solr_options = null;
@@ -61,13 +60,13 @@ class Solr
      * Update the configuration for Solr. See $solr_options for a discussion of the accepted array keys
      * @param array $options - The options to update
      */
-    public static function configure_server($options = array())
+    public static function configure_server($options = [])
     {
         self::$solr_options = array_merge(self::$solr_options, $options);
         self::$merged_solr_options = null;
 
         self::$service_singleton = null;
-        self::$service_core_singletons = array();
+        self::$service_core_singletons = [];
     }
 
     /**
@@ -80,15 +79,15 @@ class Solr
             return self::$merged_solr_options;
         }
 
-        $defaults = array(
+        $defaults = [
             'host' => 'localhost',
             'port' => 8983,
             'path' => '/solr',
             'version' => '4'
-        );
+        ];
 
         // Build some by-version defaults
-        $version = isset(self::$solr_options['version']) ? self::$solr_options['version'] : $defaults['version'];
+        $version = self::$solr_options['version'] ?? $defaults['version'];
 
         /** @var Module $module */
         $module = ModuleLoader::getModule('silverstripe/fulltextsearch');
@@ -115,13 +114,13 @@ class Solr
     public static function set_service_class($class)
     {
         user_error('set_service_class is deprecated - pass as part of $options to configure_server', E_USER_WARNING);
-        self::configure_server(array('service' => $class));
+        self::configure_server(['service' => $class]);
     }
 
     /** @var SolrService | null - The instance of SolrService for core management */
     protected static $service_singleton = null;
     /** @var SolrService_Core[] - The instances of SolrService_Core for each core */
-    protected static $service_core_singletons = array();
+    protected static $service_core_singletons = [];
 
     /**
      * Get a SolrService

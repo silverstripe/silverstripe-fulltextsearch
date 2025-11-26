@@ -31,7 +31,7 @@ class SearchUpdateCommitJobProcessor implements QueuedJob
      *
      * @var array
      */
-    protected $indexes = array();
+    protected $indexes = [];
 
     /**
      * True if this job is skipped to be be re-scheduled in the future
@@ -45,21 +45,21 @@ class SearchUpdateCommitJobProcessor implements QueuedJob
      *
      * @var array
      */
-    protected $completed = array();
+    protected $completed = [];
 
     /**
      * List of messages
      *
      * @var array
      */
-    protected $messages = array();
+    protected $messages = [];
 
     /**
      * List of dirty indexes to be committed
      *
      * @var array
      */
-    public static $dirty_indexes = array();
+    public static $dirty_indexes = [];
 
     /**
      * If solrindex::commit has already been performed, but additional commits are necessary,
@@ -92,7 +92,7 @@ class SearchUpdateCommitJobProcessor implements QueuedJob
      */
     public static function queue($dirty = true, $startAfter = null)
     {
-        $commit = Injector::inst()->create(__CLASS__);
+        $commit = Injector::inst()->create(self::class);
         $id = singleton(QueuedJobService::class)->queueJob($commit, $startAfter);
 
         if ($dirty) {
@@ -104,12 +104,12 @@ class SearchUpdateCommitJobProcessor implements QueuedJob
 
     public function getJobType()
     {
-        return Config::inst()->get(__CLASS__, 'commit_queue');
+        return Config::inst()->get(self::class, 'commit_queue');
     }
 
     public function getSignature()
     {
-        return sha1(get_class($this) . time() . mt_rand(0, 100000));
+        return sha1(static::class . time() . mt_rand(0, 100000));
     }
 
     public function getTitle()
@@ -168,7 +168,7 @@ class SearchUpdateCommitJobProcessor implements QueuedJob
         // If any commit has run, but some (or all) indexes are un-comitted, we must re-schedule this task.
         // This could occur if we completed a searchupdate job in a prior request, as well as in
         // the current request
-        $cooldown = Config::inst()->get(__CLASS__, 'cooldown');
+        $cooldown = Config::inst()->get(self::class, 'cooldown');
         $now = new DateTime(DBDatetime::now()->getValue());
         $now->add(new DateInterval('PT' . $cooldown . 'S'));
         $runat = $now->Format('Y-m-d H:i:s');
@@ -212,7 +212,7 @@ class SearchUpdateCommitJobProcessor implements QueuedJob
     protected function commitIndex($index)
     {
         // Skip index if this is already complete
-        $name = get_class($index);
+        $name = $index::class;
         if (in_array($name, $this->completed ?? [])) {
             $this->addMessage("Skipping already comitted index {$name}");
             return;
@@ -225,7 +225,7 @@ class SearchUpdateCommitJobProcessor implements QueuedJob
 
         // If this index is currently marked as dirty, it's now clean
         if (in_array($name, static::$dirty_indexes)) {
-            static::$dirty_indexes = array_diff(static::$dirty_indexes, array($name));
+            static::$dirty_indexes = array_diff(static::$dirty_indexes, [$name]);
         }
 
         // Mark complete

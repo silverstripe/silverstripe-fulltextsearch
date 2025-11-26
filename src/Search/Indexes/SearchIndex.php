@@ -2,6 +2,10 @@
 
 namespace SilverStripe\FullTextSearch\Search\Indexes;
 
+use Override;
+use SilverStripe\Model\ModelData;
+use Stringable;
+use SilverStripe\Model\List\SS_List;
 use Exception;
 use Psr\Log\LoggerInterface;
 use SilverStripe\Core\ClassInfo;
@@ -13,9 +17,6 @@ use SilverStripe\FullTextSearch\Utils\MultipleArrayIterator;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\FieldType\DBField;
 use SilverStripe\ORM\FieldType\DBString;
-use SilverStripe\ORM\Queries\SQLSelect;
-use SilverStripe\View\ViewableData;
-use SilverStripe\ORM\SS_List;
 
 /**
  * SearchIndex is the base index class. Each connector will provide a subclass of this that
@@ -44,7 +45,7 @@ use SilverStripe\ORM\SS_List;
  * - Specifying update rules that are not extractable from metadata (because the values come from functions for instance)
  *
  */
-abstract class SearchIndex extends ViewableData
+abstract class SearchIndex extends ModelData implements Stringable
 {
     /**
      * Allows this index to hide a parent index. Specifies the name of a parent index to disable
@@ -77,7 +78,6 @@ abstract class SearchIndex extends ViewableData
 
     public function __construct()
     {
-        parent::__construct();
         $this->init();
 
         foreach ($this->getClasses() as $class => $options) {
@@ -87,9 +87,10 @@ abstract class SearchIndex extends ViewableData
         $this->buildDependancyList();
     }
 
-    public function __toString()
+    #[Override]
+    public function __toString(): string
     {
-        return 'Search Index ' . get_class($this);
+        return 'Search Index ' . static::class;
     }
 
     /**
@@ -112,7 +113,7 @@ abstract class SearchIndex extends ViewableData
 
         $found = [];
 
-        if (strpos($field ?? '', '.') !== false) {
+        if (str_contains($field ?? '', '.')) {
             $lookups = explode(".", $field ?? '');
             $field = array_pop($lookups);
 
@@ -138,10 +139,10 @@ abstract class SearchIndex extends ViewableData
                             }
 
                             $class = $hasOne;
-                            $options['lookup_chain'][] = array(
+                            $options['lookup_chain'][] = [
                                 'call' => 'method', 'method' => $lookup,
                                 'through' => 'has_one', 'class' => $dataclass, 'otherclass' => $class, 'foreignkey' => "{$lookup}ID"
-                            );
+                            ];
                         } elseif ($hasMany = $schema->hasManyComponent($className, $lookup)) {
                             // we only want to include base class for relation, omit classes that inherited the relation
                             $relationList = Config::inst()->get($dataclass, 'has_many', Config::UNINHERITED);
@@ -152,10 +153,10 @@ abstract class SearchIndex extends ViewableData
 
                             $class = $hasMany;
                             $options['multi_valued'] = true;
-                            $options['lookup_chain'][] = array(
+                            $options['lookup_chain'][] = [
                                 'call' => 'method', 'method' => $lookup,
                                 'through' => 'has_many', 'class' => $dataclass, 'otherclass' => $class, 'foreignkey' => $schema->getRemoteJoinField($className, $lookup, 'has_many')
-                            );
+                            ];
                         } elseif ($manyMany = $schema->manyManyComponent($className, $lookup)) {
                             // we only want to include base class for relation, omit classes that inherited the relation
                             $relationList = Config::inst()->get($dataclass, 'many_many', Config::UNINHERITED);
@@ -166,14 +167,14 @@ abstract class SearchIndex extends ViewableData
 
                             $class = $manyMany['childClass'];
                             $options['multi_valued'] = true;
-                            $options['lookup_chain'][] = array(
+                            $options['lookup_chain'][] = [
                                 'call' => 'method',
                                 'method' => $lookup,
                                 'through' => 'many_many',
                                 'class' => $dataclass,
                                 'otherclass' => $class,
                                 'details' => $manyMany,
-                            );
+                            ];
                         }
 
                         if (is_string($class) && $class) {
@@ -208,7 +209,7 @@ abstract class SearchIndex extends ViewableData
 
                 if (isset($fields[$field])) {
                     $type = $fields[$field];
-                    $fieldoptions['lookup_chain'][] = array('call' => 'property', 'property' => $field);
+                    $fieldoptions['lookup_chain'][] = ['call' => 'property', 'property' => $field];
                 } else {
                     $singleton = singleton($dataclass);
 
@@ -219,9 +220,9 @@ abstract class SearchIndex extends ViewableData
                         }
 
                         if ($singleton->hasMethod("get$field")) {
-                            $fieldoptions['lookup_chain'][] = array('call' => 'method', 'method' => "get$field");
+                            $fieldoptions['lookup_chain'][] = ['call' => 'method', 'method' => "get$field"];
                         } else {
-                            $fieldoptions['lookup_chain'][] = array('call' => 'property', 'property' => $field);
+                            $fieldoptions['lookup_chain'][] = ['call' => 'property', 'property' => $field];
                         }
                     }
                 }
@@ -234,9 +235,9 @@ abstract class SearchIndex extends ViewableData
                         $type = $match[1];
                     }
                     // Get the origin
-                    $origin = isset($fieldoptions['origin']) ? $fieldoptions['origin'] : $dataclass;
+                    $origin = $fieldoptions['origin'] ?? $dataclass;
 
-                    $found["{$origin}_{$fullfield}"] = array(
+                    $found["{$origin}_{$fullfield}"] = [
                         'name' => "{$origin}_{$fullfield}",
                         'field' => $field,
                         'fullfield' => $fullfield,
@@ -244,10 +245,10 @@ abstract class SearchIndex extends ViewableData
                         'origin' => $origin,
                         'class' => $dataclass,
                         'lookup_chain' => $fieldoptions['lookup_chain'],
-                        'type' => $forceType ? $forceType : $type,
+                        'type' => $forceType ?: $type,
                         'multi_valued' => isset($fieldoptions['multi_valued']) ? true : false,
                         'extra_options' => $extraOptions
-                    );
+                    ];
                 }
             }
         }
@@ -257,15 +258,15 @@ abstract class SearchIndex extends ViewableData
 
     /** Public, but should only be altered by variants */
 
-    protected $classes = array();
+    protected $classes = [];
 
-    protected $fulltextFields = array();
+    protected $fulltextFields = [];
 
-    public $filterFields = array();
+    public $filterFields = [];
 
-    protected $sortFields = array();
+    protected $sortFields = [];
 
-    protected $excludedVariantStates = array();
+    protected $excludedVariantStates = [];
 
     /**
      * Add a DataObject subclass whose instances should be included in this index
@@ -277,15 +278,15 @@ abstract class SearchIndex extends ViewableData
      * @param string $class - The class to include
      * @param array $options - TODO: Remove
      */
-    public function addClass($class, $options = array())
+    public function addClass($class, $options = [])
     {
         if ($this->fulltextFields || $this->filterFields || $this->sortFields) {
             throw new Exception('Can\'t add class to Index after fields have already been added');
         }
 
-        $options = array_merge(array(
+        $options = array_merge([
             'include_children' => true
-        ), $options);
+        ], $options);
 
         $this->classes[$class] = $options;
     }
@@ -304,7 +305,7 @@ abstract class SearchIndex extends ViewableData
      * @param string $forceType - The type to force this field as (required in some cases, when not detectable from metadata)
      * @param string $extraOptions - Dependent on search implementation
      */
-    public function addFulltextField($field, $forceType = null, $extraOptions = array())
+    public function addFulltextField($field, $forceType = null, $extraOptions = [])
     {
         $this->fulltextFields = array_merge($this->fulltextFields, $this->fieldData($field, $forceType, $extraOptions));
     }
@@ -320,7 +321,7 @@ abstract class SearchIndex extends ViewableData
      * @param string $forceType - The type to force this field as (required in some cases, when not detectable from metadata)
      * @param string $extraOptions - Dependent on search implementation
      */
-    public function addFilterField($field, $forceType = null, $extraOptions = array())
+    public function addFilterField($field, $forceType = null, $extraOptions = [])
     {
         $this->filterFields = array_merge($this->filterFields, $this->fieldData($field, $forceType, $extraOptions));
     }
@@ -336,7 +337,7 @@ abstract class SearchIndex extends ViewableData
      * @param string $forceType - The type to force this field as (required in some cases, when not detectable from metadata)
      * @param string $extraOptions - Dependent on search implementation
      */
-    public function addSortField($field, $forceType = null, $extraOptions = array())
+    public function addSortField($field, $forceType = null, $extraOptions = [])
     {
         $this->sortFields = array_merge($this->sortFields, $this->fieldData($field, $forceType, $extraOptions));
     }
@@ -361,7 +362,7 @@ abstract class SearchIndex extends ViewableData
                 $fields = DataObject::getSchema()->databaseFields($dataClass);
 
                 foreach ($fields as $field => $type) {
-                    list($type, $args) = ClassInfo::parse_class_spec($type);
+                    [$type, $args] = ClassInfo::parse_class_spec($type);
 
                     /** @var DBField $object */
                     $object = Injector::inst()->get($type, false, ['Name' => 'test']);
@@ -408,13 +409,13 @@ abstract class SearchIndex extends ViewableData
         }
     }
 
-    public $dependancyList = array();
+    public $dependancyList = [];
 
     public function buildDependancyList()
     {
         $this->dependancyList = array_keys($this->getClasses() ?? []);
 
-        foreach ($this->getFieldsIterator() as $name => $field) {
+        foreach ($this->getFieldsIterator() as $field) {
             if (!isset($field['class'])) {
                 continue;
             }
@@ -431,9 +432,9 @@ abstract class SearchIndex extends ViewableData
     public function getDerivedFields()
     {
         if ($this->derivedFields === null) {
-            $this->derivedFields = array();
+            $this->derivedFields = [];
 
-            foreach ($this->getFieldsIterator() as $name => $field) {
+            foreach ($this->getFieldsIterator() as $field) {
                 if (count($field['lookup_chain'] ?? []) < 2) {
                     continue;
                 }
@@ -448,12 +449,12 @@ abstract class SearchIndex extends ViewableData
                     $chain = array_reverse($field['lookup_chain'] ?? []);
                     array_shift($chain);
 
-                    $this->derivedFields[$key] = array(
+                    $this->derivedFields[$key] = [
                         'base' => $field['base'],
-                        'fields' => array($fieldname => $fieldname),
-                        'classes' => array($field['class']),
+                        'fields' => [$fieldname => $fieldname],
+                        'classes' => [$field['class']],
                         'chain' => $chain
-                    );
+                    ];
                 }
             }
         }
@@ -472,7 +473,7 @@ abstract class SearchIndex extends ViewableData
     public function getDocumentIDForState($base, $id, $state)
     {
         ksort($state);
-        $parts = array('id' => $id, 'base' => $base, 'state' => json_encode($state));
+        $parts = ['id' => $id, 'base' => $base, 'state' => json_encode($state)];
         return implode('-', array_values($parts ?? []));
     }
 
@@ -498,7 +499,7 @@ abstract class SearchIndex extends ViewableData
      */
     protected function _getFieldValue($object, $field)
     {
-        $errorHandler = function ($no, $str) {
+        $errorHandler = function ($no, $str): void {
             throw new Exception('HTML Parse Error: ' . $str);
         };
         set_error_handler($errorHandler, E_ALL & ~(E_DEPRECATED | E_USER_DEPRECATED));
@@ -512,7 +513,7 @@ abstract class SearchIndex extends ViewableData
 
                 // If we're looking up this step on an array or SS_List, do the step on every item, merge result
                 if (is_array($object) || $object instanceof SS_List) {
-                    $next = array();
+                    $next = [];
 
                     foreach ($object as $item) {
                         if ($step['call'] == 'method') {
@@ -582,13 +583,13 @@ abstract class SearchIndex extends ViewableData
      */
     public function getDirtyIDs($class, $id, $statefulids, $fields)
     {
-        $dirty = array();
+        $dirty = [];
 
         // First, if this object is directly contained in the index, add it
         foreach ($this->classes as $searchclass => $options) {
             if ($searchclass == $class || ($options['include_children'] && is_subclass_of($class, $searchclass ?? ''))) {
                 $base = DataObject::getSchema()->baseDataClass($searchclass);
-                $dirty[$base] = array();
+                $dirty[$base] = [];
                 foreach ($statefulids as $statefulid) {
                     $key = serialize($statefulid);
                     $dirty[$base][$key] = $statefulid;
@@ -612,7 +613,7 @@ abstract class SearchIndex extends ViewableData
             foreach (SearchVariant::reindex_states($class, false) as $state) {
                 SearchVariant::activate_state($state);
 
-                $ids = array($id);
+                $ids = [$id];
 
                 foreach ($derivation['chain'] as $step) {
                     if ($step['through'] == 'has_one') {
@@ -636,11 +637,11 @@ abstract class SearchIndex extends ViewableData
                 if ($ids) {
                     $base = $derivation['base'];
                     if (!isset($dirty[$base])) {
-                        $dirty[$base] = array();
+                        $dirty[$base] = [];
                     }
 
                     foreach ($ids as $rid) {
-                        $statefulid = array('id' => $rid, 'state' => $state);
+                        $statefulid = ['id' => $rid, 'state' => $state];
                         $key = serialize($statefulid);
                         $dirty[$base][$key] = $statefulid;
                     }

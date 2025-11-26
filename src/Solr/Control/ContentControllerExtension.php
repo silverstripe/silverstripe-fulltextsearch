@@ -12,10 +12,10 @@ use SilverStripe\ORM\FieldType\DBField;
 
 class ContentControllerExtension extends Extension
 {
-    private static $allowed_actions = array(
+    private static $allowed_actions = [
         'SearchForm',
         'results',
-    );
+    ];
 
     /**
      * Site search form

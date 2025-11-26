@@ -9,7 +9,7 @@ use SilverStripe\ORM\DataObject;
  */
 class SearchIntrospection
 {
-    protected static $ancestry = array();
+    protected static $ancestry = [];
 
     /**
      * Check if class is subclass of (a) the class in $of, or (b) any of the classes in the array $of
@@ -20,11 +20,11 @@ class SearchIntrospection
      */
     public static function is_subclass_of($class, $of)
     {
-        $ancestry = isset(self::$ancestry[$class]) ? self::$ancestry[$class] : (self::$ancestry[$class] = ClassInfo::ancestry($class));
+        $ancestry = self::$ancestry[$class] ?? self::$ancestry[$class] = ClassInfo::ancestry($class);
         return is_array($of) ? (bool)array_intersect($of, $ancestry) : array_key_exists($of, $ancestry ?? []);
     }
 
-    protected static $hierarchy = array();
+    protected static $hierarchy = [];
 
     /**
      * Get all the classes involved in a DataObject hierarchy - both super and optionally subclasses

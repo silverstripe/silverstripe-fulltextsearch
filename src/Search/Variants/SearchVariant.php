@@ -78,7 +78,7 @@ abstract class SearchVariant
     /** Holds a cache of all variants */
     protected static $variants = null;
     /** Holds a cache of the variants keyed by "class!" "1"? (1 = include subclasses) */
-    protected static $class_variants = array();
+    protected static $class_variants = [];
 
     /**
      * Returns an array of variants.
@@ -100,13 +100,13 @@ abstract class SearchVariant
             if (self::$variants === null) {
                 $classes = ClassInfo::subclassesFor(static::class);
 
-                $concrete = array();
+                $concrete = [];
                 foreach ($classes as $variantclass) {
                     $ref = new ReflectionClass($variantclass);
                     if ($ref->isInstantiable()) {
                         $variant = singleton($variantclass);
                         // reassign actual class since Injector could be involved when creating the singleton
-                        $variantclass = get_class($variant);
+                        $variantclass = $variant::class;
 
                         if ($variant->appliesToEnvironment()) {
                             $concrete[$variantclass] = $variant;
@@ -122,7 +122,7 @@ abstract class SearchVariant
             $key = $class . '!' . $includeSubclasses;
 
             if (!isset(self::$class_variants[$key])) {
-                self::$class_variants[$key] = array();
+                self::$class_variants[$key] = [];
 
                 foreach (self::variants() as $variantclass => $instance) {
                     if ($instance->appliesTo($class, $includeSubclasses)) {
@@ -144,7 +144,7 @@ abstract class SearchVariant
     }
 
     /** Holds a cache of SearchVariant_Caller instances, one for each class/includeSubclasses setting */
-    protected static $call_instances = array();
+    protected static $call_instances = [];
 
     /**
      * Lets you call any function on all variants that support it, in the same manner as "Object#extend" calls
@@ -197,7 +197,7 @@ abstract class SearchVariant
             }
 
             // Extract relevant class options
-            $includeSubclasses = isset($options['include_children']) ? $options['include_children'] : true;
+            $includeSubclasses = $options['include_children'] ?? true;
 
             // Get the variants for the current class
             $variantsForClass = self::variants($class, $includeSubclasses);
@@ -232,7 +232,7 @@ abstract class SearchVariant
      */
     public static function current_state($class = null, $includeSubclasses = true)
     {
-        $state = array();
+        $state = [];
         foreach (self::variants($class, $includeSubclasses) as $variant => $instance) {
             $state[$variant] = $instance->currentState();
         }
@@ -265,7 +265,7 @@ abstract class SearchVariant
      */
     public static function reindex_states($class = null, $includeSubclasses = true)
     {
-        $allstates = array();
+        $allstates = [];
 
         foreach (self::variants($class, $includeSubclasses) as $variant => $instance) {
             if ($states = $instance->reindexStates()) {
@@ -273,7 +273,7 @@ abstract class SearchVariant
             }
         }
 
-        return $allstates ? new CombinationsArrayIterator($allstates) : array(array());
+        return $allstates ? new CombinationsArrayIterator($allstates) : [[]];
     }
 
 
@@ -317,10 +317,10 @@ abstract class SearchVariant
     {
         // Merge together and remove dupes
         if (!is_array($left)) {
-            $left = array($left);
+            $left = [$left];
         }
         if (!is_array($right)) {
-            $right = array($right);
+            $right = [$right];
         }
         $merged = array_values(array_unique(array_merge($left, $right)));
 

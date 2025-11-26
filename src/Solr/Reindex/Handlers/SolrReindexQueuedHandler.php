@@ -2,6 +2,7 @@
 
 namespace SilverStripe\FullTextSearch\Solr\Reindex\Handlers;
 
+use Override;
 use Psr\Log\LoggerInterface;
 use SilverStripe\FullTextSearch\Solr\SolrIndex;
 use SilverStripe\ORM\DataObject;
@@ -40,7 +41,7 @@ class SolrReindexQueuedHandler extends SolrReindexBase
      */
     protected function cancelExistingJobs($type)
     {
-        $clearable = array(
+        $clearable = [
             // Paused jobs need to be discarded
             QueuedJob::STATUS_PAUSED,
 
@@ -51,7 +52,7 @@ class SolrReindexQueuedHandler extends SolrReindexBase
             // Cancel any in-progress job
             QueuedJob::STATUS_INIT,
             QueuedJob::STATUS_RUN
-        );
+        ];
         DB::query(sprintf(
             'UPDATE "%s" '
                 . ' SET "JobStatus" = \'%s\''
@@ -95,7 +96,7 @@ class SolrReindexQueuedHandler extends SolrReindexBase
         // Trigger another job for this group
         $job = Injector::inst()->create(
             SolrReindexGroupQueuedJob::class,
-            get_class($indexInstance),
+            $indexInstance::class,
             $state,
             $class,
             $groups,
@@ -109,6 +110,7 @@ class SolrReindexQueuedHandler extends SolrReindexBase
         $logger->info("Queued {$title}");
     }
 
+    #[Override]
     public function runGroup(
         LoggerInterface $logger,
         SolrIndex $indexInstance,
