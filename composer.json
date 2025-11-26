@@ -21,19 +21,21 @@
         }
     ],
     "require": {
-        "php": "^8.1",
-        "silverstripe/framework": "^5",
+        "php": "^8.3",
+        "silverstripe/framework": "^6",
         "monolog/monolog": "^3.2",
         "silverstripe/solr-php-client": "^1",
         "symfony/process": "^6.2",
         "tractorcow/silverstripe-proxy-db": "^2",
-        "ext-curl": "*"
+        "ext-curl": "*",
+        "wernerkrauss/silverstripe-rector": "^1.0"
     },
     "require-dev": {
-        "silverstripe/cms": "^5",
-        "phpunit/phpunit": "^9.5",
+        "silverstripe/cms": "^6",
+        "phpunit/phpunit": "^11.5",
         "squizlabs/php_codesniffer": "^3",
-        "symbiote/silverstripe-queuedjobs": "^5"
+        "symbiote/silverstripe-queuedjobs": "^6",
+        "phpstan/extension-installer": "^1.4"
     },
     "autoload": {
         "psr-4": {
@@ -54,5 +56,12 @@
         "silverstripe/fulltextsearch-localsolr": "Adds a ready-to-use local Solr server for initial development"
     },
     "minimum-stability": "dev",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "config": {
+        "allow-plugins": {
+            "composer/installers": true,
+            "silverstripe/vendor-plugin": true,
+            "phpstan/extension-installer": true
+        }
+    }
 }
