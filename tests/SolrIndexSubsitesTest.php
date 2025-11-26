@@ -2,6 +2,7 @@
 
 namespace SilverStripe\FullTextSearch\Tests;
 
+use Override;
 use Apache_Solr_Document;
 use Page;
 use SilverStripe\Assets\File;
@@ -18,7 +19,6 @@ use SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariantSubsites;
 use SilverStripe\FullTextSearch\Solr\Services\Solr4Service;
 use SilverStripe\FullTextSearch\Tests\SolrIndexSubsitesTest\SolrIndexSubsitesTest_Index;
-use SilverStripe\FullTextSearch\Tests\SolrIndexVersionedTest\SolrDocumentMatcher;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Subsites\Model\Subsite;
 use SilverStripe\Versioned\Versioned;
@@ -37,6 +37,7 @@ class SolrIndexSubsitesTest extends SapphireTest
 
     protected $server = null;
 
+    #[Override]
     protected function setUp(): void
     {
         // Prevent parent::setUp() crashing on db build
@@ -64,6 +65,7 @@ class SolrIndexSubsitesTest extends SapphireTest
         SearchUpdater::clear_dirty_indexes();
     }
 
+    #[Override]
     protected function tearDown(): void
     {
         if ($this->server) {
@@ -90,7 +92,7 @@ class SolrIndexSubsitesTest extends SapphireTest
     {
         $id = $object->ID;
         $class = DataObject::getSchema()->baseDataClass($object);
-        $variants = array();
+        $variants = [];
 
         // Check subsite
         if (class_exists(Subsite::class)
@@ -221,9 +223,7 @@ class SolrIndexSubsitesTest extends SapphireTest
     public function testCorrectSubsiteIDOnFileWrite()
     {
         $subsiteIDs = ['0'] + $this->allFixtureIDs(Subsite::class);
-        $subsiteIDs = array_map(function ($v) {
-            return (string) $v;
-        }, $subsiteIDs ?? []);
+        $subsiteIDs = array_map(fn($v) => (string) $v, $subsiteIDs ?? []);
         $mockWrites = [
             '35910:File:a:0:{}' => [
                 'base' => File::class,

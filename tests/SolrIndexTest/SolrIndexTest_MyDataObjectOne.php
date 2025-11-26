@@ -2,6 +2,7 @@
 
 namespace SilverStripe\FullTextSearch\Tests\SolrIndexTest;
 
+use Override;
 use SilverStripe\Dev\TestOnly;
 use SilverStripe\ORM\DataObject;
 
@@ -15,6 +16,7 @@ class SolrIndexTest_MyDataObjectOne extends DataObject implements TestOnly
 
     private static $table_name = 'SolrIndexTestMyDataObjectOne';
 
+    #[Override]
     public function canView($member = null)
     {
         return $this->CanViewValue;

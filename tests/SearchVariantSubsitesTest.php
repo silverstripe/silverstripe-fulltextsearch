@@ -2,6 +2,7 @@
 
 namespace SilverStripe\FullTextSearch\Tests;
 
+use Override;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\SapphireTest;
@@ -18,6 +19,7 @@ class SearchVariantSubsiteTest extends SapphireTest
 {
     private static $index = null;
 
+    #[Override]
     protected function setUp(): void
     {
         parent::setUp();

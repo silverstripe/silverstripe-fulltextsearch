@@ -2,6 +2,7 @@
 
 namespace SilverStripe\FullTextSearch\Tests;
 
+use Override;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Core\Injector\Injector;
@@ -42,6 +43,7 @@ class BatchedProcessorTest extends SapphireTest
         ],
     ];
 
+    #[Override]
     public static function setUpBeforeClass(): void
     {
         // Disable illegal extensions if skipping this test
@@ -51,6 +53,7 @@ class BatchedProcessorTest extends SapphireTest
         parent::setUpBeforeClass();
     }
 
+    #[Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -60,7 +63,7 @@ class BatchedProcessorTest extends SapphireTest
         }
 
         if (class_exists(Subsite::class)) {
-            $this->markTestSkipped(get_class() . ' skipped when running with subsites');
+            $this->markTestSkipped(self::class . ' skipped when running with subsites');
         }
 
         DBDatetime::set_mock_now('2015-05-07 06:00:00');
@@ -75,13 +78,14 @@ class BatchedProcessorTest extends SapphireTest
 
         FullTextSearch::force_index_list(BatchedProcessorTest_Index::class);
 
-        SearchUpdateCommitJobProcessor::$dirty_indexes = array();
+        SearchUpdateCommitJobProcessor::$dirty_indexes = [];
         SearchUpdateCommitJobProcessor::$has_run = false;
 
         $this->oldProcessor = SearchUpdater::$processor;
         SearchUpdater::$processor = new SearchUpdateQueuedJobProcessor();
     }
 
+    #[Override]
     protected function tearDown(): void
     {
         if ($this->oldProcessor) {
@@ -105,10 +109,10 @@ class BatchedProcessorTest extends SapphireTest
             // Add to index manually
             $processor->addDirtyIDs(
                 BatchedProcessorTest_Object::class,
-                array(array(
+                [[
                     'id' => $object->ID,
-                    'state' => array(SearchVariantVersioned::class => 'Stage')
-                )),
+                    'state' => [SearchVariantVersioned::class => 'Stage']
+                ]],
                 BatchedProcessorTest_Index::class
             );
         }

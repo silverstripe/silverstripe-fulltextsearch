@@ -2,6 +2,7 @@
 
 namespace SilverStripe\FullTextSearch\Tests;
 
+use Apache_Solr_Document;
 use SilverStripe\FullTextSearch\Tests\Solr4ServiceTest\Solr4ServiceTest_RecordingService;
 use SilverStripe\Dev\SapphireTest;
 
@@ -21,7 +22,7 @@ class Solr4ServiceTest extends SapphireTest
     
     protected function getMockDocument($id)
     {
-        $document = new \Apache_Solr_Document();
+        $document = new Apache_Solr_Document();
         $document->setField('id', $id);
         $document->setField('title', "Item $id");
         return $document;
@@ -45,18 +46,18 @@ class Solr4ServiceTest extends SapphireTest
     public function testAddDocuments()
     {
         $service = $this->getMockService();
-        $sent = $service->addDocuments(array(
+        $sent = $service->addDocuments([
             $this->getMockDocument('C'),
             $this->getMockDocument('D')
-        ), false);
+        ], false);
         $this->assertEquals(
             '<add overwrite="true"><doc><field name="id">C</field><field name="title">Item C</field></doc><doc><field name="id">D</field><field name="title">Item D</field></doc></add>',
             $sent
         );
-        $sent = $service->addDocuments(array(
+        $sent = $service->addDocuments([
             $this->getMockDocument('E'),
             $this->getMockDocument('F')
-        ), true);
+        ], true);
         $this->assertEquals(
             '<add overwrite="false"><doc><field name="id">E</field><field name="title">Item E</field></doc><doc><field name="id">F</field><field name="title">Item F</field></doc></add>',
             $sent

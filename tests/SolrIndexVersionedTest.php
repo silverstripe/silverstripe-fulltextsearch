@@ -2,6 +2,7 @@
 
 namespace SilverStripe\FullTextSearch\Tests;
 
+use Override;
 use Apache_Solr_Document;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Core\Config\Config;
@@ -10,7 +11,6 @@ use SilverStripe\FullTextSearch\Search\Services\SearchableService;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
 use SilverStripe\FullTextSearch\Search\SearchIntrospection;
-use SilverStripe\FullTextSearch\Search\Indexes\SearchIndex_Recording;
 use SilverStripe\FullTextSearch\Solr\Services\Solr3Service;
 use SilverStripe\FullTextSearch\Tests\SearchVariantVersionedTest\SearchVariantVersionedTest_Item;
 use SilverStripe\FullTextSearch\Tests\SolrIndexVersionedTest\SolrIndexVersionedTest_Object;
@@ -20,7 +20,6 @@ use SilverStripe\FullTextSearch\Search\Processors\SearchUpdateImmediateProcessor
 use SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariantSubsites;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariantVersioned;
-use SilverStripe\Subsites\Model\Subsite;
 use SilverStripe\Versioned\Versioned;
 
 class SolrIndexVersionedTest extends SapphireTest
@@ -36,6 +35,7 @@ class SolrIndexVersionedTest extends SapphireTest
         SolrIndexVersionedTest_Object::class,
     ];
 
+    #[Override]
     protected function setUp(): void
     {
         // Need to be set before parent::setUp() since they're executed before the tests start
@@ -58,16 +58,17 @@ class SolrIndexVersionedTest extends SapphireTest
         Versioned::set_stage(Versioned::DRAFT);
     }
 
+    #[Override]
     protected function tearDown(): void
     {
         Versioned::set_reading_mode($this->oldMode);
         parent::tearDown();
     }
 
-    protected function getServiceMock($setMethods = array())
+    protected function getServiceMock($setMethods = [])
     {
         // Setup mock
-        /** @var SilverStripe\FullTextSearch\Solr\Services\Solr3Service|ObjectProphecy $serviceMock */
+        /** @var Solr3Service|ObjectProphecy $serviceMock */
         $serviceMock = $this->getMockBuilder(Solr3Service::class)
             ->setMethods($setMethods)
             ->getMock();
@@ -120,9 +121,9 @@ class SolrIndexVersionedTest extends SapphireTest
         // Check that write updates Stage
         Versioned::set_stage(Versioned::DRAFT);
 
-        $item = new SearchVariantVersionedTest_Item(array('TestText' => 'Foo'));
+        $item = new SearchVariantVersionedTest_Item(['TestText' => 'Foo']);
         $item->write();
-        $object = new SolrIndexVersionedTest_Object(array('TestText' => 'Bar'));
+        $object = new SolrIndexVersionedTest_Object(['TestText' => 'Bar']);
         $object->write();
 
         $doc1 = $this->getSolrDocument(SearchVariantVersionedTest_Item::class, $item, 'Foo', Versioned::DRAFT);
@@ -142,11 +143,11 @@ class SolrIndexVersionedTest extends SapphireTest
         // Check that write updates Live
         Versioned::set_stage(Versioned::DRAFT);
 
-        $item = new SearchVariantVersionedTest_Item(array('TestText' => 'Foo'));
+        $item = new SearchVariantVersionedTest_Item(['TestText' => 'Foo']);
         $item->write();
         $item->copyVersionToStage(Versioned::DRAFT, Versioned::LIVE);
 
-        $object = new SolrIndexVersionedTest_Object(array('TestText' => 'Bar'));
+        $object = new SolrIndexVersionedTest_Object(['TestText' => 'Bar']);
         $object->write();
         $object->copyVersionToStage(Versioned::DRAFT, Versioned::LIVE);
 
@@ -178,7 +179,7 @@ class SolrIndexVersionedTest extends SapphireTest
         // Delete the live record (not the stage)
         Versioned::set_stage(Versioned::DRAFT);
 
-        $item = new SearchVariantVersionedTest_Item(array('TestText' => 'Too'));
+        $item = new SearchVariantVersionedTest_Item(['TestText' => 'Too']);
         $item->write();
         $item->copyVersionToStage(Versioned::DRAFT, Versioned::LIVE);
         Versioned::set_stage(Versioned::LIVE);
@@ -196,7 +197,7 @@ class SolrIndexVersionedTest extends SapphireTest
         // Delete the stage record
         Versioned::set_stage(Versioned::DRAFT);
 
-        $item = new SearchVariantVersionedTest_Item(array('TestText' => 'Too'));
+        $item = new SearchVariantVersionedTest_Item(['TestText' => 'Too']);
         $item->write();
         $item->copyVersionToStage(Versioned::DRAFT, Versioned::LIVE);
         $id = clone $item;

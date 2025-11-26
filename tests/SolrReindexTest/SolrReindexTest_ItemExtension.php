@@ -2,7 +2,7 @@
 
 namespace SilverStripe\FullTextSearch\Tests\SolrReindexTest;
 
-use SilverStripe\ORM\DataExtension;
+use SilverStripe\Core\Extension;
 use SilverStripe\Dev\TestOnly;
 use SilverStripe\ORM\Queries\SQLSelect;
 use SilverStripe\ORM\DataQuery;
@@ -12,7 +12,7 @@ use SilverStripe\Core\Convert;
 /**
  * Select only records in the current variant
  */
-class SolrReindexTest_ItemExtension extends DataExtension implements TestOnly
+class SolrReindexTest_ItemExtension extends Extension implements TestOnly
 {
     /**
      * Filter records on the current variant

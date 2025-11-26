@@ -2,6 +2,7 @@
 
 namespace SilverStripe\FullTextSearch\Tests;
 
+use Override;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Dev\SapphireTest;
@@ -15,6 +16,7 @@ class SearchableServiceTest extends SapphireTest
 
     protected $usesDatabase = true;
 
+    #[Override]
     protected function setUp(): void
     {
         parent::setup();
@@ -28,7 +30,7 @@ class SearchableServiceTest extends SapphireTest
 
         Config::modify()->set(SearchableService::class, 'indexing_canview_exclude_classes', [SiteTree::class]);
 
-        Member::actAs(null, function () {
+        Member::actAs(null, function (): void {
             $searchableService = SearchableService::singleton();
 
             $page = SiteTree::create();
@@ -50,7 +52,7 @@ class SearchableServiceTest extends SapphireTest
         Versioned::set_draft_site_secured(false);
         Versioned::set_reading_mode('Stage.' . Versioned::DRAFT);
 
-        Member::actAs(null, function () {
+        Member::actAs(null, function (): void {
             $searchableService = SearchableService::singleton();
 
             $page = SiteTree::create();

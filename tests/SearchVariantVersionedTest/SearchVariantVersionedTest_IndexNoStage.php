@@ -11,6 +11,6 @@ class SearchVariantVersionedTest_IndexNoStage extends SearchIndex_Recording
     {
         $this->addClass(SearchVariantVersionedTest_Item::class);
         $this->addFilterField('TestText');
-        $this->excludeVariantState(array(SearchVariantVersioned::class => 'Stage'));
+        $this->excludeVariantState([SearchVariantVersioned::class => 'Stage']);
     }
 }

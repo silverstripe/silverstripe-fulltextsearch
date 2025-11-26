@@ -6,14 +6,14 @@ use Symbiote\QueuedJobs\Services\QueuedJob;
 
 class BatchedProcessor_QueuedJobService
 {
-    protected $jobs = array();
+    protected $jobs = [];
 
     public function queueJob(QueuedJob $job, $startAfter = null, $userId = null, $queueName = null)
     {
-        $this->jobs[] = array(
+        $this->jobs[] = [
             'job' => $job,
             'startAfter' => $startAfter
-        );
+        ];
         return $job;
     }
 

@@ -2,6 +2,8 @@
 
 namespace SilverStripe\FullTextSearch\Tests;
 
+use Apache_Solr_Response;
+use Apache_Solr_HttpTransport_Response;
 use Apache_Solr_Document;
 use Page;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -166,7 +168,7 @@ class SolrIndexTest extends SapphireTest
         $query->addSearchTerm(
             'term',
             null,
-            array('Field1' => 1.5, 'HasOneObject_Field1' => 3)
+            ['Field1' => 1.5, 'HasOneObject_Field1' => 3]
         );
         $index->search($query);
     }
@@ -209,7 +211,7 @@ class SolrIndexTest extends SapphireTest
 
     public function testHighlightQueryOnBoost()
     {
-        /** @var SilverStripe\FullTextSearch\Solr\Services\Solr3Service|ObjectProphecy $serviceMock */
+        /** @var Solr3Service|ObjectProphecy $serviceMock */
         $serviceMock = $this->getMockBuilder(Solr3Service::class)
             ->setMethods(['search'])
             ->getMock();
@@ -243,7 +245,7 @@ class SolrIndexTest extends SapphireTest
         $query->addSearchTerm(
             'term',
             null,
-            array('Field1' => 1.5, 'HasOneObject_Field1' => 3)
+            ['Field1' => 1.5, 'HasOneObject_Field1' => 3]
         );
         $index->search($query);
 
@@ -252,9 +254,9 @@ class SolrIndexTest extends SapphireTest
         $query->addSearchTerm(
             'term',
             null,
-            array('Field1' => 1.5, 'HasOneObject_Field1' => 3)
+            ['Field1' => 1.5, 'HasOneObject_Field1' => 3]
         );
-        $index->search($query, -1, -1, array('hl' => true));
+        $index->search($query, -1, -1, ['hl' => true]);
     }
 
     public function testIndexExcludesNullValues()
@@ -292,7 +294,7 @@ class SolrIndexTest extends SapphireTest
         $defField1 = $defs->xpath('field[@name="' . SearchUpdaterTest_Container::class . '_Field1"]');
         $this->assertEquals((string)$defField1[0]['stored'], 'false');
 
-        $index->addFilterField('Field1', null, array('stored' => 'true'));
+        $index->addFilterField('Field1', null, ['stored' => 'true']);
         $defs = simplexml_load_string('<fields>' . $index->getFieldDefinitions() . '</fields>');
         $defField1 = $defs->xpath('field[@name="' . SearchUpdaterTest_Container::class . '_Field1"]');
         $this->assertEquals((string)$defField1[0]['stored'], 'true');
@@ -307,7 +309,7 @@ class SolrIndexTest extends SapphireTest
         $analyzers = $defField1[0]->analyzer;
         $this->assertFalse((bool)$analyzers);
 
-        $index->addAnalyzer('Field1', 'charFilter', array('class' => 'solr.HTMLStripCharFilterFactory'));
+        $index->addAnalyzer('Field1', 'charFilter', ['class' => 'solr.HTMLStripCharFilterFactory']);
         $defs = simplexml_load_string('<fields>' . $index->getFieldDefinitions() . '</fields>');
         $defField1 = $defs->xpath('field[@name="' . SearchUpdaterTest_Container::class . '_Field1"]');
         $analyzers = $defField1[0]->analyzer;
@@ -503,9 +505,7 @@ class SolrIndexTest extends SapphireTest
             ->expects($this->exactly(1))
             ->method('deleteById')
             ->withConsecutive(
-                [$this->callback(function (string $docID) use ($pageA): bool {
-                    return strpos($docID ?? '', $pageA->ID . '-' . SiteTree::class) !== false;
-                })]
+                [$this->callback(fn(string $docID): bool => str_contains($docID ?? '', $pageA->ID . '-' . SiteTree::class))]
             );
 
         SearchableService::singleton()->clearCache();
@@ -601,9 +601,7 @@ class SolrIndexTest extends SapphireTest
             ->expects($this->exactly(1))
             ->method('deleteById')
             ->withConsecutive(
-                [$this->callback(function (string $docID) use ($pageA): bool {
-                    return strpos($docID ?? '', $pageA->ID . '-' . SiteTree::class) !== false;
-                })]
+                [$this->callback(fn(string $docID): bool => str_contains($docID ?? '', $pageA->ID . '-' . SiteTree::class))]
             );
 
         SearchableService::singleton()->clearCache();
@@ -617,8 +615,8 @@ class SolrIndexTest extends SapphireTest
 
     protected function getFakeRawSolrResponse()
     {
-        return new \Apache_Solr_Response(
-            new \Apache_Solr_HttpTransport_Response(
+        return new Apache_Solr_Response(
+            new Apache_Solr_HttpTransport_Response(
                 null,
                 null,
                 '{}'

@@ -7,15 +7,15 @@ use SilverStripe\FullTextSearch\Tests\SearchUpdaterTest\SearchUpdaterTest_Contai
 
 class SearchUpdaterTest_HasMany extends DataObject
 {
-    private static $db = array(
+    private static $db = [
         'Field1' => 'Varchar',
         'Field2' => 'Varchar'
-    );
+    ];
 
     private static $table_name = 'SearchUpdaterTest_HasMany';
 
-    private static $has_one = array(
+    private static $has_one = [
         'HasManyContainer' => SearchUpdaterTest_Container::class,
         'HasManyOtherContainer' => SearchUpdaterTest_OtherContainer::class,
-    );
+    ];
 }

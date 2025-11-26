@@ -16,7 +16,7 @@ class SolrReindexTest_RecordingLogger extends Logger implements TestOnly
      */
     protected $testHandler = null;
 
-    public function __construct($name = 'testlogger', array $handlers = array(), array $processors = array())
+    public function __construct($name = 'testlogger', array $handlers = [], array $processors = [])
     {
         parent::__construct($name, $handlers, $processors);
 
@@ -50,9 +50,7 @@ class SolrReindexTest_RecordingLogger extends Logger implements TestOnly
     {
         return array_values(array_filter(
             $this->getMessages() ?? [],
-            function ($content) use ($containing) {
-                return stripos($content ?? '', $containing ?? '') !== false;
-            }
+            fn($content) => stripos($content ?? '', $containing ?? '') !== false
         ));
     }
 

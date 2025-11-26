@@ -2,6 +2,7 @@
 
 namespace SilverStripe\FullTextSearch\Tests\SolrReindexTest;
 
+use Override;
 use SilverStripe\Dev\TestOnly;
 use SilverStripe\FullTextSearch\Search\Indexes\SearchIndex;
 use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
@@ -80,7 +81,7 @@ class SolrReindexTest_Variant extends SearchVariant implements TestOnly
      */
     public function alterDefinition($class, $index)
     {
-        $self = get_class($this);
+        $self = static::class;
 
         $this->addFilterField($index, '_testvariant', [
             'name' => '_testvariant',
@@ -115,6 +116,7 @@ class SolrReindexTest_Variant extends SearchVariant implements TestOnly
             ($includeSubclasses && is_subclass_of($class, SolrReindexTest_Item::class, true));
     }
 
+    #[Override]
     public function appliesToEnvironment()
     {
         // Set to null to disable
@@ -129,6 +131,6 @@ class SolrReindexTest_Variant extends SearchVariant implements TestOnly
     public function reindexStates()
     {
         // Always use string values for states for consistent json_encode value
-        return array('0', '1', '2');
+        return ['0', '1', '2'];
     }
 }

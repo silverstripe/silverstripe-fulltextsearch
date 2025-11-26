@@ -2,11 +2,13 @@
 
 namespace SilverStripe\FullTextSearch\Tests\SolrIndexTest;
 
+use Override;
 use SilverStripe\FullTextSearch\Solr\SolrIndex;
 use SilverStripe\FullTextSearch\Tests\SearchUpdaterTest\SearchUpdaterTest_Container;
 
 class SolrIndexTest_FakeIndex2 extends SolrIndex
 {
+    #[Override]
     protected function getStoredDefault()
     {
         // Override isDev defaulting to stored

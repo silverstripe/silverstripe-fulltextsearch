@@ -2,12 +2,14 @@
 
 namespace SilverStripe\FullTextSearch\Tests\SolrIndexTest;
 
+use Override;
 use SilverStripe\FullTextSearch\Solr\SolrIndex;
 use SilverStripe\FullTextSearch\Tests\SearchUpdaterTest\SearchUpdaterTest_Container;
 use SilverStripe\FullTextSearch\Tests\SearchUpdaterTest\SearchUpdaterTest_ExtendedContainer;
 
 class SolrIndexTest_AmbiguousRelationInheritedIndex extends SolrIndex
 {
+    #[Override]
     protected function getStoredDefault()
     {
         // Override isDev defaulting to stored

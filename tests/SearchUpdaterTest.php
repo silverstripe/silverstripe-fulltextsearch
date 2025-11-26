@@ -2,6 +2,7 @@
 
 namespace SilverStripe\FullTextSearch\Tests;
 
+use Override;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\SapphireTest;
@@ -21,6 +22,7 @@ class SearchUpdaterTest extends SapphireTest
 
     private static $index = null;
 
+    #[Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -31,9 +33,9 @@ class SearchUpdaterTest extends SapphireTest
             self::$index->reset();
         }
 
-        Config::modify()->set(Injector::class, SearchUpdateProcessor::class, array(
+        Config::modify()->set(Injector::class, SearchUpdateProcessor::class, [
             'class' => SearchUpdateImmediateProcessor::class
-        ));
+        ]);
 
         FullTextSearch::force_index_list(self::$index);
         SearchUpdater::clear_dirty_indexes();
@@ -77,9 +79,7 @@ class SearchUpdaterTest extends SapphireTest
 
         $added = self::$index->getAdded(['ID']);
         // Some databases don't output $added in a consistent order; that's okay
-        usort($added, function ($a, $b) {
-            return $a['ID']-$b['ID'];
-        });
+        usort($added, fn($a, $b) => $a['ID']-$b['ID']);
 
         $this->assertEquals([
             ['ID' => $container1->ID],
@@ -98,9 +98,7 @@ class SearchUpdaterTest extends SapphireTest
         $added = self::$index->getAdded(['ID']);
 
         // Some databases don't output $added in a consistent order; that's okay
-        usort($added, function ($a, $b) {
-            return $a['ID']-$b['ID'];
-        });
+        usort($added, fn($a, $b) => $a['ID']-$b['ID']);
 
         $this->assertEquals([
             ['ID' => $container1->ID],

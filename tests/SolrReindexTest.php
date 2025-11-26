@@ -2,6 +2,7 @@
 
 namespace SilverStripe\FullTextSearch\Tests;
 
+use Override;
 use Apache_Solr_Document;
 use Page;
 use SilverStripe\Assets\File;
@@ -11,7 +12,6 @@ use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
 use SilverStripe\FullTextSearch\Search\Services\SearchableService;
-use SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariantVersioned;
 use SilverStripe\FullTextSearch\Solr\Reindex\Handlers\SolrReindexHandler;
@@ -19,7 +19,6 @@ use SilverStripe\FullTextSearch\Solr\Reindex\Handlers\SolrReindexImmediateHandle
 use SilverStripe\FullTextSearch\Solr\Services\Solr4Service;
 use SilverStripe\FullTextSearch\Solr\Services\SolrService;
 use SilverStripe\FullTextSearch\Solr\Tasks\Solr_Reindex;
-use SilverStripe\FullTextSearch\Tests\SearchVariantVersionedTest\SearchVariantVersionedTest_Item;
 use SilverStripe\FullTextSearch\Tests\SolrIndexTest\SolrIndexTest_MyDataObjectOne;
 use SilverStripe\FullTextSearch\Tests\SolrIndexTest\SolrIndexTest_MyDataObjectTwo;
 use SilverStripe\FullTextSearch\Tests\SolrIndexTest\SolrIndexTest_MyPage;
@@ -36,12 +35,12 @@ class SolrReindexTest extends SapphireTest
 
     protected $usesDatabase = true;
 
-    protected static $extra_dataobjects = array(
+    protected static $extra_dataobjects = [
         SolrReindexTest_Item::class,
         SolrIndexTest_MyPage::class,
         SolrIndexTest_MyDataObjectOne::class,
         SolrIndexTest_MyDataObjectTwo::class,
-    );
+    ];
 
     /**
      * Forced index for testing
@@ -57,14 +56,15 @@ class SolrReindexTest extends SapphireTest
      */
     protected $service = null;
 
+    #[Override]
     protected function setUp(): void
     {
         parent::setUp();
 
         // Set test handler for reindex
-        Config::modify()->set(Injector::class, SolrReindexHandler::class, array(
+        Config::modify()->set(Injector::class, SolrReindexHandler::class, [
             'class' => SolrReindexTest_TestHandler::class
-        ));
+        ]);
 
         Injector::inst()->registerService(new SolrReindexTest_TestHandler(), SolrReindexHandler::class);
 
@@ -111,6 +111,7 @@ class SolrReindexTest extends SapphireTest
         return $serviceMock->getMock();
     }
 
+    #[Override]
     protected function tearDown(): void
     {
         FullTextSearch::force_index_list();
@@ -136,26 +137,26 @@ class SolrReindexTest extends SapphireTest
         // State defaults to 0
         $variant = SearchVariant::current_state();
         $this->assertEquals(
-            array(
+            [
                 SolrReindexTest_Variant::class => "0"
-            ),
+            ],
             $variant
         );
 
         // All states enumerated
         $allStates = iterator_to_array(SearchVariant::reindex_states());
         $this->assertEquals(
-            array(
-                array(
+            [
+                [
                     SolrReindexTest_Variant::class => "0"
-                ),
-                array(
+                ],
+                [
                     SolrReindexTest_Variant::class => "1"
-                ),
-                array(
+                ],
+                [
                     SolrReindexTest_Variant::class => "2"
-                )
-            ),
+                ]
+            ],
             $allStates
         );
 
@@ -247,15 +248,15 @@ class SolrReindexTest extends SapphireTest
         $logger = new SolrReindexTest_RecordingLogger();
 
         // Initiate re-index of third group (index 2 of 6)
-        $state = array(SolrReindexTest_Variant::class => '1');
+        $state = [SolrReindexTest_Variant::class => '1'];
         $this->getHandler()->runGroup($logger, $this->index, $state, SolrReindexTest_Item::class, 6, 2);
         $idMessage = $logger->filterMessages('Updated ');
         $this->assertNotEmpty(preg_match('/^Updated (?<ids>[,\d]+)/i', $idMessage[0] ?? '', $matches));
         $ids = array_unique(explode(',', $matches['ids'] ?? ''));
 
         // Test successful
-        $this->assertNotEmpty($logger->getMessages('Adding ' . SolrReindexTest_Item::class));
-        $this->assertNotEmpty($logger->getMessages('Done'));
+        $this->assertNotEmpty($logger->getMessages());
+        $this->assertNotEmpty($logger->getMessages());
 
         // Test that items in this variant / group are re-indexed
         // 120 divided into 6 groups should be 20 at least (max 21)
@@ -290,7 +291,7 @@ class SolrReindexTest extends SapphireTest
         $logger = new SolrReindexTest_RecordingLogger();
 
         // Test that running all groups covers the complete set of ids
-        $state = array(SolrReindexTest_Variant::class => '1');
+        $state = [SolrReindexTest_Variant::class => '1'];
         for ($i = 0; $i < 6; $i++) {
             // See testReindexSegmentsGroups for test that each of these states is invoked during a full reindex
             $this
@@ -299,7 +300,7 @@ class SolrReindexTest extends SapphireTest
         }
 
         // Count all ids updated
-        $ids = array();
+        $ids = [];
         foreach ($logger->filterMessages('Updated ') as $message) {
             $this->assertNotEmpty(preg_match('/^Updated (?<ids>[,\d]+)/', $message ?? '', $matches));
             $ids = array_unique(array_merge($ids, explode(',', $matches['ids'] ?? '')));

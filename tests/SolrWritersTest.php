@@ -2,6 +2,7 @@
 
 namespace SilverStripe\FullTextSearch\Tests;
 
+use Exception;
 use \InvalidArgumentException;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\FullTextSearch\Search\Adapters\SolrSearchAdapter;
@@ -119,13 +120,13 @@ class SolrWritersTest extends SapphireTest
 
     public function testConjunctionFailure()
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $adapter = new SolrSearchAdapter();
         $adapter->getConjunctionFor('FAIL');
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function testComplexPositiveFilterQueryString()
     {
@@ -189,7 +190,7 @@ class SolrWritersTest extends SapphireTest
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function testComplexNegativeFilterQueryString()
     {

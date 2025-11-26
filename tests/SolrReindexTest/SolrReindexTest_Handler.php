@@ -16,7 +16,7 @@ class SolrReindexTest_Handler extends AbstractProcessingHandler implements TestO
      *
      * @var array
      */
-    protected $messages = array();
+    protected $messages = [];
 
     /**
      * Get all messages
@@ -30,7 +30,7 @@ class SolrReindexTest_Handler extends AbstractProcessingHandler implements TestO
 
     public function clear()
     {
-        $this->messages = array();
+        $this->messages = [];
     }
 
     protected function write(LogRecord $record): void

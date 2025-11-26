@@ -9,23 +9,23 @@ use SilverStripe\FullTextSearch\Tests\SearchUpdaterTest\SearchUpdaterTest_ManyMa
 
 class SearchUpdaterTest_Container extends DataObject
 {
-    private static $db = array(
+    private static $db = [
         'Field1' => 'Varchar',
         'Field2' => 'Varchar',
         'MyDate' => 'Date',
-    );
+    ];
 
     private static $table_name = 'SearchUpdaterTest_Container';
 
-    private static $has_one = array(
+    private static $has_one = [
         'HasOneObject' => SearchUpdaterTest_HasOne::class
-    );
+    ];
 
-    private static $has_many = array(
+    private static $has_many = [
         'HasManyObjects' => SearchUpdaterTest_HasMany::class
-    );
+    ];
 
-    private static $many_many = array(
+    private static $many_many = [
         'ManyManyObjects' => SearchUpdaterTest_ManyMany::class
-    );
+    ];
 }
