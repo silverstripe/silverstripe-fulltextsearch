@@ -10,6 +10,7 @@ use SilverStripe\Core\Injector\Injector;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
 use SilverStripe\FullTextSearch\Solr\Reindex\Handlers\SolrReindexHandler;
 use SilverStripe\FullTextSearch\Solr\SolrIndex;
+use Symfony\Component\Console\Input\InputInterface;
 
 /**
  * Task used for both initiating a new reindex, as well as for processing incremental batches
@@ -27,9 +28,14 @@ use SilverStripe\FullTextSearch\Solr\SolrIndex;
  */
 class Solr_Reindex extends Solr_BuildTask
 {
-    private static $segment = 'Solr_Reindex';
 
-    protected $enabled = true;
+    protected string $title = 'Solr Reindex';
+
+    protected static string $description = 'Reindex search indexes';
+
+    private static string $segment = 'Solr_Reindex';
+
+    protected bool $enabled = true;
 
     /**
      * Number of records to load and index per request
@@ -37,7 +43,7 @@ class Solr_Reindex extends Solr_BuildTask
      * @var int
      * @config
      */
-    private static $recordsPerRequest = 200;
+    private static int $recordsPerRequest = 200;
 
     /**
      * Get the reindex handler
@@ -53,7 +59,7 @@ class Solr_Reindex extends Solr_BuildTask
      * @param SS_HTTPRequest $request
      */
     #[Override]
-    public function run($request, PolyOutput $output)
+    public function execute(InputInterface $request, PolyOutput $output): int
     {
         parent::run($request);
 
@@ -76,16 +82,17 @@ class Solr_Reindex extends Solr_BuildTask
 
         $index = $request->getVar('index');
 
-        //find the index classname by IndexName
-        // this is for when index names do not match the class name (this can be done by overloading getIndexName() on
-        // indexes
+        // find the index classname by IndexName
+        // for when index names don't match the class name (this can be done by overloading getIndexName() on indexes
         if ($index && !ClassInfo::exists($index)) {
             foreach (ClassInfo::subclassesFor(SolrIndex::class) as $solrIndexClass) {
                 $reflection = new ReflectionClass($solrIndexClass);
+
                 //skip over abstract classes
                 if (!$reflection->isInstantiable()) {
                     continue;
                 }
+
                 //check the indexname matches the index passed to the request
                 if (!strcasecmp(singleton($solrIndexClass)->getIndexName() ?? '', $index ?? '')) {
                     //if we match, set the correct index name and move on
@@ -101,6 +108,7 @@ class Solr_Reindex extends Solr_BuildTask
         $groups = $request->getVar('groups');
 
         $handler = $this->getHandler();
+
         if ($groups) {
             // Run grouped batches (id % groups = group)
             $group = $request->getVar('group');

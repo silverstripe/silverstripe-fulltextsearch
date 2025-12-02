@@ -11,14 +11,21 @@ use SilverStripe\FullTextSearch\Solr\Stores\SolrConfigStore;
 use SilverStripe\FullTextSearch\Solr\Stores\SolrConfigStore_File;
 use SilverStripe\FullTextSearch\Solr\Stores\SolrConfigStore_Post;
 use SilverStripe\FullTextSearch\Solr\Stores\SolrConfigStore_WebDAV;
+use Symfony\Component\Console\Input\InputInterface;
 
 class Solr_Configure extends Solr_BuildTask
 {
-    private static $segment = 'Solr_Configure';
-    protected $enabled = true;
+
+    protected string $title = 'Solr Configure';
+
+    protected static string $description = 'Configure Solr Configuration';
+
+    private static string $segment = 'Solr_Configure';
+
+    protected bool $enabled = true;
 
     #[Override]
-    public function run($request, PolyOutput $output)
+    public function execute(InputInterface $request, PolyOutput $output): int
     {
         parent::run($request);
 

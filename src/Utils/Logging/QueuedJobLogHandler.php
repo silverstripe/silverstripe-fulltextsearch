@@ -5,6 +5,7 @@ namespace SilverStripe\FullTextSearch\Utils\Logging;
 use Monolog\Handler\AbstractProcessingHandler;
 use Monolog\LogRecord;
 use Monolog\Logger;
+use Monolog\LogRecord;
 use Symbiote\QueuedJobs\Services\QueuedJob;
 
 if (!interface_exists(QueuedJob::class)) {

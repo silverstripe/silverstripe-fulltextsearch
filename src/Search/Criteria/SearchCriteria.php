@@ -54,7 +54,7 @@ class SearchCriteria implements SearchCriteriaInterface
      * @param string|SearchCriterion $target
      * @param mixed $value
      * @param string|null $comparison
-     * @param AbstractSearchQueryWriter $searchQueryWriter
+     * @param ?AbstractSearchQueryWriter $searchQueryWriter
      */
     public function __construct(
         $target,

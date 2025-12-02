@@ -8,13 +8,19 @@ use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\BuildTask;
 use SilverStripe\FullTextSearch\Utils\Logging\SearchLogFactory;
+use Symfony\Component\Console\Input\InputInterface;
 
 /**
  * Abstract class for build tasks
  */
 class Solr_BuildTask extends BuildTask
 {
-    protected $enabled = false;
+
+    protected string $title = 'Solr BuildTask';
+
+    protected static string $description = 'Build solr search indexes';
+
+    protected bool $enabled = false;
 
     /**
      * Logger
@@ -57,7 +63,7 @@ class Solr_BuildTask extends BuildTask
      * @param HTTPRequest $request
      */
     #[Override]
-    public function run($request, PolyOutput $output)
+    public function execute(InputInterface $request, PolyOutput $output): int
     {
         $name = static::class;
         $verbose = $request->getVar('verbose');
