@@ -60,7 +60,7 @@ class SearchCriteria implements SearchCriteriaInterface
         $target,
         $value = null,
         $comparison = null,
-        AbstractSearchQueryWriter $searchQueryWriter = null
+        ?AbstractSearchQueryWriter $searchQueryWriter = null
     ) {
         $this->addClause($this->getCriterionForCondition($target, $value, $comparison, $searchQueryWriter));
     }
@@ -78,7 +78,7 @@ class SearchCriteria implements SearchCriteriaInterface
         $target,
         $value = null,
         $comparison = null,
-        AbstractSearchQueryWriter $searchQueryWriter = null
+        ?AbstractSearchQueryWriter $searchQueryWriter = null
     ) {
         return new SearchCriteria($target, $value, $comparison, $searchQueryWriter);
     }
@@ -141,7 +141,7 @@ class SearchCriteria implements SearchCriteriaInterface
         $target,
         $value = null,
         $comparison = null,
-        AbstractSearchQueryWriter $searchQueryWriter = null
+        ?AbstractSearchQueryWriter $searchQueryWriter = null
     ) {
         $criterion = $this->getCriterionForCondition($target, $value, $comparison, $searchQueryWriter);
 
@@ -162,7 +162,7 @@ class SearchCriteria implements SearchCriteriaInterface
         $target,
         $value = null,
         $comparison = null,
-        AbstractSearchQueryWriter $searchQueryWriter = null
+        ?AbstractSearchQueryWriter $searchQueryWriter = null
     ) {
         $criterion = $this->getCriterionForCondition($target, $value, $comparison, $searchQueryWriter);
 
@@ -183,7 +183,7 @@ class SearchCriteria implements SearchCriteriaInterface
         $target,
         $value,
         $comparison,
-        AbstractSearchQueryWriter $searchQueryWriter = null
+        ?AbstractSearchQueryWriter $searchQueryWriter = null
     ) {
         if ($target instanceof SearchCriteriaInterface) {
             return $target;
