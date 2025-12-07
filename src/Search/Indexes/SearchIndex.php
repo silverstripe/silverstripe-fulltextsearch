@@ -214,7 +214,9 @@ abstract class SearchIndex extends ModelData implements Stringable
                     $singleton = singleton($dataclass);
 
                     if ($singleton->hasMethod("get$field") || $singleton->hasField($field)) {
-                        $type = $singleton->castingClass($field);
+                        $type = $singleton->castingHelper($field);
+                        $type = trim(strtok($type ?? '', '(') ?? '');
+
                         if (!$type) {
                             $type = 'String';
                         }
