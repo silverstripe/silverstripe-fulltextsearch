@@ -104,7 +104,7 @@ class SearchUpdateCommitJobProcessor implements QueuedJob
 
     public function getJobType()
     {
-        return Config::inst()->get(self::class, 'commit_queue');
+        return (string)Config::inst()->get(self::class, 'commit_queue');
     }
 
     public function getSignature()

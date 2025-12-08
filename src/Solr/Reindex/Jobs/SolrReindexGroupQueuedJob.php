@@ -3,7 +3,9 @@
 namespace SilverStripe\FullTextSearch\Solr\Reindex\Jobs;
 
 use Override;
+use SilverStripe\PolyExecution\PolyOutput;
 use Symbiote\QueuedJobs\Services\QueuedJob;
+use Symfony\Component\Console\Output\BufferedOutput;
 
 if (!interface_exists(QueuedJob::class)) {
     return;
@@ -92,9 +94,11 @@ class SolrReindexGroupQueuedJob extends SolrReindexQueuedJobBase
 
     public function process()
     {
-        $logger = $this->getLogger();
+        $buffer = new BufferedOutput();
+        $logger = new PolyOutput(PolyOutput::FORMAT_ANSI, wrappedOutput: $buffer);
+
         if ($this->jobFinished()) {
-            $logger->notice("reindex group already complete");
+            $logger->writeln("reindex group already complete");
             return;
         }
 
@@ -102,11 +106,12 @@ class SolrReindexGroupQueuedJob extends SolrReindexQueuedJobBase
         $indexInstance = singleton($this->indexName);
 
         // Send back to processor
-        $logger->info("Beginning reindex group");
+        $logger->writeln("Beginning reindex group");
         $this
             ->getHandler()
             ->runGroup($logger, $indexInstance, $this->state, $this->class, $this->groups, $this->group);
-        $logger->info("Completed reindex group");
+        $logger->writeln("Completed reindex group");
+        $this->addMessage($buffer->fetch());
         $this->isComplete = true;
     }
 }

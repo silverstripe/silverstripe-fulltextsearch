@@ -121,7 +121,6 @@ class Solr_Reindex extends Solr_BuildTask
         }
 
         // If run at the top level, delegate to appropriate handler
-        $taskName = $this->config()->segment ?: static::class;
         $handler->triggerReindex($this->output, $this->config()->recordsPerRequest, self::class, $class);
     }
 
