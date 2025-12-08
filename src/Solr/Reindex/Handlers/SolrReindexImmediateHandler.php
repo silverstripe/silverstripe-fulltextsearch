@@ -11,6 +11,12 @@ use SilverStripe\Core\Manifest\ModuleLoader;
 use SilverStripe\FullTextSearch\Solr\Solr;
 use SilverStripe\FullTextSearch\Solr\SolrIndex;
 use SilverStripe\ORM\DB;
+use SilverStripe\PolyExecution\PolyOutput;
+use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputDefinition;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Process\Process;
 use SilverStripe\Core\Config\Configurable;
 
@@ -23,7 +29,7 @@ class SolrReindexImmediateHandler extends SolrReindexBase
 {
 
     use Configurable;
-    
+
     /**
      * Path to the php binary
      * @config
@@ -32,14 +38,14 @@ class SolrReindexImmediateHandler extends SolrReindexBase
     private static $php_bin = 'php';
 
 
-    public function triggerReindex(LoggerInterface $logger, $batchSize, $taskName, $classes = null)
+    public function triggerReindex(PolyOutput $logger, $batchSize, $taskName, $classes = null)
     {
         $this->runReindex($logger, $batchSize, $taskName, $classes);
     }
 
     #[Override]
     protected function processIndex(
-        LoggerInterface $logger,
+        PolyOutput $logger,
         SolrIndex $indexInstance,
         $batchSize,
         $taskName,
@@ -68,7 +74,7 @@ class SolrReindexImmediateHandler extends SolrReindexBase
      * @param string $taskName Name of task script to run
      */
     protected function processGroup(
-        LoggerInterface $logger,
+        PolyOutput $logger,
         SolrIndex $indexInstance,
         $state,
         $class,
@@ -88,29 +94,32 @@ class SolrReindexImmediateHandler extends SolrReindexBase
         $scriptPath = sprintf("%s%scli-script.php", $frameworkPath, DIRECTORY_SEPARATOR);
 
         $cmd = [
-            $php,
-            $scriptPath,
-            "dev/tasks/{$taskName}",
-            "index={$indexClass}",
-            "class={$class}",
-            "group={$group}",
-            "groups={$groups}",
-            "variantstate={$statevar}",
-            "verbose=1"
+            'sake',
+            "tasks:{$taskName}",
+            "--index={$indexClass}",
+            "--class={$class}",
+            "--group={$group}",
+            "--groups={$groups}",
+            "--variantstate={$statevar}",
+            "--verbose=1"
         ];
-        $logger->info('Running ' . implode(' ', $cmd));
+        $logger->writeln('Running ' . implode(' ', $cmd));
 
-        // Execute script via shell
-        $process = new Process($cmd);
-
-        // Set timeout from config. Process default is 60 seconds
-        $process->setTimeout($this->config()->get('process_timeout'));
-
-        $process->run();
-
-        $res = $process->getOutput();
+        // Execute script
+        $res = $this->executeBuiltTask(
+            $taskName,
+            [
+                '--index' => $indexClass,
+                '--class' => $class,
+                '--group' => $group,
+                '--groups' => $groups,
+                '--variantstate' => $statevar,
+                '--verbose' => true,
+            ],
+            true
+        );
         if ($logger) {
-            $logger->info(preg_replace('/\r\n|\n/', '$0  ', $res ?? ''));
+            $logger->writeln(preg_replace('/\r\n|\n/', '$0  ', $res ?? ''));
         }
 
         // If we're in dev mode, commit more often for fun and profit
@@ -121,4 +130,28 @@ class SolrReindexImmediateHandler extends SolrReindexBase
         // This will slow down things a tiny bit, but it is done so that we don't timeout to the database during a reindex
         DB::query('SELECT 1');
     }
+
+    public function executeBuiltTask(string $className, array $params = [], bool $returnOutput = false): ?string
+    {
+        $definition = [];
+        $paramNames = array_keys($params);
+
+        $task = $className::create();
+
+        $options = $task->getOptions();
+        $options[] = new InputOption('verbose', null, InputOption::VALUE_NONE, 'verbose');
+
+        $input = new ArrayInput($params, new InputDefinition($options));
+        $input->setInteractive(false);
+        $buffer = new BufferedOutput();
+        $output = new PolyOutput(PolyOutput::FORMAT_ANSI, wrappedOutput: $buffer);
+        $task->run($input, $output);
+
+        if ($returnOutput) {
+            return $buffer->fetch();
+        }
+
+        return null;
+    }
+
 }

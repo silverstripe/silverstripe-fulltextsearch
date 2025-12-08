@@ -11,25 +11,27 @@ use SilverStripe\FullTextSearch\Solr\Stores\SolrConfigStore;
 use SilverStripe\FullTextSearch\Solr\Stores\SolrConfigStore_File;
 use SilverStripe\FullTextSearch\Solr\Stores\SolrConfigStore_Post;
 use SilverStripe\FullTextSearch\Solr\Stores\SolrConfigStore_WebDAV;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 
 class Solr_Configure extends Solr_BuildTask
 {
 
+    protected bool $is_enabled = true;
+
     protected string $title = 'Solr Configure';
 
     protected static string $description = 'Configure Solr Configuration';
 
-    private static string $segment = 'Solr_Configure';
-
-    protected bool $enabled = true;
+    protected static string $commandName = 'solr-configure';
 
     #[Override]
-    public function execute(InputInterface $request, PolyOutput $output): int
+    public function execute(InputInterface $input, PolyOutput $output): int
     {
-        parent::run($request);
+        $this->output = $output;
+        $this->verbose = (bool) $input->getOption('verbose');
 
-        $this->extend('updateBeforeSolrConfigureTask', $request);
+        $this->extend('updateBeforeSolrConfigureTask', $input, $output);
 
         // Find the IndexStore handler, which will handle uploading config files to Solr
         $store = $this->getSolrConfigStore();
@@ -40,17 +42,17 @@ class Solr_Configure extends Solr_BuildTask
                 $this->updateIndex($instance, $store);
             } catch (Exception $e) {
                 // We got an exception. Warn, but continue to next index.
-                $this
-                    ->getLogger()
-                    ->error("Failure: " . $e->getMessage());
+                $this->info("Failure: " . $e->getMessage());
             }
         }
 
         if (isset($e)) {
-            exit(1);
+            return Command::FAILURE;
         }
 
-        $this->extend('updateAfterSolrConfigureTask', $request);
+        $this->extend('updateAfterSolrConfigureTask', $input, $output);
+
+        return Command::SUCCESS;
     }
 
     /**
@@ -62,23 +64,23 @@ class Solr_Configure extends Solr_BuildTask
     protected function updateIndex($instance, $store)
     {
         $index = $instance->getIndexName();
-        $this->getLogger()->info("Configuring $index.");
+        $this->info("Configuring $index.");
 
         // Upload the config files for this index
-        $this->getLogger()->info("Uploading configuration ...");
+        $this->info("Uploading configuration ...");
         $instance->uploadConfig($store);
 
         // Then tell Solr to use those config files
         $service = Solr::service();
         if ($service->coreIsActive($index)) {
-            $this->getLogger()->info("Reloading core ...");
+            $this->info("Reloading core ...");
             $service->coreReload($index);
         } else {
-            $this->getLogger()->info("Creating core ...");
+            $this->info("Creating core ...");
             $service->coreCreate($index, $store->instanceDir($index));
         }
 
-        $this->getLogger()->info("Done");
+        $this->info("Done");
     }
 
     /**

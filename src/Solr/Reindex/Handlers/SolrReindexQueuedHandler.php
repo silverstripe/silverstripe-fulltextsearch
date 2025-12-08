@@ -12,6 +12,7 @@ use SilverStripe\Core\Injector\Injector;
 use SilverStripe\FullTextSearch\Solr\Reindex\Jobs\SolrReindexQueuedJob;
 use SilverStripe\FullTextSearch\Solr\Reindex\Jobs\SolrReindexGroupQueuedJob;
 use SilverStripe\FullTextSearch\Search\Processors\SearchUpdateCommitJobProcessor;
+use SilverStripe\PolyExecution\PolyOutput;
 use Symbiote\QueuedJobs\Services\QueuedJob;
 use Symbiote\QueuedJobs\Services\QueuedJobService;
 use Symbiote\QueuedJobs\DataObjects\QueuedJobDescriptor;
@@ -66,12 +67,12 @@ class SolrReindexQueuedHandler extends SolrReindexBase
         return DB::affected_rows();
     }
 
-    public function triggerReindex(LoggerInterface $logger, $batchSize, $taskName, $classes = null)
+    public function triggerReindex(PolyOutput $logger, $batchSize, $taskName, $classes = null)
     {
         // Cancel existing jobs
         $queues = $this->cancelExistingJobs(SolrReindexQueuedJob::class);
         $groups = $this->cancelExistingJobs(SolrReindexGroupQueuedJob::class);
-        $logger->info("Cancelled {$queues} re-index tasks and {$groups} re-index groups");
+        $logger->writeln("Cancelled {$queues} re-index tasks and {$groups} re-index groups");
 
         // Although this class is used as a service (singleton) it may also be instantiated
         // as a queuedjob
@@ -81,11 +82,11 @@ class SolrReindexQueuedHandler extends SolrReindexBase
             ->queueJob($job);
 
         $title = $job->getTitle();
-        $logger->info("Queued {$title}");
+        $logger->writeln("Queued {$title}");
     }
 
     protected function processGroup(
-        LoggerInterface $logger,
+        PolyOutput $logger,
         SolrIndex $indexInstance,
         $state,
         $class,
@@ -107,12 +108,12 @@ class SolrReindexQueuedHandler extends SolrReindexBase
             ->queueJob($job);
 
         $title = $job->getTitle();
-        $logger->info("Queued {$title}");
+        $logger->writeln("Queued {$title}");
     }
 
     #[Override]
     public function runGroup(
-        LoggerInterface $logger,
+        PolyOutput $logger,
         SolrIndex $indexInstance,
         $state,
         $class,
@@ -123,7 +124,7 @@ class SolrReindexQueuedHandler extends SolrReindexBase
 
         // After any changes have been made, mark all indexes as dirty for commit
         // see http://stackoverflow.com/questions/7512945/how-to-fix-exceeded-limit-of-maxwarmingsearchers
-        $logger->info("Queuing commit on all changes");
+        $logger->writeln("Queuing commit on all changes");
         SearchUpdateCommitJobProcessor::queue();
     }
 }

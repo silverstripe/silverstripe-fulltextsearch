@@ -11,6 +11,8 @@ use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
 use SilverStripe\FullTextSearch\Solr\Reindex\Handlers\SolrReindexHandler;
 use SilverStripe\FullTextSearch\Solr\SolrIndex;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Command\Command;
 
 /**
  * Task used for both initiating a new reindex, as well as for processing incremental batches
@@ -28,14 +30,13 @@ use Symfony\Component\Console\Input\InputInterface;
  */
 class Solr_Reindex extends Solr_BuildTask
 {
+    protected bool $is_enabled = true;
 
     protected string $title = 'Solr Reindex';
 
     protected static string $description = 'Reindex search indexes';
 
-    private static string $segment = 'Solr_Reindex';
-
-    protected bool $enabled = true;
+    protected static string $commandName = 'solr-reindex';
 
     /**
      * Number of records to load and index per request
@@ -59,28 +60,28 @@ class Solr_Reindex extends Solr_BuildTask
      * @param SS_HTTPRequest $request
      */
     #[Override]
-    public function execute(InputInterface $request, PolyOutput $output): int
+    public function execute(InputInterface $input, PolyOutput $output): int
     {
-        parent::run($request);
+        $this->output = $output;
+        $this->verbose = (bool) $input->getOption('verbose');
 
-        $this->extend('updateBeforeSolrReindexTask', $request);
+        $this->extend('updateBeforeSolrReindexTask', $input, $output);
 
         // Reset state
         $originalState = SearchVariant::current_state();
-        $this->doReindex($request);
+        $this->doReindex($input);
         SearchVariant::activate_state($originalState);
 
-        $this->extend('updateAfterSolrReindexTask', $request);
+        $this->extend('updateAfterSolrReindexTask', $input, $output);
+
+        return Command::SUCCESS;
     }
 
-    /**
-     * @param SS_HTTPRequest $request
-     */
-    protected function doReindex($request)
+    protected function doReindex(InputInterface $input)
     {
-        $class = $request->getVar('class');
+        $class = $input->getOption('class');
 
-        $index = $request->getVar('index');
+        $index = $input->getOption('index');
 
         // find the index classname by IndexName
         // for when index names don't match the class name (this can be done by overloading getIndexName() on indexes
@@ -105,22 +106,33 @@ class Solr_Reindex extends Solr_BuildTask
         // Check if we are re-indexing a single group
         // If not using queuedjobs, we need to invoke Solr_Reindex as a separate process
         // Otherwise each group is processed via a SolrReindexGroupJob
-        $groups = $request->getVar('groups');
+        $groups = $input->getOption('groups');
 
         $handler = $this->getHandler();
 
         if ($groups) {
             // Run grouped batches (id % groups = group)
-            $group = $request->getVar('group');
+            $group = $input->getOption('group');
             $indexInstance = singleton($index);
-            $state = json_decode($request->getVar('variantstate') ?? '', true);
+            $state = json_decode($input->getOption('variantstate') ?? '', true);
 
-            $handler->runGroup($this->getLogger(), $indexInstance, $state, $class, $groups, $group);
+            $handler->runGroup($this->output, $indexInstance, $state, $class, $groups, $group);
             return;
         }
 
         // If run at the top level, delegate to appropriate handler
         $taskName = $this->config()->segment ?: static::class;
-        $handler->triggerReindex($this->getLogger(), $this->config()->recordsPerRequest, $taskName, $class);
+        $handler->triggerReindex($this->output, $this->config()->recordsPerRequest, self::class, $class);
+    }
+
+    public function getOptions(): array
+    {
+        return [
+            new InputOption('class', null, InputOption::VALUE_NONE, 'Re-index specific class'),
+            new InputOption('index', null, InputOption::VALUE_NONE, 'Reindex specific index'),
+            new InputOption('groups', null, InputOption::VALUE_NONE, 'Groups ID'),
+            new InputOption('group', null, InputOption::VALUE_NONE, 'Group ID'),
+            new InputOption('variantstate', null, InputOption::VALUE_NONE, 'variantstate'),
+        ];
     }
 }

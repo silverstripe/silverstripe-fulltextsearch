@@ -12,13 +12,14 @@ use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\DataList;
 use SilverStripe\ORM\DB;
+use SilverStripe\PolyExecution\PolyOutput;
 
 /**
  * Base class for re-indexing of solr content
  */
 abstract class SolrReindexBase implements SolrReindexHandler
 {
-    public function runReindex(LoggerInterface $logger, $batchSize, $taskName, $classes = null)
+    public function runReindex(PolyOutput $logger, $batchSize, $taskName, $classes = null)
     {
         foreach (Solr::get_indexes() as $indexInstance) {
             $this->processIndex($logger, $indexInstance, $batchSize, $taskName, $classes);
@@ -35,7 +36,7 @@ abstract class SolrReindexBase implements SolrReindexHandler
      * @param string $classes
      */
     protected function processIndex(
-        LoggerInterface $logger,
+        PolyOutput $logger,
         SolrIndex $indexInstance,
         $batchSize,
         $taskName,
@@ -47,7 +48,7 @@ abstract class SolrReindexBase implements SolrReindexHandler
         $indexClasses = $this->getClassesForIndex($indexInstance, $classes);
 
         // Clear all records in this index which do not contain the given classes
-        $logger->info("Clearing obsolete classes from " . $indexInstance->getIndexName());
+        $logger->writeln("Clearing obsolete classes from " . $indexInstance->getIndexName());
         $indexInstance->clearObsoleteClasses($indexClasses);
 
         // Build queue for each class
@@ -96,7 +97,7 @@ abstract class SolrReindexBase implements SolrReindexHandler
      * @param string $taskName
      */
     protected function processVariant(
-        LoggerInterface $logger,
+        PolyOutput $logger,
         SolrIndex $indexInstance,
         $state,
         $class,
@@ -119,7 +120,7 @@ abstract class SolrReindexBase implements SolrReindexHandler
         // Skip this variant if nothing to process, or if there are no records
         if ($total == 0 || $indexInstance->variantStateExcluded($state)) {
             // Remove all records in the current state, since there are no groups to process
-            $logger->info("Clearing all records of type {$class} in the current state: " . json_encode($state));
+            $logger->writeln("Clearing all records of type {$class} in the current state: " . json_encode($state));
             $this->clearRecords($indexInstance, $class);
             return;
         }
@@ -146,7 +147,7 @@ abstract class SolrReindexBase implements SolrReindexHandler
      * @param string $taskName Name of task script to run
      */
     abstract protected function processGroup(
-        LoggerInterface $logger,
+        PolyOutput $logger,
         SolrIndex $indexInstance,
         $state,
         $class,
@@ -169,7 +170,7 @@ abstract class SolrReindexBase implements SolrReindexHandler
      * @param int $group
      */
     public function runGroup(
-        LoggerInterface $logger,
+        PolyOutput $logger,
         SolrIndex $indexInstance,
         $state,
         $class,
@@ -183,7 +184,7 @@ abstract class SolrReindexBase implements SolrReindexHandler
         // Set state
         SearchVariant::activate_state($state);
 
-        $logger->info("Adding $class");
+        $logger->writeln("Adding $class");
 
         // Prior to adding these records to solr, delete existing solr records
         $this->clearRecords($indexInstance, $class, $groups, $group);
@@ -199,7 +200,7 @@ abstract class SolrReindexBase implements SolrReindexHandler
             $indexInstance->add($item);
             $item->destroy();
         }
-        $logger->info("Updated " . implode(',', $processed));
+        $logger->writeln("Updated " . implode(',', $processed));
 
         // Reset state to originalState
         SearchVariant::activate_state($originalState);
@@ -207,7 +208,7 @@ abstract class SolrReindexBase implements SolrReindexHandler
         // This will slow down things a tiny bit, but it is done so that we don't timeout to the database during a reindex
         DB::query('SELECT 1');
 
-        $logger->info("Done");
+        $logger->writeln("Done");
     }
 
     /**
