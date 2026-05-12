@@ -12,15 +12,9 @@ use RuntimeException;
  */
 class SolrConfigStore_File implements SolrConfigStore
 {
-    /**
-     * @var string
-     */
-    public $remote;
+    public string $remote;
 
-    /**
-     * @var string
-     */
-    public $local;
+    public string $local;
 
     /**
      * @param array $config
