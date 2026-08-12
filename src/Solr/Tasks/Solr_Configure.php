@@ -17,7 +17,10 @@ use Symfony\Component\Console\Input\InputInterface;
 class Solr_Configure extends Solr_BuildTask
 {
 
-    protected bool $is_enabled = true;
+    /**
+     * @config
+     */
+    private static bool $is_enabled = true;
 
     protected string $title = 'Solr Configure';
 
@@ -42,7 +45,8 @@ class Solr_Configure extends Solr_BuildTask
                 $this->updateIndex($instance, $store);
             } catch (Exception $e) {
                 // We got an exception. Warn, but continue to next index.
-                $this->info("Failure: " . $e->getMessage());
+                // Always shown, regardless of verbosity - a failure is not a progress message.
+                $this->info('<error>Failure: ' . $e->getMessage() . '</error>', false);
             }
         }
 

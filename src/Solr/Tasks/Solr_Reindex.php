@@ -22,15 +22,20 @@ use Symfony\Component\Console\Command\Command;
  *  - class (to limit to a single class)
  *  - verbose (optional)
  *
- * When running with a single batch, provide the following querystring arguments:
+ * When running with a single batch, provide the following options:
  *  - index
  *  - class
+ *  - groups
+ *  - group
  *  - variantstate
  *  - verbose (optional)
  */
 class Solr_Reindex extends Solr_BuildTask
 {
-    protected bool $is_enabled = true;
+    /**
+     * @config
+     */
+    private static bool $is_enabled = true;
 
     protected string $title = 'Solr Reindex';
 
@@ -56,9 +61,6 @@ class Solr_Reindex extends Solr_BuildTask
         return Injector::inst()->get(SolrReindexHandler::class);
     }
 
-    /**
-     * @param SS_HTTPRequest $request
-     */
     #[Override]
     public function execute(InputInterface $input, PolyOutput $output): int
     {
@@ -127,11 +129,11 @@ class Solr_Reindex extends Solr_BuildTask
     public function getOptions(): array
     {
         return [
-            new InputOption('class', null, InputOption::VALUE_NONE, 'Re-index specific class'),
-            new InputOption('index', null, InputOption::VALUE_NONE, 'Reindex specific index'),
-            new InputOption('groups', null, InputOption::VALUE_NONE, 'Groups ID'),
-            new InputOption('group', null, InputOption::VALUE_NONE, 'Group ID'),
-            new InputOption('variantstate', null, InputOption::VALUE_NONE, 'variantstate'),
+            new InputOption('class', null, InputOption::VALUE_REQUIRED, 'Re-index specific class'),
+            new InputOption('index', null, InputOption::VALUE_REQUIRED, 'Reindex specific index'),
+            new InputOption('groups', null, InputOption::VALUE_REQUIRED, 'Total number of groups to segment the reindex into'),
+            new InputOption('group', null, InputOption::VALUE_REQUIRED, 'Index of the group to process'),
+            new InputOption('variantstate', null, InputOption::VALUE_REQUIRED, 'JSON encoded variant state to reindex in'),
         ];
     }
 }

@@ -187,10 +187,15 @@ class SolrReindexQueuedTest extends SapphireTest
         $this->assertEquals(1, $logger->countMessages('Completed init of reindex'));
 
         // Test that invalid classes are removed
-        $this->assertNotEmpty($logger->getMessages());
+        $this->assertNotEmpty($logger->filterMessages(
+            'Clearing obsolete classes from ' . str_replace('\\', '-', SolrReindexTest_Index::class)
+        ));
 
         // Test that valid classes in invalid variants are removed
-        $this->assertNotEmpty($logger->getMessages());
+        $this->assertNotEmpty($logger->filterMessages(
+            'Clearing all records of type ' . SolrReindexTest_Item::class . ' in the current state: {'
+            . json_encode(SolrReindexTest_Variant::class) . ':"2"}'
+        ));
     }
 
     /**

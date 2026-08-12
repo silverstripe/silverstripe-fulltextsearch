@@ -182,11 +182,16 @@ class SolrReindexTest extends SapphireTest
      */
     public function testReindexSegmentsGroups()
     {
-        $this->service->method('deleteByQuery')
-            ->willReturnCallback($this->withConsecutiveArgs([
-                '-(ClassHierarchy:' . SolrReindexTest_Item::class . ')',
-                '+(ClassHierarchy:' . SolrReindexTest_Item::class . ') +(_testvariant:"2")',
-            ]));
+        // Each runReindex() below clears obsolete classes once, then clears the empty variant once
+        $expectedDeleteQueries = [];
+        for ($i = 0; $i < 5; $i++) {
+            $expectedDeleteQueries[] = '-(ClassHierarchy:' . SolrReindexTest_Item::class . ')';
+            $expectedDeleteQueries[] = '+(ClassHierarchy:' . SolrReindexTest_Item::class . ') +(_testvariant:"2")';
+        }
+
+        $this->service->expects($this->exactly(count($expectedDeleteQueries)))
+            ->method('deleteByQuery')
+            ->willReturnCallback($this->withConsecutiveArgs($expectedDeleteQueries));
 
         $this->createDummyData(120);
 
@@ -257,8 +262,8 @@ class SolrReindexTest extends SapphireTest
         $ids = array_unique(explode(',', $matches['ids'] ?? ''));
 
         // Test successful
-        $this->assertNotEmpty($logger->getMessages());
-        $this->assertNotEmpty($logger->getMessages());
+        $this->assertNotEmpty($logger->filterMessages('Adding ' . SolrReindexTest_Item::class));
+        $this->assertNotEmpty($logger->filterMessages('Done'));
 
         // Test that items in this variant / group are re-indexed
         // 120 divided into 6 groups should be 20 at least (max 21)

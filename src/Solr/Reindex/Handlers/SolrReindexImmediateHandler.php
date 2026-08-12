@@ -2,42 +2,30 @@
 
 namespace SilverStripe\FullTextSearch\Solr\Reindex\Handlers;
 
+use InvalidArgumentException;
+use LogicException;
 use Override;
-use Psr\Log\LoggerInterface;
+use ReflectionClass;
 use SilverStripe\Control\Director;
-use SilverStripe\Core\Config\Config;
-use SilverStripe\Core\Environment;
-use SilverStripe\Core\Manifest\ModuleLoader;
+use SilverStripe\Core\ClassInfo;
+use SilverStripe\Dev\BuildTask;
 use SilverStripe\FullTextSearch\Solr\Solr;
 use SilverStripe\FullTextSearch\Solr\SolrIndex;
 use SilverStripe\ORM\DB;
 use SilverStripe\PolyExecution\PolyOutput;
 use Symfony\Component\Console\Input\ArrayInput;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\BufferedOutput;
-use Symfony\Component\Process\Process;
-use SilverStripe\Core\Config\Configurable;
 
 /**
  * Invokes an immediate reindex
  *
- * Internally batches of records will be invoked via shell tasks in the background
+ * Each batch of records is run in the current process. Note that this means the memory used by a
+ * full reindex accumulates across all groups - prefer the queued handler for large data sets.
  */
 class SolrReindexImmediateHandler extends SolrReindexBase
 {
-
-    use Configurable;
-
-    /**
-     * Path to the php binary
-     * @config
-     * @var null|string
-     */
-    private static $php_bin = 'php';
-
-
     public function triggerReindex(PolyOutput $logger, $batchSize, $taskName, $classes = null)
     {
         $this->runReindex($logger, $batchSize, $taskName, $classes);
@@ -58,20 +46,17 @@ class SolrReindexImmediateHandler extends SolrReindexBase
     }
 
     /**
-     * Process a single group.
+     * Process a single group by running the reindex task for that group in the current process.
      *
-     * Without queuedjobs, it's necessary to shell this out to a background task as this is
-     * very memory intensive.
+     * The task will invoke $processor->runGroup() in {@see Solr_Reindex::doReindex}
      *
-     * The sub-process will then invoke $processor->runGroup() in {@see Solr_Reindex::doReindex}
-     *
-     * @param LoggerInterface $logger
+     * @param PolyOutput $logger
      * @param SolrIndex $indexInstance Index instance
      * @param array $state Variant state
      * @param string $class Class to index
      * @param int $groups Total groups
      * @param int $group Index of group to process
-     * @param string $taskName Name of task script to run
+     * @param string $taskName Name of the task to run
      */
     protected function processGroup(
         PolyOutput $logger,
@@ -83,44 +68,21 @@ class SolrReindexImmediateHandler extends SolrReindexBase
         $taskName
     ) {
         $indexClass = $indexInstance::class;
+        $taskClass = $this->resolveTaskClass($taskName);
 
-        // Build script parameters
-        $statevar = json_encode($state);
-
-        $php = Environment::getEnv('SS_PHP_BIN') ?: Config::inst()->get(static::class, 'php_bin');
-
-        // Build script line
-        $frameworkPath = ModuleLoader::getModule('silverstripe/framework')->getPath();
-        $scriptPath = sprintf("%s%scli-script.php", $frameworkPath, DIRECTORY_SEPARATOR);
-
-        $cmd = [
-            'sake',
-            "tasks:{$taskName}",
-            "--index={$indexClass}",
-            "--class={$class}",
-            "--group={$group}",
-            "--groups={$groups}",
-            "--variantstate={$statevar}",
-            "--verbose=1"
+        $params = [
+            '--index' => $indexClass,
+            '--class' => $class,
+            '--group' => $group,
+            '--groups' => $groups,
+            '--variantstate' => json_encode($state),
+            '--verbose' => true,
         ];
-        $logger->writeln('Running ' . implode(' ', $cmd));
 
-        // Execute script
-        $res = $this->executeBuiltTask(
-            $taskName,
-            [
-                '--index' => $indexClass,
-                '--class' => $class,
-                '--group' => $group,
-                '--groups' => $groups,
-                '--variantstate' => $statevar,
-                '--verbose' => true,
-            ],
-            true
-        );
-        if ($logger) {
-            $logger->writeln(preg_replace('/\r\n|\n/', '$0  ', $res ?? ''));
-        }
+        $logger->writeln('Running ' . $this->buildCommandLine($taskClass, $params));
+
+        $res = $this->executeBuiltTask($taskClass, $params, true);
+        $logger->writeln(preg_replace('/\r\n|\n/', '$0  ', $res ?? ''));
 
         // If we're in dev mode, commit more often for fun and profit
         if (Director::isDev()) {
@@ -131,12 +93,19 @@ class SolrReindexImmediateHandler extends SolrReindexBase
         DB::query('SELECT 1');
     }
 
-    public function executeBuiltTask(string $className, array $params = [], bool $returnOutput = false): ?string
+    /**
+     * Run a build task in the current process
+     *
+     * @param string $taskName Class name of the task, or the name it is registered under on the CLI
+     * @param array $params Options to pass to the task, keyed by option name (including the `--` prefix)
+     * @param bool $returnOutput Whether to return everything the task wrote to its output
+     */
+    public function executeBuiltTask(string $taskName, array $params = [], bool $returnOutput = false): ?string
     {
-        $definition = [];
-        $paramNames = array_keys($params);
+        $taskClass = $this->resolveTaskClass($taskName);
 
-        $task = $className::create();
+        /** @var BuildTask $task */
+        $task = $taskClass::create();
 
         $options = $task->getOptions();
         $options[] = new InputOption('verbose', null, InputOption::VALUE_NONE, 'verbose');
@@ -152,5 +121,72 @@ class SolrReindexImmediateHandler extends SolrReindexBase
         }
 
         return null;
+    }
+
+    /**
+     * Resolve a task to its class name.
+     *
+     * Accepts a class name, or the name the task is registered under on the CLI (with or without
+     * the `tasks:` prefix), or its unqualified class name - reindex jobs queued before this module
+     * was upgraded hold the latter in their stored job data.
+     *
+     * @throws InvalidArgumentException if the task cannot be resolved
+     */
+    public function resolveTaskClass(string $taskName): string
+    {
+        if (is_a($taskName, BuildTask::class, true)) {
+            return $taskName;
+        }
+
+        foreach (ClassInfo::subclassesFor(BuildTask::class, false) as $candidate) {
+            if (!(new ReflectionClass($candidate))->isInstantiable()) {
+                continue;
+            }
+
+            if (in_array($taskName, $this->getTaskNames($candidate), true)) {
+                return $candidate;
+            }
+        }
+
+        throw new InvalidArgumentException("Unable to resolve '{$taskName}' to a build task");
+    }
+
+    /**
+     * All of the names a given task can be referred to by.
+     *
+     * BuildTask::getNameWithoutNamespace() throws if the task declares a commandName containing
+     * `:` or `/`. Such a task can't be registered on the CLI in the first place, so skip over it
+     * rather than let it break resolution of every other task.
+     *
+     * @param string $taskClass
+     * @return string[]
+     */
+    private function getTaskNames(string $taskClass): array
+    {
+        try {
+            return [
+                $taskClass::getName(),
+                $taskClass::getNameWithoutNamespace(),
+                ClassInfo::shortName($taskClass),
+            ];
+        } catch (LogicException) {
+            return [ClassInfo::shortName($taskClass)];
+        }
+    }
+
+    /**
+     * Build the command someone would run to invoke this task themselves. The task is run in the
+     * current process, so this is only ever written to the output - values are escaped so that the
+     * command can be pasted into a shell as-is.
+     */
+    protected function buildCommandLine(string $taskClass, array $params): string
+    {
+        $parts = ['sake', $taskClass::getName()];
+
+        foreach ($params as $option => $value) {
+            $parts[] = is_bool($value) ? $option : $option . '=' . escapeshellarg((string) $value);
+        }
+
+        return implode(' ', $parts);
     }
 }
