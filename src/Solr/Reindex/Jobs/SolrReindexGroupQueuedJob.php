@@ -3,9 +3,7 @@
 namespace SilverStripe\FullTextSearch\Solr\Reindex\Jobs;
 
 use Override;
-use SilverStripe\PolyExecution\PolyOutput;
 use Symbiote\QueuedJobs\Services\QueuedJob;
-use Symfony\Component\Console\Output\BufferedOutput;
 
 if (!interface_exists(QueuedJob::class)) {
     return;
@@ -23,34 +21,56 @@ if (!interface_exists(QueuedJob::class)) {
 class SolrReindexGroupQueuedJob extends SolrReindexQueuedJobBase
 {
     /**
+     * Name of index to reindex
+     *
+     * @var string
+     */
+    protected $indexName;
+
+    /**
      * Variant state that this group belongs to
      *
-     * @var type
+     * @var array
      */
     protected $state;
 
     /**
+     * Single class name to index
+     *
+     * @var string
+     */
+    protected $class;
+
+    /**
+     * Total number of groups
+     *
+     * @var int
+     */
+    protected $groups;
+
+    /**
+     * Group index
+     *
+     * @var int
+     */
+    protected $group;
+
+    /**
      * @param string $indexName
+     * @param array $state
      * @param string $class
      * @param int $groups
      * @param int $group
      */
-    public function __construct(/**
-     * Name of index to reindex
-     */
-    protected $indexName = null, $state = null, /**
-     * Single class name to index
-     */
-    protected $class = null, /**
-     * Total number of groups
-     */
-    protected $groups = null, /**
-     * Group index
-     */
-    protected $group = null)
+    public function __construct($indexName = null, $state = null, $class = null, $groups = null, $group = null)
     {
         parent::__construct();
+
+        $this->indexName = $indexName;
         $this->state = $state;
+        $this->class = $class;
+        $this->groups = $groups;
+        $this->group = $group;
     }
 
     #[Override]
@@ -94,11 +114,11 @@ class SolrReindexGroupQueuedJob extends SolrReindexQueuedJobBase
 
     public function process()
     {
-        $buffer = new BufferedOutput();
-        $logger = new PolyOutput(PolyOutput::FORMAT_ANSI, wrappedOutput: $buffer);
+        $logger = $this->getLogger();
 
         if ($this->jobFinished()) {
             $logger->writeln("reindex group already complete");
+            $this->flushBufferedOutput();
             return;
         }
 
@@ -111,7 +131,7 @@ class SolrReindexGroupQueuedJob extends SolrReindexQueuedJobBase
             ->getHandler()
             ->runGroup($logger, $indexInstance, $this->state, $this->class, $this->groups, $this->group);
         $logger->writeln("Completed reindex group");
-        $this->addMessage($buffer->fetch());
+        $this->flushBufferedOutput();
         $this->isComplete = true;
     }
 }

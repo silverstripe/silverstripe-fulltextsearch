@@ -3,9 +3,7 @@
 namespace SilverStripe\FullTextSearch\Solr\Reindex\Jobs;
 
 use Override;
-use SilverStripe\PolyExecution\PolyOutput;
 use Symbiote\QueuedJobs\Services\QueuedJob;
-use Symfony\Component\Console\Output\BufferedOutput;
 
 if (!interface_exists(QueuedJob::class)) {
     return;
@@ -17,23 +15,39 @@ if (!interface_exists(QueuedJob::class)) {
 class SolrReindexQueuedJob extends SolrReindexQueuedJobBase
 {
     /**
+     * Size of each batch to run
+     *
+     * @var int
+     */
+    protected $batchSize;
+
+    /**
+     * Name of devtask which invoked this
+     * Not necessary for re-index processing performed entirely by queuedjobs
+     *
+     * @var string
+     */
+    protected $taskName;
+
+    /**
+     * List of classes to filter
+     *
+     * @var mixed[]|string
+     */
+    protected $classes;
+
+    /**
      * @param int $batchSize
      * @param string $taskName
      * @param mixed[]|string $classes
      */
-    public function __construct(/**
-     * Size of each batch to run
-     */
-    protected $batchSize = null, /**
-     * Name of devtask Which invoked this
-     * Not necessary for re-index processing performed entirely by queuedjobs
-     */
-    protected $taskName = null, /**
-     * List of classes to filter
-     */
-    protected $classes = null)
+    public function __construct($batchSize = null, $taskName = null, $classes = null)
     {
         parent::__construct();
+
+        $this->batchSize = $batchSize;
+        $this->taskName = $taskName;
+        $this->classes = $classes;
     }
 
     #[Override]
@@ -67,11 +81,11 @@ class SolrReindexQueuedJob extends SolrReindexQueuedJobBase
 
     public function process()
     {
-        $buffer = new BufferedOutput();
-        $logger = new PolyOutput(PolyOutput::FORMAT_ANSI, wrappedOutput: $buffer);
+        $logger = $this->getLogger();
 
         if ($this->jobFinished()) {
             $logger->writeln("reindex already complete");
+            $this->flushBufferedOutput();
             return;
         }
 
@@ -81,7 +95,7 @@ class SolrReindexQueuedJob extends SolrReindexQueuedJobBase
             ->getHandler()
             ->runReindex($logger, $this->batchSize, $this->taskName, $this->classes);
         $logger->writeln("Completed init of reindex");
-        $this->addMessage($buffer->fetch());
+        $this->flushBufferedOutput();
         $this->isComplete = true;
     }
 

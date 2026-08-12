@@ -2,26 +2,29 @@
 
 namespace SilverStripe\FullTextSearch\Tests\SolrReindexTest;
 
-use Monolog\Logger;
 use SilverStripe\Dev\TestOnly;
-use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_Handler;
+use SilverStripe\PolyExecution\PolyOutput;
+use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\Console\Output\OutputInterface;
 
 /**
- * Test logger for recording messages
+ * Test output for recording messages written during a reindex
  */
-class SolrReindexTest_RecordingLogger extends Logger implements TestOnly
+class SolrReindexTest_RecordingLogger extends PolyOutput implements TestOnly
 {
+    private BufferedOutput $buffer;
+
     /**
-     * @var SolrReindexTest_Handler
+     * Messages written so far, one entry per line
+     *
+     * @var array
      */
-    protected $testHandler = null;
+    private $messages = [];
 
-    public function __construct($name = 'testlogger', array $handlers = [], array $processors = [])
+    public function __construct()
     {
-        parent::__construct($name, $handlers, $processors);
-
-        $this->testHandler = new SolrReindexTest_Handler();
-        $this->pushHandler($this->testHandler);
+        $this->buffer = new BufferedOutput();
+        parent::__construct(PolyOutput::FORMAT_ANSI, OutputInterface::VERBOSITY_DEBUG, false, $this->buffer);
     }
 
     /**
@@ -29,7 +32,8 @@ class SolrReindexTest_RecordingLogger extends Logger implements TestOnly
      */
     public function getMessages()
     {
-        return $this->testHandler->getMessages();
+        $this->drainBuffer();
+        return $this->messages;
     }
 
     /**
@@ -37,7 +41,8 @@ class SolrReindexTest_RecordingLogger extends Logger implements TestOnly
      */
     public function clear()
     {
-        $this->testHandler->clear();
+        $this->buffer->fetch();
+        $this->messages = [];
     }
 
     /**
@@ -68,5 +73,20 @@ class SolrReindexTest_RecordingLogger extends Logger implements TestOnly
             $messages = $this->getMessages();
         }
         return count($messages ?? []);
+    }
+
+    /**
+     * Move anything written to the buffer since the last read into the message list
+     */
+    private function drainBuffer(): void
+    {
+        $written = $this->buffer->fetch();
+        if ($written === '') {
+            return;
+        }
+
+        foreach (explode("\n", rtrim($written, "\n")) as $message) {
+            $this->messages[] = $message;
+        }
     }
 }

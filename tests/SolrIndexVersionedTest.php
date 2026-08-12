@@ -12,6 +12,7 @@ use SilverStripe\ORM\DataObject;
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
 use SilverStripe\FullTextSearch\Search\SearchIntrospection;
 use SilverStripe\FullTextSearch\Solr\Services\Solr3Service;
+use SilverStripe\FullTextSearch\Tests\Traits\AssertsConsecutiveCalls;
 use SilverStripe\FullTextSearch\Tests\SearchVariantVersionedTest\SearchVariantVersionedTest_Item;
 use SilverStripe\FullTextSearch\Tests\SolrIndexVersionedTest\SolrIndexVersionedTest_Object;
 use SilverStripe\FullTextSearch\Tests\SolrIndexVersionedTest\SolrVersionedTest_Index;
@@ -24,6 +25,8 @@ use SilverStripe\Versioned\Versioned;
 
 class SolrIndexVersionedTest extends SapphireTest
 {
+    use AssertsConsecutiveCalls;
+
     protected $usesDatabase = true;
 
     protected $oldMode = null;
@@ -65,12 +68,12 @@ class SolrIndexVersionedTest extends SapphireTest
         parent::tearDown();
     }
 
-    protected function getServiceMock($setMethods = [])
+    protected function getServiceMock($mockedMethods = [])
     {
         // Setup mock
-        /** @var Solr3Service|ObjectProphecy $serviceMock */
+        /** @var Solr3Service $serviceMock */
         $serviceMock = $this->getMockBuilder(Solr3Service::class)
-            ->setMethods($setMethods)
+            ->onlyMethods($mockedMethods)
             ->getMock();
 
         self::$index->setService($serviceMock);
@@ -133,10 +136,7 @@ class SolrIndexVersionedTest extends SapphireTest
         $this->getServiceMock(['addDocument', 'commit'])
             ->expects($this->exactly(2))
             ->method('addDocument')
-            ->withConsecutive(
-                [$this->equalTo($doc1)],
-                [$this->equalTo($doc2)]
-            );
+            ->willReturnCallback($this->withConsecutiveArgs([$doc1, $doc2]));
 
         SearchUpdater::flush_dirty_indexes();
 
@@ -160,12 +160,7 @@ class SolrIndexVersionedTest extends SapphireTest
         $this->getServiceMock(['addDocument', 'commit'])
             ->expects($this->exactly(4))
             ->method('addDocument')
-            ->withConsecutive(
-                [$doc1],
-                [$doc2],
-                [$doc3],
-                [$doc4]
-            );
+            ->willReturnCallback($this->withConsecutiveArgs([$doc1, $doc2, $doc3, $doc4]));
 
         SearchUpdater::flush_dirty_indexes();
     }

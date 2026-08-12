@@ -12,4 +12,4 @@ jobs:
     with:
       extra_jobs: |
         - name_suffix: subsites
-          composer_require_extra: silverstripe/subsites:^3
+          composer_require_extra: silverstripe/subsites:^4

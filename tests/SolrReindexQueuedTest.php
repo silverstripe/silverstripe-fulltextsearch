@@ -19,6 +19,7 @@ use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_Index;
 use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_Item;
 use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_RecordingLogger;
 use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_Variant;
+use SilverStripe\FullTextSearch\Tests\Traits\AssertsConsecutiveCalls;
 use Symbiote\QueuedJobs\Services\QueuedJob;
 
 /**
@@ -26,6 +27,8 @@ use Symbiote\QueuedJobs\Services\QueuedJob;
  */
 class SolrReindexQueuedTest extends SapphireTest
 {
+    use AssertsConsecutiveCalls;
+
     protected $usesDatabase = true;
 
     protected static $extra_dataobjects = [
@@ -101,7 +104,7 @@ class SolrReindexQueuedTest extends SapphireTest
         // Setup mock
         /** @var Solr4Service $serviceMock */
         $serviceMock = $this->getMockBuilder(Solr4Service::class)
-            ->setMethods(['deleteByQuery', 'addDocument'])
+            ->onlyMethods(['deleteByQuery', 'addDocument'])
             ->getMock();
 
         return $serviceMock;
@@ -149,14 +152,10 @@ class SolrReindexQueuedTest extends SapphireTest
         // Ensure correct call is made to Solr
         $this->service->expects($this->exactly(2))
             ->method('deleteByQuery')
-            ->withConsecutive(
-                [
-                    $this->equalTo('-(ClassHierarchy:' . SolrReindexTest_Item::class . ')')
-                ],
-                [
-                    $this->equalTo('+(ClassHierarchy:' . SolrReindexTest_Item::class . ') +(_testvariant:"2")')
-                ]
-            );
+            ->willReturnCallback($this->withConsecutiveArgs([
+                '-(ClassHierarchy:' . SolrReindexTest_Item::class . ')',
+                '+(ClassHierarchy:' . SolrReindexTest_Item::class . ') +(_testvariant:"2")',
+            ]));
 
         // Create pre-existing jobs
         $this->getQueuedJobService()->queueJob(new SolrReindexQueuedJob());

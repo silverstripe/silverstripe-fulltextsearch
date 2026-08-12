@@ -1,6 +1,6 @@
 <?php
 
-namespace SilverStripe\FullTextSearch\Tests\SolrReindexTest;
+namespace SilverStripe\FullTextSearch\Tests;
 
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\SapphireTest;
@@ -8,7 +8,7 @@ use SilverStripe\FullTextSearch\Search\Extensions\DisableIndexingOnFileMigration
 use SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater;
 
 /**
- * Logger for recording messages for later retrieval
+ * Tests that indexing is disabled while a file migration runs
  */
 class DisableIndexingOnFileMigrationTest extends SapphireTest
 {

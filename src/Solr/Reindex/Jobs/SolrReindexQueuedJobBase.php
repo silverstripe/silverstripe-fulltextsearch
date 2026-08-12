@@ -2,12 +2,13 @@
 
 namespace SilverStripe\FullTextSearch\Solr\Reindex\Jobs;
 
-use Psr\Log\LoggerInterface;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\FullTextSearch\Solr\Reindex\Handlers\SolrReindexHandler;
-use SilverStripe\FullTextSearch\Utils\Logging\SearchLogFactory;
+use SilverStripe\PolyExecution\PolyOutput;
 use stdClass;
 use Symbiote\QueuedJobs\Services\QueuedJob;
+use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\Console\Output\OutputInterface;
 
 if (!interface_exists(QueuedJob::class)) {
     return;
@@ -33,11 +34,15 @@ abstract class SolrReindexQueuedJobBase implements QueuedJob
     protected $messages;
 
     /**
-     * Logger to use for this job
-     *
-     * @var LoggerInterface
+     * Output to write progress of this job to
      */
-    protected $logger;
+    protected ?PolyOutput $logger = null;
+
+    /**
+     * Buffer backing the default logger, so that output can be captured as job messages.
+     * Null when a logger has been assigned externally via setLogger().
+     */
+    private ?BufferedOutput $buffer = null;
 
     public function __construct()
     {
@@ -46,39 +51,42 @@ abstract class SolrReindexQueuedJobBase implements QueuedJob
     }
 
     /**
-     * @return SearchLogFactory
+     * Gets the output to log progress to. Defaults to a buffered output which is
+     * flushed into the job messages by flushBufferedOutput().
      */
-    protected function getLoggerFactory()
+    protected function getLogger(): PolyOutput
     {
-        return Injector::inst()->get(SearchLogFactory::class);
-    }
-
-    /**
-     * Gets a logger for this job
-     *
-     * @return LoggerInterface
-     */
-    protected function getLogger()
-    {
-        if ($this->logger) {
-            return $this->logger;
+        if (!$this->logger) {
+            $this->buffer = new BufferedOutput();
+            $this->logger = PolyOutput::create(
+                PolyOutput::FORMAT_ANSI,
+                OutputInterface::VERBOSITY_NORMAL,
+                false,
+                $this->buffer
+            );
         }
 
-        // Set logger for this job
-        $this->logger = $this
-            ->getLoggerFactory()
-            ->getQueuedJobLogger($this);
         return $this->logger;
     }
 
     /**
-     * Assign custom logger for this job
-     *
-     * @param LoggerInterface $logger
+     * Assign custom output for this job
      */
-    public function setLogger($logger)
+    public function setLogger(PolyOutput $logger): void
     {
         $this->logger = $logger;
+        $this->buffer = null;
+    }
+
+    /**
+     * Store anything written to the default buffered output as a job message
+     */
+    protected function flushBufferedOutput(): void
+    {
+        $output = $this->buffer?->fetch();
+        if ($output) {
+            $this->addMessage($output);
+        }
     }
 
     public function getJobData()

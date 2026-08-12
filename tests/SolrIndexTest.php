@@ -148,7 +148,7 @@ class SolrIndexTest extends SapphireTest
     {
         /** @var Solr3Service|MockObject $serviceMock */
         $serviceMock = $this->getMockBuilder(Solr3Service::class)
-            ->setMethods(['search'])
+            ->onlyMethods(['search'])
             ->getMock();
 
         $serviceMock->expects($this->once())
@@ -184,7 +184,7 @@ class SolrIndexTest extends SapphireTest
 
         /** @var Solr3Service|MockObject $serviceMock */
         $serviceMock = $this->getMockBuilder(Solr3Service::class)
-            ->setMethods(['search'])
+            ->onlyMethods(['search'])
             ->getMock();
 
         $serviceMock->expects($this->once())
@@ -211,31 +211,28 @@ class SolrIndexTest extends SapphireTest
 
     public function testHighlightQueryOnBoost()
     {
-        /** @var Solr3Service|ObjectProphecy $serviceMock */
+        /** @var Solr3Service|MockObject $serviceMock */
         $serviceMock = $this->getMockBuilder(Solr3Service::class)
-            ->setMethods(['search'])
+            ->onlyMethods(['search'])
             ->getMock();
 
+        // The first search is made without highlighting, the second one with
+        $callCount = 0;
         $serviceMock->expects($this->exactly(2))
             ->method('search')
-            ->withConsecutive(
-                [
-                    $this->equalTo('+(Field1:term^1.5 OR HasOneObject_Field1:term^3)'),
-                    $this->anything(),
-                    $this->anything(),
-                    $this->logicalNot(
-                        $this->arrayHasKey('hl.q')
-                    ),
-                    $this->anything()
-                ],
-                [
-                    $this->equalTo('+(Field1:term^1.5 OR HasOneObject_Field1:term^3)'),
-                    $this->anything(),
-                    $this->anything(),
-                    $this->arrayHasKey('hl.q'),
-                    $this->anything()
-                ]
-            )->willReturn($this->getFakeRawSolrResponse());
+            ->willReturnCallback(
+                function ($query, $offset, $limit, $params) use (&$callCount) {
+                    $this->assertEquals('+(Field1:term^1.5 OR HasOneObject_Field1:term^3)', $query);
+                    if ($callCount === 0) {
+                        $this->assertArrayNotHasKey('hl.q', $params);
+                    } else {
+                        $this->assertArrayHasKey('hl.q', $params);
+                    }
+                    $callCount++;
+
+                    return $this->getFakeRawSolrResponse();
+                }
+            );
 
         $index = new SolrIndexTest_FakeIndex();
         $index->setService($serviceMock);
@@ -261,7 +258,7 @@ class SolrIndexTest extends SapphireTest
 
     public function testIndexExcludesNullValues()
     {
-        /** @var Solr3Service|ObjectProphecy $serviceMock */
+        /** @var Solr3Service|MockObject $serviceMock */
         $serviceMock = $this->createMock(Solr3Service::class);
         $index = new SolrIndexTest_FakeIndex();
         $index->setService($serviceMock);
@@ -415,7 +412,7 @@ class SolrIndexTest extends SapphireTest
         Config::modify()->set(SearchableService::class, 'variant_state_draft_excluded', false);
 
         $serviceMock = $this->getMockBuilder(Solr4Service::class)
-            ->setMethods(['addDocument', 'deleteById'])
+            ->onlyMethods(['addDocument', 'deleteById'])
             ->getMock();
 
         $index = new SolrIndexTest_ShowInSearchIndex();
@@ -486,13 +483,7 @@ class SolrIndexTest extends SapphireTest
         $serviceMock
             ->expects($this->exactly(5))
             ->method('addDocument')
-            ->withConsecutive(
-                [$this->callback($callback)],
-                [$this->callback($callback)],
-                [$this->callback($callback)],
-                [$this->callback($callback)],
-                [$this->callback($callback)]
-            );
+            ->with($this->callback($callback));
 
         // This is what actually triggers all the solr stuff
         SearchUpdater::flush_dirty_indexes();
@@ -504,9 +495,9 @@ class SolrIndexTest extends SapphireTest
         $serviceMock
             ->expects($this->exactly(1))
             ->method('deleteById')
-            ->withConsecutive(
-                [$this->callback(fn(string $docID): bool => str_contains($docID ?? '', $pageA->ID . '-' . SiteTree::class))]
-            );
+            ->with($this->callback(
+                fn(string $docID): bool => str_contains($docID ?? '', $pageA->ID . '-' . SiteTree::class)
+            ));
 
         SearchableService::singleton()->clearCache();
         SearchUpdater::flush_dirty_indexes();
@@ -527,7 +518,7 @@ class SolrIndexTest extends SapphireTest
         Config::modify()->set(SearchableService::class, 'variant_state_draft_excluded', false);
 
         $serviceMock = $this->getMockBuilder(Solr4Service::class)
-            ->setMethods(['addDocument', 'deleteById'])
+            ->onlyMethods(['addDocument', 'deleteById'])
             ->getMock();
 
         $index = new SolrIndexTest_ShowInSearchIndex();
@@ -584,11 +575,7 @@ class SolrIndexTest extends SapphireTest
         $serviceMock
             ->expects($this->exactly(3))
             ->method('addDocument')
-            ->withConsecutive(
-                [$this->callback($callback)],
-                [$this->callback($callback)],
-                [$this->callback($callback)]
-            );
+            ->with($this->callback($callback));
 
         // This is what actually triggers all the solr stuff
         SearchUpdater::flush_dirty_indexes();
@@ -600,9 +587,9 @@ class SolrIndexTest extends SapphireTest
         $serviceMock
             ->expects($this->exactly(1))
             ->method('deleteById')
-            ->withConsecutive(
-                [$this->callback(fn(string $docID): bool => str_contains($docID ?? '', $pageA->ID . '-' . SiteTree::class))]
-            );
+            ->with($this->callback(
+                fn(string $docID): bool => str_contains($docID ?? '', $pageA->ID . '-' . SiteTree::class)
+            ));
 
         SearchableService::singleton()->clearCache();
         SearchUpdater::flush_dirty_indexes();

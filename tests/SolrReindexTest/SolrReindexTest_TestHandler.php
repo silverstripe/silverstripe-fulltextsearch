@@ -3,8 +3,8 @@
 namespace SilverStripe\FullTextSearch\Tests\SolrReindexTest;
 
 use SilverStripe\FullTextSearch\Solr\Reindex\Handlers\SolrReindexBase;
-use Psr\Log\LoggerInterface;
 use SilverStripe\FullTextSearch\Solr\SolrIndex;
+use SilverStripe\PolyExecution\PolyOutput;
 
 /**
  * Provides a wrapper for testing SolrReindexBase
@@ -12,7 +12,7 @@ use SilverStripe\FullTextSearch\Solr\SolrIndex;
 class SolrReindexTest_TestHandler extends SolrReindexBase
 {
     public function processGroup(
-        LoggerInterface $logger,
+        PolyOutput $logger,
         SolrIndex $indexInstance,
         $state,
         $class,
@@ -22,11 +22,11 @@ class SolrReindexTest_TestHandler extends SolrReindexBase
     ) {
         $indexName = $indexInstance->getIndexName();
         $stateName = json_encode($state);
-        $logger->info("Called processGroup with {$indexName}, {$stateName}, {$class}, group {$group} of {$groups}");
+        $logger->writeln("Called processGroup with {$indexName}, {$stateName}, {$class}, group {$group} of {$groups}");
     }
 
-    public function triggerReindex(LoggerInterface $logger, $batchSize, $taskName, $classes = null)
+    public function triggerReindex(PolyOutput $logger, $batchSize, $taskName, $classes = null)
     {
-        $logger->info("Called triggerReindex");
+        $logger->writeln("Called triggerReindex");
     }
 }

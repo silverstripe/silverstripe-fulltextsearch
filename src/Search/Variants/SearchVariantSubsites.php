@@ -51,7 +51,7 @@ class SearchVariantSubsites extends SearchVariant
 
     public function currentState()
     {
-        return (string) SubsiteState::singleton()->getSubsiteId();
+        return SubsiteState::singleton()->getSubsiteId();
     }
 
     public function reindexStates()

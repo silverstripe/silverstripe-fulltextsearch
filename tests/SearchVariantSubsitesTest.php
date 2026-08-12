@@ -7,6 +7,7 @@ use SilverStripe\Core\Config\Config;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\FullTextSearch\Search\FullTextSearch;
+use SilverStripe\FullTextSearch\Search\Processors\SearchUpdateImmediateProcessor;
 use SilverStripe\FullTextSearch\Search\Processors\SearchUpdateProcessor;
 use SilverStripe\FullTextSearch\Search\Queries\SearchQuery;
 use SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater;
@@ -15,7 +16,7 @@ use SilverStripe\FullTextSearch\Tests\SearchUpdaterTest\SearchUpdaterTest_Contai
 use SilverStripe\FullTextSearch\Tests\SolrIndexTest\SolrIndexTest_FakeIndex;
 use SilverStripe\Subsites\Model\Subsite;
 
-class SearchVariantSubsiteTest extends SapphireTest
+class SearchVariantSubsitesTest extends SapphireTest
 {
     private static $index = null;
 
@@ -24,21 +25,28 @@ class SearchVariantSubsiteTest extends SapphireTest
     {
         parent::setUp();
 
-        // Check versioned available
+        // Check subsites available
         if (!class_exists(Subsite::class)) {
             $this->markTestSkipped('The subsites module is not installed');
         }
 
         if (self::$index === null) {
-            self::$index = singleton(static::class);
+            self::$index = singleton(SolrIndexTest_FakeIndex::class);
         }
 
-        Config::inst()->merge(Injector::class, SearchUpdateProcessor::class, [
+        Config::modify()->set(Injector::class, SearchUpdateProcessor::class, [
             'class' => SearchUpdateImmediateProcessor::class
         ]);
 
         FullTextSearch::force_index_list(self::$index);
         SearchUpdater::clear_dirty_indexes();
+    }
+
+    #[Override]
+    protected function tearDown(): void
+    {
+        FullTextSearch::force_index_list();
+        parent::tearDown();
     }
 
     public function testQueryIsAlteredWhenSubsiteNotSet()

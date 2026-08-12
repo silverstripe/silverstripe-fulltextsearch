@@ -15,7 +15,6 @@ use SilverStripe\FullTextSearch\Search\SearchIntrospection;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariant;
 use SilverStripe\FullTextSearch\Utils\MultipleArrayIterator;
 use SilverStripe\ORM\DataObject;
-use SilverStripe\ORM\FieldType\DBField;
 use SilverStripe\ORM\FieldType\DBString;
 
 /**
@@ -362,12 +361,12 @@ abstract class SearchIndex extends ModelData implements Stringable
 
             foreach ($classHierarchy as $dataClass) {
                 $fields = DataObject::getSchema()->databaseFields($dataClass);
+                $singleton = DataObject::singleton($dataClass);
 
-                foreach ($fields as $field => $type) {
-                    [$type, $args] = ClassInfo::parse_class_spec($type);
-
-                    /** @var DBField $object */
-                    $object = Injector::inst()->get($type, false, ['Name' => 'test']);
+                foreach (array_keys($fields) as $field) {
+                    // Build the field from its own spec rather than from the type alone, as some
+                    // field types (e.g. DBPrimaryKey, DBGenerated) require their constructor args
+                    $object = $singleton->dbObject($field);
                     if ($object instanceof DBString) {
                         $this->addFulltextField($field);
                     }

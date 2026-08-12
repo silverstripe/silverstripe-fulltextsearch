@@ -34,11 +34,10 @@ abstract class Solr_BuildTask extends BuildTask
     {
         if ($this->verbose) {
             $this->output->writeln($message);
-        } else if (!$hidden) {
+        } elseif (!$hidden) {
             $this->output->writeln($message);
         }
     }
 
     abstract public function execute(InputInterface $request, PolyOutput $output): int;
-
 }

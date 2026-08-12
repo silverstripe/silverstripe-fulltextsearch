@@ -19,6 +19,7 @@ use SilverStripe\FullTextSearch\Search\Updaters\SearchUpdater;
 use SilverStripe\FullTextSearch\Search\Variants\SearchVariantSubsites;
 use SilverStripe\FullTextSearch\Solr\Services\Solr4Service;
 use SilverStripe\FullTextSearch\Tests\SolrIndexSubsitesTest\SolrIndexSubsitesTest_Index;
+use SilverStripe\FullTextSearch\Tests\Traits\AssertsConsecutiveCalls;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Subsites\Model\Subsite;
 use SilverStripe\Versioned\Versioned;
@@ -28,6 +29,8 @@ use SilverStripe\Versioned\Versioned;
  */
 class SolrIndexSubsitesTest extends SapphireTest
 {
+    use AssertsConsecutiveCalls;
+
     protected static $fixture_file = 'SolrIndexSubsitesTest/SolrIndexSubsitesTest.yml';
 
     /**
@@ -78,7 +81,7 @@ class SolrIndexSubsitesTest extends SapphireTest
     protected function getServiceMock()
     {
         return $this->getMockBuilder(Solr4Service::class)
-            ->setMethods(['addDocument', 'commit'])
+            ->onlyMethods(['addDocument', 'commit'])
             ->getMock();
     }
 
@@ -152,7 +155,7 @@ class SolrIndexSubsitesTest extends SapphireTest
         $serviceMock
             ->expects($this->exactly(2))
             ->method('addDocument')
-            ->withConsecutive($doc1, $doc2);
+            ->willReturnCallback($this->withConsecutiveArgs([$doc1, $doc2]));
 
         SearchUpdater::flush_dirty_indexes();
     }

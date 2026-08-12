@@ -153,5 +153,4 @@ class SolrReindexImmediateHandler extends SolrReindexBase
 
         return null;
     }
-
 }

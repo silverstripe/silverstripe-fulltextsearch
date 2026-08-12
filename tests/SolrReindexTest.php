@@ -28,10 +28,12 @@ use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_Item;
 use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_RecordingLogger;
 use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_TestHandler;
 use SilverStripe\FullTextSearch\Tests\SolrReindexTest\SolrReindexTest_Variant;
+use SilverStripe\FullTextSearch\Tests\Traits\AssertsConsecutiveCalls;
 use SilverStripe\Versioned\Versioned;
 
 class SolrReindexTest extends SapphireTest
 {
+    use AssertsConsecutiveCalls;
 
     protected $usesDatabase = true;
 
@@ -106,7 +108,7 @@ class SolrReindexTest extends SapphireTest
     protected function getServiceMock()
     {
         $serviceMock = $this->getMockBuilder(Solr4Service::class)
-            ->setMethods(['deleteByQuery', 'addDocument']);
+            ->onlyMethods(['deleteByQuery', 'addDocument']);
 
         return $serviceMock->getMock();
     }
@@ -181,10 +183,10 @@ class SolrReindexTest extends SapphireTest
     public function testReindexSegmentsGroups()
     {
         $this->service->method('deleteByQuery')
-            ->withConsecutive(
-                ['-(ClassHierarchy:' . SolrReindexTest_Item::class . ')'],
-                ['+(ClassHierarchy:' . SolrReindexTest_Item::class . ') +(_testvariant:"2")']
-            );
+            ->willReturnCallback($this->withConsecutiveArgs([
+                '-(ClassHierarchy:' . SolrReindexTest_Item::class . ')',
+                '+(ClassHierarchy:' . SolrReindexTest_Item::class . ') +(_testvariant:"2")',
+            ]));
 
         $this->createDummyData(120);
 
@@ -276,16 +278,15 @@ class SolrReindexTest extends SapphireTest
         $classesToSkip = [SolrReindexTest_Item::class];
         Config::modify()->set(SearchableService::class, 'indexing_canview_exclude_classes', $classesToSkip);
 
+        $expectedDeleteQueries = [];
+        for ($group = 0; $group <= 6; $group++) {
+            $expectedDeleteQueries[] = '+(ClassHierarchy:' . SolrReindexTest_Item::class . ')'
+                . ' +_query_:"{!frange l=' . $group . ' u=' . $group . '}mod(ID, 6)"'
+                . ' +(_testvariant:"1")';
+        }
+
         $this->service->method('deleteByQuery')
-            ->withConsecutive(
-                ['+(ClassHierarchy:' . SolrReindexTest_Item::class . ') +_query_:"{!frange l=0 u=0}mod(ID, 6)" +(_testvariant:"1")'],
-                ['+(ClassHierarchy:' . SolrReindexTest_Item::class . ') +_query_:"{!frange l=1 u=1}mod(ID, 6)" +(_testvariant:"1")'],
-                ['+(ClassHierarchy:' . SolrReindexTest_Item::class . ') +_query_:"{!frange l=2 u=2}mod(ID, 6)" +(_testvariant:"1")'],
-                ['+(ClassHierarchy:' . SolrReindexTest_Item::class . ') +_query_:"{!frange l=3 u=3}mod(ID, 6)" +(_testvariant:"1")'],
-                ['+(ClassHierarchy:' . SolrReindexTest_Item::class . ') +_query_:"{!frange l=4 u=4}mod(ID, 6)" +(_testvariant:"1")'],
-                ['+(ClassHierarchy:' . SolrReindexTest_Item::class . ') +_query_:"{!frange l=5 u=5}mod(ID, 6)" +(_testvariant:"1")'],
-                ['+(ClassHierarchy:' . SolrReindexTest_Item::class . ') +_query_:"{!frange l=6 u=6}mod(ID, 6)" +(_testvariant:"1")']
-            );
+            ->willReturnCallback($this->withConsecutiveArgs($expectedDeleteQueries));
 
         $this->createDummyData(120);
         $logger = new SolrReindexTest_RecordingLogger();
@@ -371,7 +372,7 @@ class SolrReindexTest extends SapphireTest
         $myPageA->write();
 
         $serviceMock = $this->getMockBuilder(Solr4Service::class)
-            ->setMethods(['addDocument', 'deleteByQuery'])
+            ->onlyMethods(['addDocument', 'deleteByQuery'])
             ->getMock();
 
         $index = new SolrIndexTest_ShowInSearchIndex();
@@ -392,13 +393,7 @@ class SolrReindexTest extends SapphireTest
         $serviceMock
             ->expects($this->exactly(5))
             ->method('addDocument')
-            ->withConsecutive(
-                [$this->callback($callback)],
-                [$this->callback($callback)],
-                [$this->callback($callback)],
-                [$this->callback($callback)],
-                [$this->callback($callback)]
-            );
+            ->with($this->callback($callback));
 
         $logger = new SolrReindexTest_RecordingLogger();
         $state = [SearchVariantVersioned::class => Versioned::DRAFT];
@@ -457,7 +452,7 @@ class SolrReindexTest extends SapphireTest
         $objOne->write();
 
         $serviceMock = $this->getMockBuilder(Solr4Service::class)
-            ->setMethods(['addDocument', 'deleteByQuery'])
+            ->onlyMethods(['addDocument', 'deleteByQuery'])
             ->getMock();
 
         $index = new SolrIndexTest_ShowInSearchIndex();
@@ -477,11 +472,7 @@ class SolrReindexTest extends SapphireTest
         $serviceMock
             ->expects($this->exactly(3))
             ->method('addDocument')
-            ->withConsecutive(
-                [$this->callback($callback)],
-                [$this->callback($callback)],
-                [$this->callback($callback)]
-            );
+            ->with($this->callback($callback));
 
         $logger = new SolrReindexTest_RecordingLogger();
         $state = [SearchVariantVersioned::class => Versioned::DRAFT];
