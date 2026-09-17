@@ -3,12 +3,17 @@
 namespace SilverStripe\FullTextSearch\Tests;
 
 use InvalidArgumentException;
+use RuntimeException;
+use SilverStripe\Control\Controller;
+use SilverStripe\Control\HTTPRequest;
+use SilverStripe\Control\Session;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\FullTextSearch\Solr\Reindex\Handlers\SolrReindexImmediateHandler;
 use SilverStripe\FullTextSearch\Solr\Tasks\Solr_BuildTask;
 use SilverStripe\FullTextSearch\Solr\Tasks\Solr_Configure;
 use SilverStripe\FullTextSearch\Solr\Tasks\Solr_Reindex;
+use SilverStripe\FullTextSearch\Tests\SolrTasksTest\SolrTasksTest_ContextTask;
 use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Input\InputDefinition;
 
@@ -101,6 +106,140 @@ class SolrTasksTest extends SapphireTest
 
         // Flags don't take a value, so they're passed through as-is
         $this->assertStringEndsWith(' --verbose', $command);
+    }
+
+    /**
+     * Test that context is provided if it doesn't exist and
+     * temporary controller is cleaned up after a task succeeds.
+     */
+    public function testExecuteBuiltTaskProvidesControllerContext(): void
+    {
+        SolrTasksTest_ContextTask::reset();
+
+        // SapphireTest already runs with a controller.
+        // Temporarily remove the test controller when exercising the no-context path, then restore it.
+        $originalController = Controller::curr();
+
+        if ($originalController) {
+            $originalController->popCurrent();
+        }
+
+        try {
+            $this->assertNull(Controller::curr());
+
+            $handler = new SolrReindexImmediateHandler();
+            $handler->executeBuiltTask(SolrTasksTest_ContextTask::class);
+
+            $this->assertInstanceOf(
+                Controller::class,
+                SolrTasksTest_ContextTask::$observedController
+            );
+            $this->assertTrue(SolrTasksTest_ContextTask::$observedSession);
+
+            // The temporary controller was removed.
+            $this->assertNull(Controller::curr());
+        } finally {
+            // Avoid contaminating subsequent tests if an assertion fails before
+            // the production code removes its temporary controller.
+            $unexpectedController = Controller::curr();
+
+            if ($unexpectedController) {
+                $unexpectedController->popCurrent();
+            }
+
+            if ($originalController) {
+                $originalController->pushCurrent();
+            }
+
+            SolrTasksTest_ContextTask::reset();
+        }
+
+        $this->assertSame($originalController, Controller::curr());
+    }
+
+    /**
+     * Test that existing context is preserved.
+     * The handler shouldn't replace a legitimate controller.
+     */
+    public function testExecuteBuiltTaskPreservesExistingControllerContext(): void
+    {
+        SolrTasksTest_ContextTask::reset();
+
+        $originalController = Controller::curr();
+
+        $request = new HTTPRequest('GET', '/');
+        $request->setSession(new Session([]));
+
+        $controller = Controller::create();
+        $controller->setRequest($request);
+        $controller->pushCurrent();
+
+        try {
+            $handler = new SolrReindexImmediateHandler();
+            $handler->executeBuiltTask(SolrTasksTest_ContextTask::class);
+
+            $this->assertSame(
+                $controller,
+                SolrTasksTest_ContextTask::$observedController
+            );
+            $this->assertTrue(SolrTasksTest_ContextTask::$observedSession);
+            $this->assertSame($controller, Controller::curr());
+        } finally {
+            if (Controller::curr() === $controller) {
+                $controller->popCurrent();
+            }
+
+            SolrTasksTest_ContextTask::reset();
+        }
+
+        // The pre-existing PHPUnit controller should now be current again.
+        $this->assertSame($originalController, Controller::curr());
+    }
+
+    /**
+     * Test cleanup when the task throws
+     */
+    public function testExecuteBuiltTaskRemovesControllerWhenTaskThrows(): void
+    {
+        SolrTasksTest_ContextTask::reset();
+        SolrTasksTest_ContextTask::$throwException = true;
+
+        $originalController = Controller::curr();
+
+        if ($originalController) {
+            $originalController->popCurrent();
+        }
+
+        try {
+            $handler = new SolrReindexImmediateHandler();
+            $exception = null;
+
+            try {
+                $handler->executeBuiltTask(SolrTasksTest_ContextTask::class);
+            } catch (RuntimeException $caught) {
+                $exception = $caught;
+            }
+
+            $this->assertInstanceOf(RuntimeException::class, $exception);
+            $this->assertSame('Context task exception', $exception->getMessage());
+
+            // The temporary controller was removed despite the exception.
+            $this->assertNull(Controller::curr());
+        } finally {
+            $unexpectedController = Controller::curr();
+
+            if ($unexpectedController) {
+                $unexpectedController->popCurrent();
+            }
+
+            if ($originalController) {
+                $originalController->pushCurrent();
+            }
+
+            SolrTasksTest_ContextTask::reset();
+        }
+
+        $this->assertSame($originalController, Controller::curr());
     }
 
     public function testUnknownTaskNameThrows()
