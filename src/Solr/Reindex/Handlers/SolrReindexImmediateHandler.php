@@ -6,7 +6,10 @@ use InvalidArgumentException;
 use LogicException;
 use Override;
 use ReflectionClass;
+use SilverStripe\Control\Controller;
 use SilverStripe\Control\Director;
+use SilverStripe\Control\HTTPRequest;
+use SilverStripe\Control\Session;
 use SilverStripe\Core\ClassInfo;
 use SilverStripe\Dev\BuildTask;
 use SilverStripe\FullTextSearch\Solr\Solr;
@@ -114,7 +117,32 @@ class SolrReindexImmediateHandler extends SolrReindexBase
         $input->setInteractive(false);
         $buffer = new BufferedOutput();
         $output = new PolyOutput(PolyOutput::FORMAT_ANSI, wrappedOutput: $buffer);
-        $task->run($input, $output);
+
+        // Add controller context
+        $temporaryController = null;
+
+        $currentController = Controller::curr();
+        $hasUsableContext = $currentController && $currentController->getRequest()->hasSession();
+
+        // Only create a controller when one is missing
+        if (!$hasUsableContext) {
+            $request = new HTTPRequest('GET', '');
+            // Session required by protected assets.
+            $request->setSession(new Session([]));
+
+            $temporaryController = Controller::create();
+            $temporaryController->setRequest($request);
+            $temporaryController->pushCurrent();
+        }
+
+        try {
+            $task->run($input, $output);
+        } finally {
+            // Make sure to remove the temporaryController from the controller stack
+            if ($temporaryController) {
+                $temporaryController->popCurrent();
+            }
+        }
 
         if ($returnOutput) {
             return $buffer->fetch();
