@@ -8,7 +8,7 @@ on:
 jobs:
   ci:
     name: CI
-    uses: silverstripe/gha-ci/.github/workflows/ci.yml@v1
+    uses: silverstripe/gha-ci/.github/workflows/ci.yml@v2
     with:
       extra_jobs: |
         - name_suffix: subsites
