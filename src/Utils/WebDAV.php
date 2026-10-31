@@ -28,7 +28,7 @@ class WebDAV
 
         $err = curl_error($ch);
 
-        curl_close($ch);
+        unset($ch);
 
         if ($code == 404) {
             return false;
@@ -37,7 +37,7 @@ class WebDAV
             return true;
         }
 
-        user_error("Got error from webdav server - " . $err, E_USER_ERROR);
+        throw new \RuntimeException("Got error from WebDAV server - " . $err);
     }
 
     public static function mkdir($url)
@@ -46,7 +46,7 @@ class WebDAV
 
         curl_exec($ch);
         $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+        unset($ch);
 
         return $code == 201;
     }
@@ -57,14 +57,12 @@ class WebDAV
         curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
 
         curl_setopt($ch, CURLOPT_PUT, true);
-        curl_setopt($ch, CURLOPT_BINARYTRANSFER, true);
-
         curl_setopt($ch, CURLOPT_INFILE, $handle);
 
         curl_exec($ch);
         fclose($handle);
         $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+        unset($ch);
 
         return $code;
     }
